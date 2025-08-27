@@ -70,6 +70,13 @@ const MainContent = ({ onMovieClick }) => {
     }
   };
 
+  const handleMovieKeyDown = useCallback((e, movie) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleMovieClick(movie);
+    }
+  }, []);
+
   // 더 많은 영화 로드
   const loadMoreMovies = useCallback(() => {
     if (isLoadingMoreRef.current) return;
@@ -180,7 +187,11 @@ const MainContent = ({ onMovieClick }) => {
             <div 
               key={movie.id} 
               className="movie-card"
+              role="button"
+              tabIndex={0}
+              aria-label={`${movie.title} 상세 보기`}
               onClick={() => handleMovieClick(movie)}
+              onKeyDown={(e) => handleMovieKeyDown(e, movie)}
             >
               <div className="movie-poster">
                 {movie.posterUrl ? (
