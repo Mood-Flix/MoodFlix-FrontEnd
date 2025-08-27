@@ -161,8 +161,18 @@ const MainContent = ({ onMovieClick }) => {
           <div className="featured-content">
             <div className="featured-text">
               <h1 className="featured-title">
-                <span className="title-part-1">{featuredMovie.title.split(' ')[0]}</span>
-                <span className="title-part-2">{featuredMovie.title.split(' ')[1]}</span>
+                {(() => {
+                  const t = featuredMovie.title || '';
+                  const i = t.indexOf(' ');
+                  const first = i !== -1 ? t.slice(0, i) : t;
+                  const rest = i !== -1 ? t.slice(i + 1) : '';
+                  return (
+                    <>
+                      <span className="title-part-1">{first}</span>
+                      {rest && <span className="title-part-2">{rest}</span>}
+                    </>
+                  );
+                })()}
               </h1>
               <p className="featured-subtitle">{featuredMovie.subtitle}</p>
               {featuredMovie.description && (
