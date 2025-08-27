@@ -209,6 +209,22 @@ const MovieDetail = ({ movie, onBack }) => {
                 </div>
                 <span className="clip-title">프로모션 영상</span>
               </div>
+              <div className="clip-item">
+                <div className="clip-thumbnail">
+                  <div className="play-overlay">
+                    <FaPlay />
+                  </div>
+                </div>
+                <span className="clip-title">스페셜 영상</span>
+              </div>
+              <div className="clip-item">
+                <div className="clip-thumbnail">
+                  <div className="play-overlay">
+                    <FaPlay />
+                  </div>
+                </div>
+                <span className="clip-title">메이킹 영상</span>
+              </div>
             </div>
           </div>
         );
@@ -229,6 +245,10 @@ const MovieDetail = ({ movie, onBack }) => {
               <div className="photo-item">
                 <div className="photo-placeholder"></div>
                 <span className="photo-caption">스틸컷 2</span>
+              </div>
+              <div className="photo-item">
+                <div className="photo-placeholder"></div>
+                <span className="photo-caption">스틸컷 3</span>
               </div>
             </div>
           </div>

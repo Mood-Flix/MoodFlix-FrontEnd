@@ -44,24 +44,6 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
       const mockRecommendations = [
         {
           id: 1,
-          title: '극장판 귀멸의 칼날: 무한성편',
-          genre: '애니메이션',
-          year: 2025,
-          description: '가족을 잃고 귀살대에 입단한 카마도 탄지로의 새로운 임무와 무한열차에서 펼쳐지는 이야기.',
-          poster: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg',
-          status: '상영중',
-          country: '일본',
-          duration: '155분',
-          releaseDate: '2025.08.22.',
-          originalWork: '만화',
-          synopsis: '가족을 잃고 귀살대에 입단한 카마도 탄지로. 여동생 네즈코를 인간으로 되돌리고 가족의 원수를 갚기 위해 싸우는 탄지로에게 새로운 임무가 주어진다. 아가츠마 젠이츠, 하시비라 이노스케와 함께 무한열차에 탑승한 탄지로는 열차 안에서 일어나는 의문의 사건들을 조사하게 되는데...',
-          rank: '1위',
-          audienceCount: '186만명',
-          audienceRating: '9.18',
-          netizenRating: '9.23'
-        },
-        {
-          id: 2,
           title: '인터스텔라',
           genre: 'SF/드라마',
           year: 2014,
@@ -73,13 +55,13 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
           releaseDate: '2014.11.06.',
           originalWork: '오리지널',
           synopsis: '지구의 마지막 희망을 찾아 우주로 떠나는 탐사대의 이야기. 시간과 공간을 넘나드는 거대한 모험을 통해 인간의 본질과 사랑의 의미를 탐구한다.',
-          rank: '2위',
+          rank: '1위',
           audienceCount: '1034만명',
           audienceRating: '9.12',
           netizenRating: '8.95'
         },
         {
-          id: 3,
+          id: 2,
           title: '라라랜드',
           genre: '뮤지컬/로맨스',
           year: 2016,
@@ -91,13 +73,13 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
           releaseDate: '2016.12.07.',
           originalWork: '오리지널',
           synopsis: '배우가 되고 싶은 미아와 재즈 피아니스트가 되고 싶은 세바스찬의 로맨틱한 이야기. LA의 아름다운 배경에서 펼쳐지는 음악과 춤, 사랑의 향연.',
-          rank: '3위',
+          rank: '2위',
           audienceCount: '356만명',
           audienceRating: '8.87',
           netizenRating: '8.76'
         },
         {
-          id: 4,
+          id: 3,
           title: '토이스토리4',
           genre: '애니메이션/가족',
           year: 2019,
@@ -109,13 +91,13 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
           releaseDate: '2019.06.20.',
           originalWork: '오리지널',
           synopsis: '우디와 친구들이 새로운 모험을 떠나는 이야기. 장난감들의 우정과 성장을 그린 따뜻한 가족 애니메이션.',
-          rank: '4위',
+          rank: '3위',
           audienceCount: '289만명',
           audienceRating: '8.45',
           netizenRating: '8.32'
         },
         {
-          id: 5,
+          id: 4,
           title: '스파이더맨: 노 웨이 홈',
           genre: '액션/어드벤처',
           year: 2021,
@@ -127,7 +109,7 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
           releaseDate: '2021.12.15.',
           originalWork: '만화',
           synopsis: '멀티버스가 열리며 세 명의 스파이더맨이 만나는 이야기. 페터 파커의 운명을 바꾸는 거대한 모험이 시작된다.',
-          rank: '5위',
+          rank: '4위',
           audienceCount: '802만명',
           audienceRating: '9.01',
           netizenRating: '8.89'
