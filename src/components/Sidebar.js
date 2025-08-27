@@ -13,25 +13,37 @@ const Sidebar = ({ onPlusClick, onHomeClick, currentView }) => {
         />
       </div>
       <div className="nav-icons">
-        <button 
-          className={`nav-button ${currentView === 'main' ? 'active' : ''}`} 
+        <button
+          type="button"
+          className={`nav-button ${currentView === 'main' ? 'active' : ''}`}
           aria-label="홈으로 이동"
+          aria-pressed={currentView === 'main'}
           onClick={onHomeClick}
         >
-          <FaHome className="nav-icon" />
-        </button>
-        <button className="nav-button" aria-label="검색">
-          <FaSearch className="nav-icon" />
+          <FaHome className="nav-icon" aria-hidden="true" />
         </button>
         <button 
+          type="button"
+          className="nav-button" 
+          aria-label="검색"
+        >
+          <FaSearch className="nav-icon" aria-hidden="true" />
+        </button>
+        <button 
+          type="button"
           className={`nav-button ${currentView === 'recommendation' ? 'active' : ''}`}
           aria-label="영화 추천"
+          aria-pressed={currentView === 'recommendation'}
           onClick={onPlusClick}
         >
-          <FaPlus className="nav-icon" />
+          <FaPlus className="nav-icon" aria-hidden="true" />
         </button>
-        <button className="nav-button" aria-label="캘린더">
-          <FaCalendar className="nav-icon" />
+        <button 
+          type="button"
+          className="nav-button" 
+          aria-label="캘린더"
+        >
+          <FaCalendar className="nav-icon" aria-hidden="true" />
         </button>
       </div>
     </nav>
