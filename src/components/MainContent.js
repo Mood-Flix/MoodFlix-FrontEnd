@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMovies } from '../hooks/useMovies';
 import { getMovieTrailer } from '../services/movieService';
 import './MainContent.css';
@@ -17,6 +17,7 @@ const MainContent = ({ onMovieClick }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const moviesPerPage = 12; // 한 번에 보여줄 영화 수
+  const isLoadingMoreRef = useRef(false);
 
   // 예고편 보기 버튼 클릭 핸들러
   const handleTrailerClick = async () => {
@@ -50,6 +51,26 @@ const MainContent = ({ onMovieClick }) => {
     }
   };
 
+  // 더 많은 영화 로드
+  const loadMoreMovies = useCallback(() => {
+    if (isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+
+    setDisplayedMovies(prev => {
+      const startIndex = prev.length;
+      const endIndex = startIndex + moviesPerPage;
+      const newMovies = newReleases.slice(startIndex, endIndex);
+      if (newMovies.length === 0) {
+        setHasMore(false);
+        isLoadingMoreRef.current = false;
+        return prev;
+      }
+      isLoadingMoreRef.current = false;
+      return [...prev, ...newMovies];
+    });
+    setCurrentPage(prev => prev + 1);
+  }, [newReleases, moviesPerPage]);
+
   // 무한 스크롤 핸들러
   const handleScroll = useCallback(() => {
     if (loading || !hasMore) return;
@@ -62,21 +83,7 @@ const MainContent = ({ onMovieClick }) => {
     if (scrollTop + windowHeight >= documentHeight - 100) {
       loadMoreMovies();
     }
-  }, [loading, hasMore]);
-
-  // 더 많은 영화 로드
-  const loadMoreMovies = () => {
-    const startIndex = (currentPage - 1) * moviesPerPage;
-    const endIndex = startIndex + moviesPerPage;
-    const newMovies = newReleases.slice(startIndex, endIndex);
-
-    if (newMovies.length > 0) {
-      setDisplayedMovies(prev => [...prev, ...newMovies]);
-      setCurrentPage(prev => prev + 1);
-    } else {
-      setHasMore(false);
-    }
-  };
+  }, [loading, hasMore, loadMoreMovies]);
 
   // 초기 영화 로드 및 스크롤 이벤트 리스너
   useEffect(() => {
