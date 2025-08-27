@@ -24,16 +24,22 @@ const MainContent = ({ onMovieClick }) => {
     
     try {
       const trailerData = await getMovieTrailer(featuredMovie.id);
-      if (trailerData.trailerUrl) {
-        window.open(trailerData.trailerUrl, '_blank');
+      const url = trailerData.trailerUrl || featuredMovie.trailerUrl;
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
       } else {
-        // 예고편이 없을 경우 기본 URL 사용
-        window.open(featuredMovie.trailerUrl || '#', '_blank');
+        console.warn('예고편 URL 없음');
+        // TODO: 토스트/알림 컴포넌트로 안내 메시지 표시
+        alert('이 영화의 예고편을 찾을 수 없습니다.');
       }
     } catch (err) {
       console.error('예고편 로딩 실패:', err);
-      // 에러 시 기본 URL 사용
-      window.open(featuredMovie.trailerUrl || '#', '_blank');
+      const fallback = featuredMovie.trailerUrl;
+      if (fallback) {
+        window.open(fallback, '_blank', 'noopener,noreferrer');
+      } else {
+        alert('예고편을 불러오는 중 오류가 발생했습니다.');
+      }
     }
   };
 
