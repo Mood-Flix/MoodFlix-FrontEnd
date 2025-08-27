@@ -14,10 +14,10 @@ const MainContent = ({ onMovieClick }) => {
 
   // 무한 스크롤을 위한 상태
   const [displayedMovies, setDisplayedMovies] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const moviesPerPage = 12; // 한 번에 보여줄 영화 수
   const isLoadingMoreRef = useRef(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // 예고편 보기 버튼 클릭 핸들러
   const handleTrailerClick = async () => {
@@ -55,6 +55,7 @@ const MainContent = ({ onMovieClick }) => {
   const loadMoreMovies = useCallback(() => {
     if (isLoadingMoreRef.current) return;
     isLoadingMoreRef.current = true;
+    setLoadingMore(true);
 
     setDisplayedMovies(prev => {
       const startIndex = prev.length;
@@ -63,17 +64,18 @@ const MainContent = ({ onMovieClick }) => {
       if (newMovies.length === 0) {
         setHasMore(false);
         isLoadingMoreRef.current = false;
+        setLoadingMore(false);
         return prev;
       }
       isLoadingMoreRef.current = false;
+      setLoadingMore(false);
       return [...prev, ...newMovies];
     });
-    setCurrentPage(prev => prev + 1);
   }, [newReleases, moviesPerPage]);
 
   // 무한 스크롤 핸들러
   const handleScroll = useCallback(() => {
-    if (loading || !hasMore) return;
+    if (loading || loadingMore || !hasMore) return;
 
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const windowHeight = window.innerHeight;
@@ -83,14 +85,13 @@ const MainContent = ({ onMovieClick }) => {
     if (scrollTop + windowHeight >= documentHeight - 100) {
       loadMoreMovies();
     }
-  }, [loading, hasMore, loadMoreMovies]);
+  }, [loading, loadingMore, hasMore, loadMoreMovies]);
 
   // 초기 영화 로드 및 스크롤 이벤트 리스너
   useEffect(() => {
     if (newReleases.length > 0) {
       const initialMovies = newReleases.slice(0, moviesPerPage);
       setDisplayedMovies(initialMovies);
-      setCurrentPage(2);
       setHasMore(newReleases.length > moviesPerPage);
     }
   }, [newReleases]);
@@ -190,7 +191,7 @@ const MainContent = ({ onMovieClick }) => {
         </div>
         
         {/* 로딩 인디케이터 */}
-        {loading && hasMore && (
+        {loadingMore && hasMore && (
           <div className="loading-more">
             <div className="loading-spinner-small"></div>
             <p>더 많은 영화를 불러오는 중...</p>
