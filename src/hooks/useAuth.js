@@ -7,36 +7,63 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 초기 인증 상태 확인
+  // 초기 인증 상태 확인 - 로그인 없이도 앱 사용 가능하도록 수정
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         setIsLoading(true);
         
+        // 토큰이 있고 유효한 경우에만 인증 상태로 설정
         if (isTokenValid()) {
-          // 토큰이 유효하면 사용자 프로필 조회
-          const userProfile = await getUserProfile();
-          setUser(userProfile);
-          setIsAuthenticated(true);
-        } else {
-          // 토큰이 유효하지 않으면 리프레시 토큰으로 갱신 시도
-         try {
-            const refreshed = await refreshToken();
-            if (refreshed?.accessToken) {
-              const userProfile = await getUserProfile();
-              setUser(userProfile);
-              setIsAuthenticated(true);
-            } else {
+          try {
+            const userProfile = await getUserProfile();
+            setUser(userProfile);
+            setIsAuthenticated(true);
+          } catch (error) {
+            // 프로필 조회 실패 시 토큰 갱신 시도
+            try {
+              const refreshed = await refreshToken();
+              if (refreshed?.accessToken) {
+                const userProfile = await getUserProfile();
+                setUser(userProfile);
+                setIsAuthenticated(true);
+              } else {
+                // 토큰 갱신 실패 시 게스트 모드로 설정
+                setUser(null);
+                setIsAuthenticated(false);
+              }
+            } catch (_) {
+              // 모든 인증 시도 실패 시 게스트 모드로 설정
               setUser(null);
               setIsAuthenticated(false);
-           }
-         } catch (_) {
-           setUser(null);
-           setIsAuthenticated(false);
-         }
+            }
+          }
+        } else {
+          // 토큰이 없거나 유효하지 않은 경우: refreshToken이 있으면 갱신 시도
+          const hasRefresh = !!localStorage.getItem('refreshToken');
+          if (hasRefresh) {
+            try {
+              const refreshed = await refreshToken();
+              if (refreshed?.accessToken) {
+                const userProfile = await getUserProfile();
+                setUser(userProfile);
+                setIsAuthenticated(true);
+              } else {
+                setUser(null);
+                setIsAuthenticated(false);
+              }
+            } catch (_) {
+              setUser(null);
+              setIsAuthenticated(false);
+            }
+          } else {
+            setUser(null);
+            setIsAuthenticated(false);
+          }
         }
       } catch (error) {
         console.error('인증 상태 확인 실패:', error);
+        // 에러 발생 시에도 게스트 모드로 설정하여 앱 사용 가능
         setUser(null);
         setIsAuthenticated(false);
       } finally {

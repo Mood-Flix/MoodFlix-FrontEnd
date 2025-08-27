@@ -15,7 +15,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #282a36;
+  background-color: #1a1a1a;
   color: white;
   line-height: 1.5;
   color-scheme: dark;
@@ -26,14 +26,15 @@ body {
 
 /* 기존 스타일 유지 */
 .app {
-  text-align: center;
+  display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #1a1a1a;
   color: white;
 }
 
 .app.home-view {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* keep parent flex layout; remove override */
 }
 
 /* 로딩 스타일 */

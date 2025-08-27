@@ -34,9 +34,8 @@ const HomeScreen = ({ onStart }) => {
   };
 
   const handleStartApp = () => {
-    if (isAuthenticated) {
-      onStart();
-    }
+    // 로그인 상태와 관계없이 앱 시작 가능
+    onStart();
   };
 
   // 로딩 중일 때 표시
@@ -90,6 +89,19 @@ const HomeScreen = ({ onStart }) => {
             <p className="login-description">
               카카오 계정으로 간편하게 로그인하고 개인화된 영화 추천을 받아보세요
             </p>
+            {/* 로그인 없이 시작하기 버튼 추가 */}
+            <div className="guest-login-section">
+              <button 
+                className="guest-start-button"
+                onClick={handleStartApp}
+                aria-label="로그인 없이 MoodFlix 시작하기"
+              >
+                로그인 없이 시작하기
+              </button>
+              <p className="guest-description">
+                로그인 없이도 영화 추천 기능을 이용할 수 있습니다
+              </p>
+            </div>
           </div>
         ) : (
           <div className="user-section">
