@@ -33,7 +33,10 @@ export const getFeaturedMovies = async () => {
     return handleApiResponse(response);
   } catch (error) {
     console.error('피처드 영화 로딩 실패:', error);
-    // 에러 시 기본 데이터 반환
+    // 개발 환경에서만 폴백 데이터 반환
+    if (process.env.NODE_ENV !== 'development') {
+      throw error;
+    }
     return {
       featured: {
         id: 1,
@@ -67,7 +70,10 @@ export const getNewReleases = async () => {
     return handleApiResponse(response);
   } catch (error) {
     console.error('신작 영화 로딩 실패:', error);
-    // 에러 시 기본 데이터 반환
+    // 개발 환경에서만 폴백 데이터 반환
+    if (process.env.NODE_ENV !== 'development') {
+      throw error;
+    }
     return {
       movies: [
         { 
