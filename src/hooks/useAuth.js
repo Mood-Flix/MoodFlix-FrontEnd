@@ -39,9 +39,27 @@ export const useAuth = () => {
             }
           }
         } else {
-          // 토큰이 없거나 유효하지 않은 경우 게스트 모드로 설정
-          setUser(null);
-          setIsAuthenticated(false);
+          // 토큰이 없거나 유효하지 않은 경우: refreshToken이 있으면 갱신 시도
+          const hasRefresh = !!localStorage.getItem('refreshToken');
+          if (hasRefresh) {
+            try {
+              const refreshed = await refreshToken();
+              if (refreshed?.accessToken) {
+                const userProfile = await getUserProfile();
+                setUser(userProfile);
+                setIsAuthenticated(true);
+              } else {
+                setUser(null);
+                setIsAuthenticated(false);
+              }
+            } catch (_) {
+              setUser(null);
+              setIsAuthenticated(false);
+            }
+          } else {
+            setUser(null);
+            setIsAuthenticated(false);
+          }
         }
       } catch (error) {
         console.error('인증 상태 확인 실패:', error);
