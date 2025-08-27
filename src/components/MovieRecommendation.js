@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaArrowLeft, FaSmile, FaSadTear, FaGrinTongue, FaPeace, FaHeart, FaTired } from 'react-icons/fa';
 import './MovieRecommendation.css';
 
-const MovieRecommendation = ({ onBack }) => {
+const MovieRecommendation = ({ onBack, onMovieClick }) => {
   const [selectedMood, setSelectedMood] = useState('');
   const [customMood, setCustomMood] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,43 +44,93 @@ const MovieRecommendation = ({ onBack }) => {
       const mockRecommendations = [
         {
           id: 1,
+          title: '극장판 귀멸의 칼날: 무한성편',
+          genre: '애니메이션',
+          year: 2025,
+          description: '가족을 잃고 귀살대에 입단한 카마도 탄지로의 새로운 임무와 무한열차에서 펼쳐지는 이야기.',
+          poster: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg',
+          status: '상영중',
+          country: '일본',
+          duration: '155분',
+          releaseDate: '2025.08.22.',
+          originalWork: '만화',
+          synopsis: '가족을 잃고 귀살대에 입단한 카마도 탄지로. 여동생 네즈코를 인간으로 되돌리고 가족의 원수를 갚기 위해 싸우는 탄지로에게 새로운 임무가 주어진다. 아가츠마 젠이츠, 하시비라 이노스케와 함께 무한열차에 탑승한 탄지로는 열차 안에서 일어나는 의문의 사건들을 조사하게 되는데...',
+          rank: '1위',
+          audienceCount: '186만명',
+          audienceRating: '9.18',
+          netizenRating: '9.23'
+        },
+        {
+          id: 2,
           title: '인터스텔라',
           genre: 'SF/드라마',
           year: 2014,
           description: '우주를 배경으로 한 감동적인 드라마로, 시간과 사랑에 대한 깊이 있는 메시지를 담고 있습니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg'
+          poster: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+          status: '상영종료',
+          country: '미국',
+          duration: '169분',
+          releaseDate: '2014.11.06.',
+          originalWork: '오리지널',
+          synopsis: '지구의 마지막 희망을 찾아 우주로 떠나는 탐사대의 이야기. 시간과 공간을 넘나드는 거대한 모험을 통해 인간의 본질과 사랑의 의미를 탐구한다.',
+          rank: '2위',
+          audienceCount: '1034만명',
+          audienceRating: '9.12',
+          netizenRating: '8.95'
         },
         {
-          id: 2,
+          id: 3,
           title: '라라랜드',
           genre: '뮤지컬/로맨스',
           year: 2016,
           description: '음악과 사랑이 만나는 아름다운 이야기로, 꿈과 현실 사이의 균형을 다룹니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg'
+          poster: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg',
+          status: '상영종료',
+          country: '미국',
+          duration: '128분',
+          releaseDate: '2016.12.07.',
+          originalWork: '오리지널',
+          synopsis: '배우가 되고 싶은 미아와 재즈 피아니스트가 되고 싶은 세바스찬의 로맨틱한 이야기. LA의 아름다운 배경에서 펼쳐지는 음악과 춤, 사랑의 향연.',
+          rank: '3위',
+          audienceCount: '356만명',
+          audienceRating: '8.87',
+          netizenRating: '8.76'
         },
         {
-          id: 3,
+          id: 4,
           title: '토이스토리4',
           genre: '애니메이션/가족',
           year: 2019,
           description: '장난감들의 새로운 모험을 그린 따뜻하고 재미있는 애니메이션입니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg'
+          poster: 'https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg',
+          status: '상영종료',
+          country: '미국',
+          duration: '100분',
+          releaseDate: '2019.06.20.',
+          originalWork: '오리지널',
+          synopsis: '우디와 친구들이 새로운 모험을 떠나는 이야기. 장난감들의 우정과 성장을 그린 따뜻한 가족 애니메이션.',
+          rank: '4위',
+          audienceCount: '289만명',
+          audienceRating: '8.45',
+          netizenRating: '8.32'
         },
         {
-          id: 4,
+          id: 5,
           title: '스파이더맨: 노 웨이 홈',
           genre: '액션/어드벤처',
           year: 2021,
           description: '멀티버스가 열리며 페터 파커의 운명이 바뀌는 스릴 넘치는 액션 영화입니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg'
-        },
-        {
-          id: 5,
-          title: '듄',
-          genre: 'SF/어드벤처',
-          year: 2021,
-          description: '사막 행성 아라키스에서 펼쳐지는 거대한 우주 서사시입니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg'
+          poster: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg',
+          status: '상영종료',
+          country: '미국',
+          duration: '148분',
+          releaseDate: '2021.12.15.',
+          originalWork: '만화',
+          synopsis: '멀티버스가 열리며 세 명의 스파이더맨이 만나는 이야기. 페터 파커의 운명을 바꾸는 거대한 모험이 시작된다.',
+          rank: '5위',
+          audienceCount: '802만명',
+          audienceRating: '9.01',
+          netizenRating: '8.89'
         }
       ];
 
@@ -117,7 +167,7 @@ const MovieRecommendation = ({ onBack }) => {
 
             <div className="recommendations-list">
               {recommendations.map((movie) => (
-                <div key={movie.id} className="movie-card">
+                <div key={movie.id} className="movie-card" onClick={() => onMovieClick(movie)}>
                   <div className="movie-poster-container">
                     <img 
                       src={movie.poster} 

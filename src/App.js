@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import HomeScreen from './components/HomeScreen';
 import MovieRecommendation from './components/MovieRecommendation';
+import MovieDetail from './components/MovieDetail';
 import { useMood } from './hooks/useMood';
 import { useAuth } from './hooks/useAuth';
 
@@ -15,7 +16,9 @@ function App() {
     handleGoHome
   } = useMood();
   
-  const [currentView, setCurrentView] = useState('main'); // 'main' 또는 'recommendation'
+  const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'detail'
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [previousView, setPreviousView] = useState('main');
 
   // 로딩 중일 때 표시
   if (isLoading) {
@@ -39,6 +42,17 @@ function App() {
     setCurrentView('main');
   };
 
+  const handleMovieClick = (movie) => {
+    setPreviousView(currentView);
+    setSelectedMovie(movie);
+    setCurrentView('detail');
+  };
+
+  const handleBackFromDetail = () => {
+    setCurrentView(previousView);
+    setSelectedMovie(null);
+  };
+
   return (
     <div className={`app ${showHome ? 'home-view' : ''}`}>
       {showHome ? (
@@ -51,9 +65,11 @@ function App() {
             currentView={currentView}
           />
           {currentView === 'main' ? (
-            <MainContent />
+            <MainContent onMovieClick={handleMovieClick} />
+          ) : currentView === 'recommendation' ? (
+            <MovieRecommendation onBack={handleBackToMain} onMovieClick={handleMovieClick} />
           ) : (
-            <MovieRecommendation onBack={handleBackToMain} />
+            <MovieDetail movie={selectedMovie} onBack={handleBackFromDetail} />
           )}
         </>
       )}

@@ -3,7 +3,7 @@ import { useMovies } from '../hooks/useMovies';
 import { getMovieTrailer } from '../services/movieService';
 import './MainContent.css';
 
-const MainContent = () => {
+const MainContent = ({ onMovieClick }) => {
   const { 
     featuredMovie, 
     newReleases, 
@@ -38,10 +38,10 @@ const MainContent = () => {
   };
 
   // 영화 카드 클릭 핸들러
-  const handleMovieClick = (movieId) => {
-    // 영화 상세 페이지로 이동 (라우팅 구현 시 사용)
-    console.log('영화 클릭:', movieId);
-    // 예시: navigate(`/movie/${movieId}`);
+  const handleMovieClick = (movie) => {
+    if (onMovieClick) {
+      onMovieClick(movie);
+    }
   };
 
   // 무한 스크롤 핸들러
@@ -147,7 +147,7 @@ const MainContent = () => {
             <div 
               key={movie.id} 
               className="movie-card"
-              onClick={() => handleMovieClick(movie.id)}
+              onClick={() => handleMovieClick(movie)}
             >
               <div className="movie-poster">
                 {movie.posterUrl ? (
