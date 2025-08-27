@@ -34,7 +34,7 @@ body {
 
 .app.home-view {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: block;
+  /* keep parent flex layout; remove override */
 }
 
 /* 로딩 스타일 */
