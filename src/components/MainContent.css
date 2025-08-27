@@ -17,11 +17,11 @@
   gap: 20px;
 }
 
-.loading-spinner {
+.main-content .loading-spinner {
   width: 60px;
   height: 60px;
   border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top: 5px solid #ff4444;
+  border-top: 5px solid var(--accent-color, #ff4444);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -262,11 +262,11 @@
   gap: 15px;
 }
 
-.loading-spinner-small {
+.main-content .loading-spinner-small {
   width: 40px;
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid #ff4444;
+  border-top: 3px solid var(--accent-color, #ff4444);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
