@@ -1,5 +1,5 @@
 #!/bin/sh
 cd ../
 mkdir output
-cp -R ./[MoodFlix00]/* ./output
-cp -R ./output ./[MoodFlix00]/
+cp -R ./[MoodFlix-FrontEnd]/* ./output
+cp -R ./output ./[MoodFlix-FrontEnd]/
