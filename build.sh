@@ -1,3 +1,4 @@
 #!/bin/sh
 mkdir -p output
-rsync -av --exclude='output' ./ ./output/
+cp -R * ./output/
+rm -rf ./output/output
