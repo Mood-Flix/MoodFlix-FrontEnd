@@ -19,6 +19,16 @@ const MainContent = ({ onMovieClick }) => {
   const isLoadingMoreRef = useRef(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // URL 안전성 검증 함수
+  const isSafeHttpUrl = (url) => {
+    try {
+      const parsed = new URL(url, window.location.origin);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   // 예고편 보기 버튼 클릭 핸들러
   const handleTrailerClick = async () => {
     if (!featuredMovie) return;
@@ -27,7 +37,12 @@ const MainContent = ({ onMovieClick }) => {
       const trailerData = await getMovieTrailer(featuredMovie.id);
       const url = trailerData.trailerUrl || featuredMovie.trailerUrl;
       if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer');
+        if (isSafeHttpUrl(url)) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+          console.warn('Unsafe trailer URL blocked:', url);
+          alert('안전하지 않은 예고편 링크가 감지되어 열지 않았습니다.');
+        }
       } else {
         console.warn('예고편 URL 없음');
         // TODO: 토스트/알림 컴포넌트로 안내 메시지 표시
@@ -37,7 +52,11 @@ const MainContent = ({ onMovieClick }) => {
       console.error('예고편 로딩 실패:', err);
       const fallback = featuredMovie.trailerUrl;
       if (fallback) {
-        window.open(fallback, '_blank', 'noopener,noreferrer');
+        if (isSafeHttpUrl(fallback)) {
+          window.open(fallback, '_blank', 'noopener,noreferrer');
+        } else {
+          console.warn('Unsafe fallback URL blocked:', fallback);
+        }
       } else {
         alert('예고편을 불러오는 중 오류가 발생했습니다.');
       }
