@@ -15,6 +15,12 @@ export const API_ENDPOINTS = {
   // 영화 추천 관련
   MOVIE_RECOMMENDATIONS: '/api/movies/recommendations',
   MOVIE_SEARCH: '/api/movies/search',
+  
+  // 메인 페이지 영화 관련
+  FEATURED_MOVIES: '/api/movies/featured',
+  NEW_RELEASES: '/api/movies/new-releases',
+  MOVIE_DETAILS: '/api/movies',
+  MOVIE_TRAILER: '/api/movies/trailer',
 };
 
 // HTTP 헤더 설정

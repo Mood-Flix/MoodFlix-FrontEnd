@@ -4,47 +4,71 @@
 }
 
 .sidebar {
-  width: 80px;
-  background-color: #1a1a1a;
+  width: 120px;
+  background-color: #0f0f0f;
   display: flex;
   flex-direction: column;
   align-items: center;
   border-right: 1px solid #333;
+  padding: 20px 0;
 }
 
 .logo-section {
-  padding: 20px 0;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 .logo-image {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   max-width: 100%;
   object-fit: contain;
   border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
 }
 
 .nav-icons {
   display: flex;
   flex-direction: column;
   gap: 30px;
+  flex: 1;
 }
 
 .nav-button {
   background: none;
   border: none;
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .nav-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-button.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-button.active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background-color: #ff4444;
+  border-radius: 2px;
 }
 
 .nav-button:focus-visible {
@@ -54,42 +78,68 @@
 }
 
 .nav-icon {
-  font-size: 24px;
-  color: white;
+  font-size: 20px;
+  color: #cccccc;
   transition: color 0.3s ease;
 }
 
 .nav-button:hover .nav-icon {
-  color: var(--accent-color);
+  color: white;
+}
+
+.nav-button.active .nav-icon {
+  color: white;
 }
 
 .nav-button:focus-visible .nav-icon {
-  color: var(--accent-color);
+  color: white;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .sidebar {
-    width: 60px;
+    width: 80px;
+    padding: 15px 0;
   }
   
   .logo-image {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .nav-icons {
+    gap: 25px;
+  }
+  
+  .nav-button {
+    padding: 10px;
+  }
+  
+  .nav-icon {
+    font-size: 18px;
   }
 }
 
 @media (max-width: 480px) {
   .sidebar {
-    width: 50px;
+    width: 60px;
+    padding: 10px 0;
   }
   
   .logo-image {
-    width: 35px;
-    height: 35px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .nav-icons {
+    gap: 20px;
+  }
+  
+  .nav-button {
+    padding: 8px;
   }
   
   .nav-icon {
-    font-size: 20px;
+    font-size: 16px;
   }
 }

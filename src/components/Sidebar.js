@@ -6,10 +6,14 @@ const Sidebar = () => {
   return (
     <nav className="sidebar">
       <div className="logo-section">
-        <img src="/MoodFlix (Logo).png" alt="MoodFlix Logo" className="logo-image" />
+        <img 
+          src="/MoodFlix (Logo).png" 
+          alt="MoodFlix Logo" 
+          className="logo-image"
+        />
       </div>
       <div className="nav-icons">
-        <button className="nav-button" aria-label="홈으로 이동">
+        <button className="nav-button active" aria-label="홈으로 이동">
           <FaHome className="nav-icon" />
         </button>
         <button className="nav-button" aria-label="검색">

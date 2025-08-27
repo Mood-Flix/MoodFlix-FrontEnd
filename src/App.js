@@ -9,13 +9,7 @@ import { useAuth } from './hooks/useAuth';
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
   const {
-    selectedMood,
-    moodDescription,
-    canRecommend,
     showHome,
-    handleMoodSelect,
-    handleMoodDescriptionChange,
-    handleGetRecommendations,
     handleStartApp,
     handleGoHome
   } = useMood();
@@ -37,15 +31,7 @@ function App() {
       ) : (
         <>
           <Sidebar />
-          <MainContent 
-            selectedMood={selectedMood}
-            moodDescription={moodDescription}
-            canRecommend={canRecommend}
-            onMoodSelect={handleMoodSelect}
-            onMoodDescriptionChange={handleMoodDescriptionChange}
-            onGetRecommendations={handleGetRecommendations}
-            onGoHome={handleGoHome}
-          />
+          <MainContent />
         </>
       )}
     </div>
