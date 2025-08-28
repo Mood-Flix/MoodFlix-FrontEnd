@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Profile.css';
 import { useAuth } from '../hooks/useAuth';
 
@@ -7,6 +7,10 @@ const Profile = ({ onBack }) => {
   const [imgError, setImgError] = useState(false);
 
   const displayUser = user || {};
+
+  useEffect(() => {
+    setImgError(false);
+  }, [displayUser?.profileImage, displayUser?.id]);
 
   return (
     <div className="profile-container">
