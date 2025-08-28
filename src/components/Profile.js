@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Profile.css';
 import { useAuth } from '../hooks/useAuth';
 
 const Profile = ({ onBack }) => {
   const { user, isAuthenticated, loadUserProfile, isLoading } = useAuth();
+  const [imgError, setImgError] = useState(false);
 
   const displayUser = user || {};
 
@@ -22,10 +23,17 @@ const Profile = ({ onBack }) => {
           <p className="profile-value" style={{ marginBottom: 12, opacity: 0.9 }}>로그인 후 프로필 정보를 확인할 수 있습니다.</p>
         ) : (
           <>
-            {displayUser?.profileImage ? (
-              <img className="profile-avatar-image" src={displayUser.profileImage} alt="프로필 이미지" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            {(displayUser?.profileImage && !imgError) ? (
+              <img
+                className="profile-avatar-image"
+                src={displayUser.profileImage}
+                alt="프로필 이미지"
+                onError={() => setImgError(true)}
+              />
             ) : (
-              <div className="profile-avatar" aria-hidden="true">{(displayUser?.name || 'U').slice(0, 1)}</div>
+              <div className="profile-avatar" aria-hidden="true">
+                {(displayUser?.name?.charAt(0) || 'U').toUpperCase()}
+              </div>
             )}
             <div className="profile-info">
               <div className="profile-row">

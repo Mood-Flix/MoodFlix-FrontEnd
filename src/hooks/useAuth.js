@@ -132,12 +132,12 @@ export const useAuth = () => {
   // 프로필 강제 로드 (백엔드 연동)
   const loadUserProfile = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setIsLoading(true); // 단기 대응은 App에서 profile 뷰일 때 오버레이 비표시(아래 App.js 코멘트 참조)
       const profile = await getUserProfile();
       const normalized = normalizeUser(profile);
       setUser(normalized);
       setIsAuthenticated(true);
-      return profile;
+      return normalized;
     } catch (error) {
       console.error('프로필 로드 실패:', error);
       setError(error.message || '프로필을 불러오지 못했습니다.');
@@ -172,6 +172,6 @@ function normalizeUser(raw) {
   const id = raw.id ?? raw.userId ?? raw.kakaoId ?? raw.memberId ?? null;
   const name = raw.name ?? raw.nickname ?? raw.userName ?? raw.displayName ?? null;
   const email = raw.email ?? raw.userEmail ?? null;
-  const profileImage = raw.profileImage ?? raw.profile_image_url ?? raw.avatarUrl ?? raw.picture ?? null;
+  const profileImage = raw.profileImage ?? raw.profile_image ?? raw.profile_image_url ?? raw.avatarUrl ?? raw.picture ?? null;
   return { ...raw, id, name, email, profileImage };
 }
