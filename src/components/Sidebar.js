@@ -2,7 +2,7 @@ import React from 'react';
 import { FaHome, FaSearch, FaPlus, FaCalendar } from 'react-icons/fa';
 import './Sidebar.css';
 
-const Sidebar = ({ onPlusClick, onHomeClick, currentView }) => {
+const Sidebar = ({ onPlusClick, onHomeClick, onCalendarClick, currentView }) => {
   return (
     <nav className="sidebar">
       <div className="logo-section">
@@ -40,8 +40,10 @@ const Sidebar = ({ onPlusClick, onHomeClick, currentView }) => {
         </button>
         <button 
           type="button"
-          className="nav-button" 
+          className={`nav-button ${currentView === 'calendar' ? 'active' : ''}`}
           aria-label="캘린더"
+          aria-pressed={currentView === 'calendar'}
+          onClick={onCalendarClick}
         >
           <FaCalendar className="nav-icon" aria-hidden="true" />
         </button>
