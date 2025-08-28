@@ -5,6 +5,7 @@ import MainContent from './components/MainContent';
 import HomeScreen from './components/HomeScreen';
 import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
+import Calendar from './components/Calendar';
 import { useMood } from './hooks/useMood';
 import { useAuth } from './hooks/useAuth';
 
@@ -16,7 +17,7 @@ function App() {
     handleGoHome
   } = useMood();
   
-  const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'detail'
+  const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'calendar', 'detail'
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [previousView, setPreviousView] = useState('main');
 
@@ -32,6 +33,10 @@ function App() {
 
   const handleShowRecommendation = () => {
     setCurrentView('recommendation');
+  };
+
+  const handleShowCalendar = () => {
+    setCurrentView('calendar');
   };
 
   const handleBackToMain = () => {
@@ -62,12 +67,15 @@ function App() {
           <Sidebar 
             onPlusClick={handleShowRecommendation} 
             onHomeClick={handleGoToHome}
+            onCalendarClick={handleShowCalendar}
             currentView={currentView}
           />
           {currentView === 'main' ? (
             <MainContent onMovieClick={handleMovieClick} />
           ) : currentView === 'recommendation' ? (
             <MovieRecommendation onBack={handleBackToMain} onMovieClick={handleMovieClick} />
+          ) : currentView === 'calendar' ? (
+            <Calendar onBack={handleBackToMain} />
           ) : (
             <MovieDetail movie={selectedMovie} onBack={handleBackFromDetail} />
           )}
