@@ -122,8 +122,11 @@ const Calendar = ({ onBack }) => {
     return `${months[date.getMonth()]} ${date.getDate()}일 ${days[date.getDay()]}`;
   };
 
-  // 로딩 상태
-  if (loading) {
+  // 로딩 상태 플래그 (데이터 조회 시에만 전역 오버레이)
+  const showGlobalLoading = loading && !isEditMode;
+  
+  // 전역 로딩 상태 (데이터 조회 시에만)
+  if (showGlobalLoading) {
     return (
       <div className="calendar-container">
         <div className="calendar-popup">
@@ -206,12 +209,32 @@ const Calendar = ({ onBack }) => {
           </button>
         </div>
       ) : (
-                 // 편집 모드 캘린더 뷰
-         <div className="calendar-edit-popup">
-           <div className="calendar-edit-header">
-             <button className="back-btn" onClick={() => setIsEditMode(false)}>← 뒤로가기</button>
-             <button className="close-btn" onClick={onBack}>×</button>
-           </div>
+        // 편집 모드 캘린더 뷰
+        <div className="calendar-edit-popup">
+          {/* 편집 모드에서 저장/삭제 중일 때만 로딩 오버레이 */}
+          {isLoading && (
+            <div className="loading-container" style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(255, 255, 255, 0.9)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 10,
+              borderRadius: '12px'
+            }}>
+              <div className="loading-spinner"></div>
+              <p>저장 중...</p>
+            </div>
+          )}
+          <div className="calendar-edit-header">
+            <button className="back-btn" onClick={() => setIsEditMode(false)}>← 뒤로가기</button>
+            <button className="close-btn" onClick={onBack}>×</button>
+          </div>
           <div className="calendar-edit-content">
             {/* 왼쪽 패널 - 나만의 캘린더 */}
             <div className="calendar-left-panel">
