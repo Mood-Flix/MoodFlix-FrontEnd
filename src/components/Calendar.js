@@ -265,7 +265,10 @@ const Calendar = ({ onBack }) => {
                     <div className="calendar-days">
                       {calendarDays.map((day, index) => {
                         const hasEntry = daysWithEntries.includes(day);
-                        const isSelected = day === selectedDate.getDate();
+                        const isSelected = !!day
+                          && selectedDate.getFullYear() === displayYear
+                          && selectedDate.getMonth() === displayMonth
+                          && day === selectedDate.getDate();
                         
                         return (
                           <div
