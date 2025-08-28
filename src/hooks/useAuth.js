@@ -17,7 +17,8 @@ export const useAuth = () => {
         if (isTokenValid()) {
           try {
             const userProfile = await getUserProfile();
-            setUser(userProfile);
+            const normalized = normalizeUser(userProfile);
+            setUser(normalized);
             setIsAuthenticated(true);
           } catch (error) {
             // 프로필 조회 실패 시 토큰 갱신 시도
@@ -25,7 +26,8 @@ export const useAuth = () => {
               const refreshed = await refreshToken();
               if (refreshed?.accessToken) {
                 const userProfile = await getUserProfile();
-                setUser(userProfile);
+                const normalized = normalizeUser(userProfile);
+                setUser(normalized);
                 setIsAuthenticated(true);
               } else {
                 // 토큰 갱신 실패 시 게스트 모드로 설정
@@ -46,7 +48,8 @@ export const useAuth = () => {
               const refreshed = await refreshToken();
               if (refreshed?.accessToken) {
                 const userProfile = await getUserProfile();
-                setUser(userProfile);
+                const normalized = normalizeUser(userProfile);
+                setUser(normalized);
                 setIsAuthenticated(true);
               } else {
                 setUser(null);
@@ -126,6 +129,24 @@ export const useAuth = () => {
     }
   }, [logout]);
 
+  // 프로필 강제 로드 (백엔드 연동)
+  const loadUserProfile = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const profile = await getUserProfile();
+      const normalized = normalizeUser(profile);
+      setUser(normalized);
+      setIsAuthenticated(true);
+      return profile;
+    } catch (error) {
+      console.error('프로필 로드 실패:', error);
+      setError(error.message || '프로필을 불러오지 못했습니다.');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // 에러 초기화
   const clearError = useCallback(() => {
     setError(null);
@@ -139,6 +160,18 @@ export const useAuth = () => {
     login,
     logout,
     refreshAuthToken,
+    loadUserProfile,
     clearError,
   };
 };
+
+// 백엔드 응답을 프론트 표준 형태로 변환
+function normalizeUser(raw) {
+  if (!raw || typeof raw !== 'object') return raw;
+  // 가능한 키 매핑
+  const id = raw.id ?? raw.userId ?? raw.kakaoId ?? raw.memberId ?? null;
+  const name = raw.name ?? raw.nickname ?? raw.userName ?? raw.displayName ?? null;
+  const email = raw.email ?? raw.userEmail ?? null;
+  const profileImage = raw.profileImage ?? raw.profile_image_url ?? raw.avatarUrl ?? raw.picture ?? null;
+  return { ...raw, id, name, email, profileImage };
+}

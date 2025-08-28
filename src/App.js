@@ -6,6 +6,7 @@ import HomeScreen from './components/HomeScreen';
 import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
+import Profile from './components/Profile';
 import { useMood } from './hooks/useMood';
 import { useAuth } from './hooks/useAuth';
 
@@ -17,7 +18,7 @@ function App() {
     handleGoHome
   } = useMood();
   
-  const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'calendar', 'detail'
+  const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'calendar', 'detail', 'profile'
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [previousView, setPreviousView] = useState('main');
 
@@ -37,6 +38,10 @@ function App() {
 
   const handleShowCalendar = () => {
     setCurrentView('calendar');
+  };
+
+  const handleShowProfile = () => {
+    setCurrentView('profile');
   };
 
   const handleBackToMain = () => {
@@ -68,6 +73,7 @@ function App() {
             onPlusClick={handleShowRecommendation} 
             onHomeClick={handleGoToHome}
             onCalendarClick={handleShowCalendar}
+            onProfileClick={handleShowProfile}
             currentView={currentView}
           />
           {currentView === 'main' ? (
@@ -76,6 +82,8 @@ function App() {
             <MovieRecommendation onBack={handleBackToMain} onMovieClick={handleMovieClick} />
           ) : currentView === 'calendar' ? (
             <Calendar onBack={handleBackToMain} />
+          ) : currentView === 'profile' ? (
+            <Profile onBack={handleBackToMain} />
           ) : (
             <MovieDetail movie={selectedMovie} onBack={handleBackFromDetail} />
           )}
