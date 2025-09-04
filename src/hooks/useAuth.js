@@ -8,109 +8,56 @@ export const useAuth = () => {
   const [error, setError] = useState(null);
 
   // 초기 인증 상태 확인 - 로그인 없이도 앱 사용 가능하도록 수정
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        setIsLoading(true);
-        
-        // 토큰이 있고 유효한 경우에만 인증 상태로 설정
-        if (isTokenValid()) {
-          try {
-            const userProfile = await getUserProfile();
-            const normalized = normalizeUser(userProfile);
-            setUser(normalized);
-            setIsAuthenticated(true);
-          } catch (error) {
-            // 프로필 조회 실패 시 토큰 갱신 시도
-            try {
-              const refreshed = await refreshToken();
-              if (refreshed?.accessToken) {
-                const userProfile = await getUserProfile();
-                const normalized = normalizeUser(userProfile);
-                setUser(normalized);
-                setIsAuthenticated(true);
-              } else {
-                // 토큰 갱신 실패 시 게스트 모드로 설정
-                setUser(null);
-                setIsAuthenticated(false);
-              }
-            } catch (_) {
-              // 모든 인증 시도 실패 시 게스트 모드로 설정
-              setUser(null);
-              setIsAuthenticated(false);
-            }
-          }
-        } else {
-          // 토큰이 없거나 유효하지 않은 경우: refreshToken이 있으면 갱신 시도
-          const hasRefresh = !!localStorage.getItem('refreshToken');
-          if (hasRefresh) {
-            try {
-              const refreshed = await refreshToken();
-              if (refreshed?.accessToken) {
-                const userProfile = await getUserProfile();
-                const normalized = normalizeUser(userProfile);
-                setUser(normalized);
-                setIsAuthenticated(true);
-              } else {
-                setUser(null);
-                setIsAuthenticated(false);
-              }
-            } catch (_) {
-              setUser(null);
-              setIsAuthenticated(false);
-            }
-          } else {
-            setUser(null);
-            setIsAuthenticated(false);
-          }
+   useEffect(() => {
+    // 페이지 로드 시, 로컬 스토리지의 정보로 로그인 상태를 복원하는 로직
+    const checkAuthStatus = () => {
+      setIsLoading(true);
+      if (isTokenValid()) {
+        const userInfo = getUserProfile();
+        if (userInfo) {
+          const normalized = normalizeUser(userInfo);
+          setUser(normalized);
+          setIsAuthenticated(true);
         }
-      } catch (error) {
-        console.error('인증 상태 확인 실패:', error);
-        // 에러 발생 시에도 게스트 모드로 설정하여 앱 사용 가능
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
-
     checkAuthStatus();
   }, []);
 
-  // 카카오 로그인 처리
-  const login = useCallback(async (kakaoAccessToken, kakaoUserInfo) => {
+  // ✅ [수정] login 함수가 백엔드 통신 및 상태 업데이트를 모두 책임집니다.
+  const login = useCallback(async (kakaoAccessToken) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // 백엔드로 카카오 로그인 요청
-      const loginResult = await kakaoLogin(kakaoAccessToken, kakaoUserInfo);
+      // authService를 통해 백엔드에 로그인 요청
+      const loginResult = await kakaoLogin(kakaoAccessToken);
+
+      // 저장된 또는 응답 기반 사용자 정보 정규화 후 상태 반영
+      const userPayload = normalizeUser(getUserProfile() || loginResult?.user || loginResult);
+      if (userPayload && (userPayload.id ?? userPayload.userId)) {
+        setUser(userPayload);
+        setIsAuthenticated(true);
+      }
       
-      // 로그인 성공 시 사용자 정보 설정
-      setUser(loginResult.user || kakaoUserInfo);
-      setIsAuthenticated(true);
-      
-      return loginResult;
     } catch (error) {
-      console.error('로그인 실패:', error);
+      console.error('로그인 실패 (useAuth):', error);
       setError(error.message || '로그인에 실패했습니다.');
-      throw error;
+      // 실패 시 상태를 확실하게 로그아웃 상태로 변경
+      setIsAuthenticated(false);
+      setUser(null);
+      throw error; // 에러를 다시 던져서 호출한 쪽에서도 알 수 있게 함
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // 로그아웃 처리
   const logout = useCallback(() => {
-    try {
-      authLogout();
-      setUser(null);
-      setIsAuthenticated(false);
-      setError(null);
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-      setError(error.message || '로그아웃에 실패했습니다.');
-    }
+    authLogout();
+    setUser(null);
+    setIsAuthenticated(false);
+    setError(null);
   }, []);
 
   // 토큰 갱신
