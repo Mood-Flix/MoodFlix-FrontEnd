@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import KakaoLogin from './KakaoLogin';
 import { useAuth } from '../hooks/useAuth';
@@ -6,27 +6,20 @@ import './HomeScreen.css';
 
 const HomeScreen = ({ onStart }) => {
   const { user, isAuthenticated, isLoading, error, login, logout, clearError } = useAuth();
-  const [loginError, setLoginError] = useState(null);
 
-  const handleLoginSuccess = async (data) => {
+  const handleLoginSuccess = async (kakaoAccessToken) => {
     try {
-      clearError(); // useAuth 훅 에러 초기화
-      
-      // 백엔드로 로그인 요청
-      await login(data.kakaoAccessToken, data.userInfo);
-      if (process.env.MODE_ENV !== 'production') {
-        console.debug('백엔드 로그인 성공');
-      }
-    } catch (error) {
-      // useAuth.login 내부에서 이미 setError 처리됨
-      if (process.env.MODE_ENV !== 'production') {
-        console.error('백엔드 로그인 실패:', error);
-      }
+      clearError(); // 이전 에러 메시지 초기화
+      await login(kakaoAccessToken); 
+      console.log('HomeScreen: 로그인 프로세스 성공');
+    } catch (err) {
+      console.error('HomeScreen: 로그인 프로세스 실패', err);
     }
   };
 
   const handleLoginError = (errorMessage) => {
-    setLoginError(errorMessage);
+    // 카카오 SDK 자체의 오류를 처리합니다.
+    console.error("Kakao SDK 에러:", errorMessage);
   };
 
   const handleLogout = () => {
@@ -34,17 +27,16 @@ const HomeScreen = ({ onStart }) => {
   };
 
   const handleStartApp = () => {
-    // 로그인 상태와 관계없이 앱 시작 가능
     onStart();
   };
 
-  // 로딩 중일 때 표시
+  // 인증 상태를 확인하는 동안 로딩 화면 표시
   if (isLoading) {
     return (
       <div className="home-screen">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>로딩 중...</p>
+          <p>인증 상태 확인 중...</p>
         </div>
       </div>
     );
@@ -72,10 +64,10 @@ const HomeScreen = ({ onStart }) => {
         </div>
 
         {/* 에러 메시지 표시 */}
-        {(error || loginError) && (
+        {error && (
           <div className="error-message">
-            <p>{error || loginError}</p>
-            <button onClick={() => { setLoginError(null); clearError(); }}>닫기</button>
+            <p>{error}</p>
+            <button onClick={clearError}>닫기</button>
           </div>
         )}
 
@@ -87,9 +79,10 @@ const HomeScreen = ({ onStart }) => {
               onLoginError={handleLoginError}
             />
             <p className="login-description">
-              카카오 계정으로 간편하게 로그인하고 개인화된 영화 추천을 받아보세요
+              카카오 계정으로 간편하게 로그인하고 개인화된 영화 추천을 받아보세요.
             </p>
-            {/* 로그인 없이 시작하기 버튼 추가 */}
+            
+            {/* ✅ [핵심 수정] 로그인 없이 시작하기 버튼 섹션 */}
             <div className="guest-login-section">
               <button 
                 className="guest-start-button"
@@ -99,7 +92,7 @@ const HomeScreen = ({ onStart }) => {
                 로그인 없이 시작하기
               </button>
               <p className="guest-description">
-                로그인 없이도 영화 추천 기능을 이용할 수 있습니다
+                로그인 없이도 영화 추천 기능을 이용할 수 있습니다.
               </p>
             </div>
           </div>
@@ -124,18 +117,7 @@ const HomeScreen = ({ onStart }) => {
         )}
 
         <div className="features-section">
-          <div className="feature-item">
-            <span className="feature-icon">🎭</span>
-            <span className="feature-text">감정 기반 추천</span>
-          </div>
-          <div className="feature-item">
-            <span className="feature-icon">🎬</span>
-            <span className="feature-text">맞춤형 영화</span>
-          </div>
-          <div className="feature-item">
-            <span className="feature-icon">✨</span>
-            <span className="feature-text">AI 분석</span>
-          </div>
+          {/* ... 기능 아이템들 ... */}
         </div>
       </div>
     </div>
