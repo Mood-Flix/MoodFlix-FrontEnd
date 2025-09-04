@@ -13,9 +13,10 @@ export const useAuth = () => {
     const checkAuthStatus = () => {
       setIsLoading(true);
       if (isTokenValid()) {
-        const userInfo = getUserProfile(); // authService에서 저장된 정보 가져오기
+        const userInfo = getUserProfile();
         if (userInfo) {
-          setUser(userInfo);
+          const normalized = normalizeUser(userInfo);
+          setUser(normalized);
           setIsAuthenticated(true);
         }
       }
@@ -32,10 +33,11 @@ export const useAuth = () => {
       
       // authService를 통해 백엔드에 로그인 요청
       const loginResult = await kakaoLogin(kakaoAccessToken);
-      
-      // 백엔드 응답이 성공적이면 상태를 업데이트
-      if (loginResult && loginResult.userId) {
-        setUser({ userId: loginResult.userId, name: loginResult.name });
+
+      // 저장된 또는 응답 기반 사용자 정보 정규화 후 상태 반영
+      const userPayload = normalizeUser(getUserProfile() || loginResult?.user || loginResult);
+      if (userPayload && (userPayload.id ?? userPayload.userId)) {
+        setUser(userPayload);
         setIsAuthenticated(true);
       }
       

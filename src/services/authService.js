@@ -2,7 +2,10 @@ import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 
 // .env 파일이나 다른 설정 파일에서 API 기본 URL을 관리합니다.
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.moodflix.store';
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  process.env.REACT_APP_API_URL ||
+  'https://api.moodflix.store';
 
 const authApi = axios.create({
   baseURL: API_BASE_URL,
@@ -38,7 +41,11 @@ export const kakaoLogin = async (kakaoAccessToken) => {
     // 백엔드로부터 받은 JWT와 사용자 정보를 로컬 스토리지에 저장합니다.
     if (data && data.accessToken) {
       localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('userInfo', JSON.stringify({ userId: data.userId, name: data.name, email: data.email  }));
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+      const user = data.user ?? { userId: data.userId, name: data.name, email: data.email, profileImage: data.profileImage };
+      localStorage.setItem('userInfo', JSON.stringify(user));
     }
     
     return data;
@@ -50,7 +57,28 @@ export const kakaoLogin = async (kakaoAccessToken) => {
 
 // [참고] 토큰 갱신 로직 (백엔드에 /api/auth/refresh API 구현 후 사용 가능)
 export const refreshToken = async () => {
-  // ...
+  const stored = localStorage.getItem('refreshToken');
+  if (!stored) {
+    throw new Error('리프레시 토큰이 없습니다.');
+  }
+  try {
+    const res = await authApi.post('/api/auth/refresh', { refreshToken: stored }, { withCredentials: true });
+    const data = res.data;
+    if (data?.accessToken) {
+      localStorage.setItem('accessToken', data.accessToken);
+    }
+    if (data?.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
+    if (data?.user) {
+      localStorage.setItem('userInfo', JSON.stringify(data.user));
+    }
+    return data;
+  } catch (error) {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    throw error;
+  }
 };
 
 // 로그아웃

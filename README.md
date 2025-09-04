@@ -36,7 +36,7 @@ npm install
 
 ```env
 # 백엔드 API 기본 URL
-REACT_APP_API_BASE_URL=http://localhost:8080
+REACT_APP_API_URL=http://localhost:8080
 
 # 카카오 JavaScript 키 (필수)
 REACT_APP_KAKAO_JAVASCRIPT_KEY=your_kakao_javascript_key
@@ -129,7 +129,7 @@ npm start
 
 ### 환경 설정
 
-백엔드 서버가 다른 포트에서 실행 중인 경우, `.env` 파일의 `REACT_APP_API_BASE_URL`을 수정하세요.
+백엔드 서버가 다른 포트에서 실행 중인 경우, `.env` 파일의 `REACT_APP_API_URL`을 수정하세요.
 
 ## 📱 사용법
 
