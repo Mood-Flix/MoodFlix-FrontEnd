@@ -1,11 +1,8 @@
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
+import { API_BASE_URL } from '../constants/api';
 
-// .env 파일이나 다른 설정 파일에서 API 기본 URL을 관리합니다.
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL ||
-  process.env.REACT_APP_API_URL ||
-  'https://api.moodflix.store';
+// API 기본 URL은 constants에서 단일 관리합니다.
 
 const authApi = axios.create({
   baseURL: API_BASE_URL,
