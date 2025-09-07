@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaArrowLeft, FaPlay, FaStar, FaCalendar, FaClock, FaGlobe } from 'react-icons/fa';
+import { formatGenres, formatCast, formatReviews, getTmdbImageUrl, getTmdbVideoUrl, getKoreanRating } from '../utils/movieDataTransformer';
 import './MovieDetail.css';
 
 const MovieDetail = ({ movie, onBack }) => {
@@ -16,26 +17,22 @@ const MovieDetail = ({ movie, onBack }) => {
         return (
           <>
             {/* 비디오 섹션 */}
-            <div className="video-section">
-              <div className="video-grid">
-                <div className="video-item promo">
-                  <div className="video-thumbnail">
-                    <div className="play-overlay">
-                      <FaPlay />
+            {movieData.videos && movieData.videos.results && movieData.videos.results.length > 0 && (
+              <div className="video-section">
+                <div className="video-grid">
+                  {movieData.videos.results.slice(0, 2).map((video) => (
+                    <div key={video.id} className="video-item">
+                      <div className="video-thumbnail">
+                        <div className="play-overlay" onClick={() => window.open(getTmdbVideoUrl(video.key), '_blank')}>
+                          <FaPlay />
+                        </div>
+                        <div className="video-label">{video.type}</div>
+                      </div>
                     </div>
-                    <div className="video-label">프로모션 릴</div>
-                  </div>
-                </div>
-                <div className="video-item main-trailer">
-                  <div className="video-thumbnail">
-                    <div className="play-overlay">
-                      <FaPlay />
-                    </div>
-                    <div className="video-label">메인 예고편</div>
-                  </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
 
             {/* 영화 정보 */}
             <div className="movie-info-section">
@@ -43,43 +40,40 @@ const MovieDetail = ({ movie, onBack }) => {
                 <div className="overview-item">
                   <span className="overview-label">개요</span>
                   <span className="overview-value">
-                    {movieData.genre} ㆍ {movieData.country} ㆍ {movieData.duration}
+                    {formatGenres(movieData.genres)} ㆍ {movieData.productionCountries?.[0]?.name || '미국'} ㆍ {movieData.runtime ? `${movieData.runtime}분` : '미상'}
                   </span>
                 </div>
                 <div className="overview-item">
                   <span className="overview-label">개봉</span>
-                  <span className="overview-value">{movieData.releaseDate}</span>
+                  <span className="overview-value">{movieData.releaseDate ? new Date(movieData.releaseDate).toLocaleDateString('ko-KR') : '미상'}</span>
                 </div>
                 <div className="overview-item">
-                  <span className="overview-label">원작</span>
-                  <span className="overview-value">{movieData.originalWork}</span>
+                  <span className="overview-label">등급</span>
+                  <span className="overview-value">{getKoreanRating(movieData.certifications)}</span>
                 </div>
               </div>
 
               <div className="movie-synopsis">
                 <h3>줄거리</h3>
-                <p>{movieData.synopsis}</p>
+                <p>{movieData.overview || movieData.synopsis || '줄거리 정보가 없습니다.'}</p>
               </div>
 
               {/* 평점 및 통계 */}
               <div className="movie-stats">
                 <div className="stat-item">
-                  <span className="stat-label">순위 누적 관객수</span>
-                  <span className="stat-value">{movieData.rank} / {movieData.audienceCount}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">실관람객 평점</span>
+                  <span className="stat-label">TMDb 평점</span>
                   <span className="stat-value">
                     <FaStar className="star-icon" />
-                    {movieData.audienceRating}
+                    {movieData.rating ? movieData.rating.toFixed(1) : 'N/A'}
                   </span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">네티즌 평점</span>
-                  <span className="stat-value">
-                    <FaStar className="star-icon" />
-                    {movieData.netizenRating}
-                  </span>
+                  <span className="stat-label">평점 참여자</span>
+                  <span className="stat-value">{movieData.voteCount ? movieData.voteCount.toLocaleString() : '0'}명</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">인기도</span>
+                  <span className="stat-value">{movieData.popularity ? movieData.popularity.toFixed(0) : 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -101,67 +95,104 @@ const MovieDetail = ({ movie, onBack }) => {
               </div>
               <div className="info-item">
                 <span className="info-label">장르</span>
-                <span className="info-value">{movieData.genre}</span>
+                <span className="info-value">{formatGenres(movieData.genres)}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">제작국</span>
-                <span className="info-value">{movieData.country}</span>
+                <span className="info-value">
+                  {movieData.productionCountries?.map(country => country.name).join(', ') || '미상'}
+                </span>
               </div>
               <div className="info-item">
                 <span className="info-label">상영시간</span>
-                <span className="info-value">{movieData.duration}</span>
+                <span className="info-value">{movieData.runtime ? `${movieData.runtime}분` : '미상'}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">개봉일</span>
-                <span className="info-value">{movieData.releaseDate}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">원작</span>
-                <span className="info-value">{movieData.originalWork}</span>
+                <span className="info-value">
+                  {movieData.releaseDate ? new Date(movieData.releaseDate).toLocaleDateString('ko-KR') : '미상'}
+                </span>
               </div>
               <div className="info-item">
                 <span className="info-label">상영등급</span>
-                <span className="info-value">15세 이상 관람가</span>
+                <span className="info-value">{getKoreanRating(movieData.certifications)}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">예산</span>
+                <span className="info-value">
+                  {movieData.budget ? `$${movieData.budget.toLocaleString()}` : '미상'}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">흥행수익</span>
+                <span className="info-value">
+                  {movieData.revenue ? `$${movieData.revenue.toLocaleString()}` : '미상'}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">상태</span>
+                <span className="info-value">{movieData.status || '미상'}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">언어</span>
+                <span className="info-value">
+                  {movieData.spokenLanguages?.map(lang => lang.name).join(', ') || movieData.originalLanguage || '미상'}
+                </span>
               </div>
             </div>
           </div>
         );
 
       case '출연/제작진':
+        const castList = formatCast(movieData.cast, 10);
+        const director = movieData.crew?.find(person => person.job === 'Director');
+        const writer = movieData.crew?.find(person => person.job === 'Writer' || person.job === 'Screenplay');
+        
         return (
           <div className="cast-crew-section">
             <h3>출연진</h3>
             <div className="cast-list">
-              <div className="cast-item">
-                <div className="cast-photo-placeholder"></div>
-                <div className="cast-info">
-                  <span className="cast-name">주연 배우 1</span>
-                  <span className="cast-role">주인공 역</span>
-                </div>
-              </div>
-              <div className="cast-item">
-                <div className="cast-photo-placeholder"></div>
-                <div className="cast-info">
-                  <span className="cast-name">주연 배우 2</span>
-                  <span className="cast-role">조연 역</span>
-                </div>
-              </div>
+              {castList.length > 0 ? (
+                castList.map((actor) => (
+                  <div key={actor.id} className="cast-item">
+                    <div className="cast-photo">
+                      {actor.profilePath ? (
+                        <img src={actor.profilePath} alt={actor.name} />
+                      ) : (
+                        <div className="cast-photo-placeholder"></div>
+                      )}
+                    </div>
+                    <div className="cast-info">
+                      <span className="cast-name">{actor.name}</span>
+                      <span className="cast-role">{actor.character}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>출연진 정보가 없습니다.</p>
+              )}
             </div>
             
             <h3>제작진</h3>
             <div className="crew-list">
-              <div className="crew-item">
-                <span className="crew-role">감독</span>
-                <span className="crew-name">감독 이름</span>
-              </div>
-              <div className="crew-item">
-                <span className="crew-role">각본</span>
-                <span className="crew-name">각본가 이름</span>
-              </div>
-              <div className="crew-item">
-                <span className="crew-role">제작</span>
-                <span className="crew-name">제작사 이름</span>
-              </div>
+              {director && (
+                <div className="crew-item">
+                  <span className="crew-role">감독</span>
+                  <span className="crew-name">{director.name}</span>
+                </div>
+              )}
+              {writer && (
+                <div className="crew-item">
+                  <span className="crew-role">각본</span>
+                  <span className="crew-name">{writer.name}</span>
+                </div>
+              )}
+              {movieData.productionCompanies && movieData.productionCompanies.length > 0 && (
+                <div className="crew-item">
+                  <span className="crew-role">제작</span>
+                  <span className="crew-name">{movieData.productionCompanies[0].name}</span>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -189,78 +220,101 @@ const MovieDetail = ({ movie, onBack }) => {
         );
 
       case '무비클립':
+        const videos = movieData.videos?.results || [];
+        
         return (
           <div className="clips-section">
             <h3>무비 클립</h3>
             <div className="clips-grid">
-              <div className="clip-item">
-                <div className="clip-thumbnail">
-                  <div className="play-overlay">
-                    <FaPlay />
+              {videos.length > 0 ? (
+                videos.map((video) => (
+                  <div key={video.id} className="clip-item">
+                    <div className="clip-thumbnail">
+                      <div className="play-overlay" onClick={() => window.open(getTmdbVideoUrl(video.key), '_blank')}>
+                        <FaPlay />
+                      </div>
+                    </div>
+                    <span className="clip-title">{video.name || video.type}</span>
                   </div>
+                ))
+              ) : (
+                <div className="clips-info">
+                  <p>비디오 클립이 없습니다.</p>
+                  <p>백엔드 연동 후 실제 비디오가 표시됩니다.</p>
                 </div>
-                <span className="clip-title">메인 예고편</span>
-              </div>
-              <div className="clip-item">
-                <div className="clip-thumbnail">
-                  <div className="play-overlay">
-                    <FaPlay />
-                  </div>
-                </div>
-                <span className="clip-title">프로모션 영상</span>
-              </div>
-              <div className="clip-item">
-                <div className="clip-thumbnail">
-                  <div className="play-overlay">
-                    <FaPlay />
-                  </div>
-                </div>
-                <span className="clip-title">스페셜 영상</span>
-              </div>
-              <div className="clip-item">
-                <div className="clip-thumbnail">
-                  <div className="play-overlay">
-                    <FaPlay />
-                  </div>
-                </div>
-                <span className="clip-title">메이킹 영상</span>
-              </div>
+              )}
             </div>
           </div>
         );
 
       case '포토':
+        const images = movieData.images || {};
+        const backdrops = images.backdrops || [];
+        const posters = images.posters || [];
+        const allImages = [...backdrops.slice(0, 4), ...posters.slice(0, 4)];
+        
         return (
           <div className="photos-section">
             <h3>포토 갤러리</h3>
             <div className="photos-grid">
-              <div className="photo-item">
-                <div className="photo-placeholder"></div>
-                <span className="photo-caption">메인 포스터</span>
-              </div>
-              <div className="photo-item">
-                <div className="photo-placeholder"></div>
-                <span className="photo-caption">스틸컷 1</span>
-              </div>
-              <div className="photo-item">
-                <div className="photo-placeholder"></div>
-                <span className="photo-caption">스틸컷 2</span>
-              </div>
-              <div className="photo-item">
-                <div className="photo-placeholder"></div>
-                <span className="photo-caption">스틸컷 3</span>
-              </div>
+              {allImages.length > 0 ? (
+                allImages.map((image, index) => (
+                  <div key={index} className="photo-item">
+                    <img 
+                      src={getTmdbImageUrl(image.file_path, 'w500')} 
+                      alt={`${movieData.title} 이미지 ${index + 1}`}
+                      className="photo-image"
+                    />
+                    <span className="photo-caption">
+                      {image.iso_639_1 ? `${image.iso_639_1.toUpperCase()} 포스터` : `이미지 ${index + 1}`}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="photos-info">
+                  <p>이미지가 없습니다.</p>
+                  <p>백엔드 연동 후 실제 이미지가 표시됩니다.</p>
+                </div>
+              )}
             </div>
           </div>
         );
 
       case '리뷰':
+        const reviewsList = formatReviews(movieData.reviews, 5);
+        
         return (
           <div className="critic-reviews-section">
-            <h3>평론가 리뷰</h3>
-            <div className="reviews-info">
-              <p>평론가 리뷰가 없습니다.</p>
-              <p>백엔드 연동 후 실제 리뷰가 표시됩니다.</p>
+            <h3>TMDb 리뷰</h3>
+            <div className="reviews-list">
+              {reviewsList.length > 0 ? (
+                reviewsList.map((review) => (
+                  <div key={review.id} className="review-item">
+                    <div className="review-header">
+                      <span className="review-author">{review.author}</span>
+                      {review.rating && (
+                        <div className="review-rating">
+                          <FaStar className="star-icon" />
+                          {review.rating}/10
+                        </div>
+                      )}
+                    </div>
+                    <div className="review-content">
+                      <p>{review.content}</p>
+                    </div>
+                    {review.url && (
+                      <a href={review.url} target="_blank" rel="noopener noreferrer" className="review-link">
+                        원문 보기
+                      </a>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="reviews-info">
+                  <p>TMDb 리뷰가 없습니다.</p>
+                  <p>백엔드 연동 후 실제 리뷰가 표시됩니다.</p>
+                </div>
+              )}
             </div>
           </div>
         );

@@ -1,0 +1,106 @@
+.movie-sync-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.sync-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sync-btn:hover:not(:disabled) {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sync-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sync-icon {
+  font-size: 18px;
+  animation: rotate 2s linear infinite;
+}
+
+.sync-btn.loading .sync-icon {
+  animation: none;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ddd;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.last-sync-info {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.sync-description {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.sync-description small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .movie-sync-button {
+    padding: 16px;
+    max-width: 280px;
+  }
+  
+  .sync-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .sync-description {
+    font-size: 11px;
+  }
+}

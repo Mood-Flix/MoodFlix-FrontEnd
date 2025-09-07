@@ -1,11 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import KakaoLogin from './KakaoLogin';
+import MovieSyncButton from './MovieSyncButton';
 import { useAuth } from '../hooks/useAuth';
+import { useMovies } from '../hooks/useMovies';
 import './HomeScreen.css';
 
 const HomeScreen = ({ onStart }) => {
   const { user, isAuthenticated, isLoading, error, login, logout, clearError } = useAuth();
+  const { refreshMovies } = useMovies();
 
   const handleLoginSuccess = async (kakaoAccessToken) => {
     try {
@@ -28,6 +31,16 @@ const HomeScreen = ({ onStart }) => {
 
   const handleStartApp = () => {
     onStart();
+  };
+
+  const handleSyncSuccess = () => {
+    console.log('영화 동기화 성공');
+    refreshMovies(); // 영화 데이터 새로고침
+  };
+
+  const handleSyncError = (error) => {
+    console.error('영화 동기화 실패:', error);
+    // 에러 메시지를 사용자에게 표시할 수 있음
   };
 
   // 인증 상태를 확인하는 동안 로딩 화면 표시
@@ -104,6 +117,17 @@ const HomeScreen = ({ onStart }) => {
                 로그아웃
               </button>
             </div>
+            
+            {/* 관리자용 영화 동기화 버튼 */}
+            {user?.role === 'ADMIN' && (
+              <div className="admin-section">
+                <MovieSyncButton 
+                  onSyncComplete={handleSyncSuccess}
+                  onSyncError={handleSyncError}
+                />
+              </div>
+            )}
+            
             <div className="action-section">
               <button 
                 className="start-button"

@@ -350,6 +350,15 @@
   }
 }
 
+/* 관리자 섹션 스타일 */
+.admin-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 @media (max-width: 480px) {
   .home-content {
     padding: 30px 15px;
@@ -363,5 +372,10 @@
   .features-section {
     flex-direction: column;
     gap: 15px;
+  }
+  
+  .admin-section {
+    margin: 15px 0;
+    padding: 15px;
   }
 }

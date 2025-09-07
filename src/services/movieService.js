@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL, API_ENDPOINTS, getAuthHeaders, handleApiResponse, handleApiError } from '../constants/api';
+import { transformMovieSummary, transformMovieDetail, transformPageResponse } from '../utils/movieDataTransformer';
 
 // axios 인스턴스 생성
 const movieApi = axios.create({
@@ -26,11 +27,42 @@ movieApi.interceptors.response.use(
   }
 );
 
-// 피처드 영화 가져오기
+// TMDb 영화 동기화 (ADMIN 권한 필요)
+export const syncMovies = async () => {
+  try {
+    const response = await movieApi.post(API_ENDPOINTS.MOVIE_SYNC);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('영화 동기화 실패:', error);
+    throw error;
+  }
+};
+
+// 영화 목록 가져오기 (페이징 지원)
+export const getMovieList = async (page = 0, size = 20) => {
+  try {
+    const response = await movieApi.get(API_ENDPOINTS.MOVIE_LIST, {
+      params: { page, size }
+    });
+    const data = handleApiResponse(response);
+    return transformPageResponse(data);
+  } catch (error) {
+    console.error('영화 목록 로딩 실패:', error);
+    throw error;
+  }
+};
+
+// 피처드 영화 가져오기 (인기 영화 중 첫 번째)
 export const getFeaturedMovies = async () => {
   try {
-    const response = await movieApi.get(API_ENDPOINTS.FEATURED_MOVIES);
-    return handleApiResponse(response);
+    const response = await movieApi.get(API_ENDPOINTS.MOVIE_LIST, {
+      params: { page: 0, size: 1 }
+    });
+    const data = handleApiResponse(response);
+    const transformedData = transformPageResponse(data);
+    return {
+      featured: transformedData.content && transformedData.content.length > 0 ? transformedData.content[0] : null
+    };
   } catch (error) {
     console.error('피처드 영화 로딩 실패:', error);
     // 개발 환경에서만 폴백 데이터 반환
@@ -63,11 +95,17 @@ export const getFeaturedMovies = async () => {
   }
 };
 
-// 신작 영화 가져오기
-export const getNewReleases = async () => {
+// 신작 영화 가져오기 (영화 목록에서 최신 순으로)
+export const getNewReleases = async (page = 0, size = 8) => {
   try {
-    const response = await movieApi.get(API_ENDPOINTS.NEW_RELEASES);
-    return handleApiResponse(response);
+    const response = await movieApi.get(API_ENDPOINTS.MOVIE_LIST, {
+      params: { page, size, sort: 'releaseDate,desc' }
+    });
+    const data = handleApiResponse(response);
+    const transformedData = transformPageResponse(data);
+    return {
+      movies: transformedData.content || []
+    };
   } catch (error) {
     console.error('신작 영화 로딩 실패:', error);
     // 개발 환경에서만 폴백 데이터 반환
@@ -227,11 +265,12 @@ export const getNewReleases = async () => {
 
 
 
-// 영화 상세 정보 가져오기
+// 영화 상세 정보 가져오기 (TMDb 데이터 포함)
 export const getMovieDetails = async (movieId) => {
   try {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}`);
-    return handleApiResponse(response);
+    const data = handleApiResponse(response);
+    return transformMovieDetail(data);
   } catch (error) {
     console.error('영화 상세 정보 로딩 실패:', error);
     throw error;
