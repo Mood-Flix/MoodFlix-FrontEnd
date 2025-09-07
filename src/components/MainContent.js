@@ -174,9 +174,9 @@ const MainContent = ({ onMovieClick }) => {
                   );
                 })()}
               </h1>
-              <p className="featured-subtitle">{featuredMovie.subtitle}</p>
-              {featuredMovie.description && (
-                <p className="featured-description">{featuredMovie.description}</p>
+              <p className="featured-subtitle">{featuredMovie.genre}</p>
+              {featuredMovie.releaseDate && (
+                <p className="featured-description">개봉일: {featuredMovie.releaseDate}</p>
               )}
               <button 
                 className="trailer-button"
@@ -220,10 +220,10 @@ const MainContent = ({ onMovieClick }) => {
                 </div>
               </div>
               <h3 className="movie-title">{movie.title}</h3>
-              {movie.rating && (
+              {movie.voteAverage && (
                 <div className="movie-rating">
                   <span className="rating-star">★</span>
-                  <span className="rating-score">{movie.rating}</span>
+                  <span className="rating-score">{movie.voteAverage.toFixed(1)}</span>
                 </div>
               )}
             </div>

@@ -3,12 +3,10 @@ import PropTypes from 'prop-types';
 import KakaoLogin from './KakaoLogin';
 import MovieSyncButton from './MovieSyncButton';
 import { useAuth } from '../hooks/useAuth';
-import { useMovies } from '../hooks/useMovies';
 import './HomeScreen.css';
 
 const HomeScreen = ({ onStart }) => {
   const { user, isAuthenticated, isLoading, error, login, logout, clearError } = useAuth();
-  const { refreshMovies } = useMovies();
 
   const handleLoginSuccess = async (kakaoAccessToken) => {
     try {
@@ -29,13 +27,17 @@ const HomeScreen = ({ onStart }) => {
     logout();
   };
 
-  const handleStartApp = () => {
-    onStart();
+  const handleStartApp = async () => {
+    try {
+      // 바로 메인 앱으로 이동
+      onStart();
+    } catch (err) {
+      console.error('앱 시작 실패:', err);
+    }
   };
 
   const handleSyncSuccess = () => {
     console.log('영화 동기화 성공');
-    refreshMovies(); // 영화 데이터 새로고침
   };
 
   const handleSyncError = (error) => {
@@ -143,6 +145,7 @@ const HomeScreen = ({ onStart }) => {
         <div className="features-section">
           {/* ... 기능 아이템들 ... */}
         </div>
+
       </div>
     </div>
   );

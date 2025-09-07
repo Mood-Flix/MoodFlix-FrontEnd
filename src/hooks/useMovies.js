@@ -34,13 +34,13 @@ export const useMovies = () => {
     }
   }, []);
 
-  // 영화 목록 로딩 (페이징)
-  const loadMovieList = useCallback(async (page = 0, size = 20) => {
+  // 영화 목록 로딩 (단순 배열)
+  const loadMovieList = useCallback(async () => {
     try {
-      const data = await getMovieList(page, size);
-      setMovieList(data.content || []);
-      setTotalPages(data.totalPages || 0);
-      setCurrentPage(data.number || 0);
+      const data = await getMovieList();
+      setMovieList(Array.isArray(data) ? data : []);
+      setTotalPages(1); // 단순 배열이므로 페이지는 1개
+      setCurrentPage(0);
     } catch (err) {
       console.error('영화 목록 로딩 실패:', err);
       setError('영화 목록을 불러오는데 실패했습니다.');
@@ -64,6 +64,19 @@ export const useMovies = () => {
 
 
 
+  // 전체 영화 목록 로딩 (요약 정보)
+  const loadAllMoviesSummary = useCallback(async () => {
+    try {
+      const data = await getMovieList();
+      setMovieList(Array.isArray(data) ? data : []);
+      setTotalPages(1);
+      setCurrentPage(0);
+    } catch (err) {
+      console.error('전체 영화 목록 로딩 실패:', err);
+      setError('전체 영화 목록을 불러오는데 실패했습니다.');
+    }
+  }, []);
+
   // 모든 영화 데이터 로딩
   const loadAllMovies = useCallback(async () => {
     setLoading(true);
@@ -73,7 +86,7 @@ export const useMovies = () => {
       await Promise.all([
         loadFeaturedMovie(),
         loadNewReleases(),
-        loadMovieList(0, 20)
+        loadMovieList()
       ]);
     } catch (err) {
       console.error('영화 데이터 로딩 실패:', err);
@@ -106,6 +119,7 @@ export const useMovies = () => {
     loadFeaturedMovie,
     loadNewReleases,
     loadMovieList,
+    loadAllMoviesSummary,
     syncMoviesData
   };
 };
