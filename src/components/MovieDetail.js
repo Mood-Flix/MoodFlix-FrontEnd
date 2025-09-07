@@ -71,7 +71,7 @@ const MovieDetail = ({ movie, onBack }) => {
       <div className="overview-content">
         {/* 영화 포스터와 기본 정보 */}
         <div className="movie-header">
-          <div className="movie-poster">
+          <div className="detail-movie-poster">
             <img 
               src={movieData.posterUrl} 
               alt={movieData.title}
@@ -81,7 +81,7 @@ const MovieDetail = ({ movie, onBack }) => {
             />
           </div>
           <div className="movie-basic-info">
-            <h1 className="movie-title">{movieData.title}</h1>
+            <h1 className="detail-movie-title">{movieData.title}</h1>
             {movieData.originalTitle && movieData.originalTitle !== movieData.title && (
               <p className="original-title">{movieData.originalTitle}</p>
             )}

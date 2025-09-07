@@ -88,11 +88,11 @@
   align-items: flex-start;
 }
 
-.movie-poster {
+.detail-movie-poster {
   flex-shrink: 0;
 }
 
-.movie-poster img {
+.detail-movie-poster img {
   width: 300px;
   height: 450px;
   object-fit: cover;
@@ -107,7 +107,7 @@
   gap: 20px;
 }
 
-.movie-title {
+.detail-movie-title {
   font-size: 32px;
   font-weight: bold;
   margin: 0;
@@ -461,16 +461,16 @@
     gap: 20px;
   }
 
-  .movie-poster {
+  .detail-movie-poster {
     align-self: center;
   }
 
-  .movie-poster img {
+  .detail-movie-poster img {
     width: 250px;
     height: 375px;
   }
 
-  .movie-title {
+  .detail-movie-title {
     font-size: 24px;
     text-align: center;
   }
@@ -518,12 +518,12 @@
 }
 
 @media (max-width: 480px) {
-  .movie-poster img {
+  .detail-movie-poster img {
     width: 200px;
     height: 300px;
   }
 
-  .movie-title {
+  .detail-movie-title {
     font-size: 20px;
   }
 

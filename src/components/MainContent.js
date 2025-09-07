@@ -196,19 +196,19 @@ const MainContent = ({ onMovieClick }) => {
           {displayedMovies.map((movie) => (
             <div 
               key={movie.id} 
-              className="movie-card"
+              className="main-movie-card"
               role="button"
               tabIndex={0}
               aria-label={`${movie.title} 상세 보기`}
               onClick={() => handleMovieClick(movie)}
               onKeyDown={(e) => handleMovieKeyDown(e, movie)}
             >
-              <div className="movie-poster">
+              <div className="main-movie-poster">
                 {movie.posterUrl ? (
                   <img 
                     src={movie.posterUrl} 
                     alt={movie.title}
-                    className="movie-poster-image"
+                    className="main-movie-poster-image"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'flex';
@@ -219,7 +219,7 @@ const MainContent = ({ onMovieClick }) => {
                   <span className="poster-text">{movie.title}</span>
                 </div>
               </div>
-              <h3 className="movie-title">{movie.title}</h3>
+              <h3 className="main-movie-title">{movie.title}</h3>
               {movie.voteAverage && (
                 <div className="movie-rating">
                   <span className="rating-star">★</span>

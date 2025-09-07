@@ -242,7 +242,7 @@
   overflow-y: auto;
 }
 
-.movie-card {
+.recommend-movie-card {
   display: flex;
   flex-direction: column;
   background: rgba(255, 255, 255, 0.1);
@@ -256,20 +256,20 @@
   text-align: center;
 }
 
-.movie-card:hover {
+.recommend-movie-card:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-.movie-poster-container {
+.recommend-movie-poster-container {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.movie-poster {
+.recommend-movie-poster {
   width: 100px;
   height: 150px;
   border-radius: 8px;
@@ -278,7 +278,7 @@
   transition: transform 0.3s ease;
 }
 
-.movie-card:hover .movie-poster {
+.recommend-movie-card:hover .recommend-movie-poster {
   transform: scale(1.05);
 }
 
@@ -290,7 +290,7 @@
   text-align: center;
 }
 
-.movie-title {
+.recommend-movie-title {
   color: white;
   font-size: 1.4rem;
   font-weight: 700;
@@ -383,19 +383,19 @@
     max-height: 500px;
   }
 
-  .movie-card {
+  .recommend-movie-card {
     flex-direction: column;
     text-align: center;
     gap: 15px;
   }
 
-  .movie-poster {
+  .recommend-movie-poster {
     width: 120px;
     height: 180px;
     margin: 0 auto;
   }
 
-  .movie-title {
+  .recommend-movie-title {
     font-size: 1.2rem;
   }
 
@@ -439,16 +439,16 @@
     font-size: 1rem;
   }
 
-  .movie-card {
+  .recommend-movie-card {
     padding: 15px;
   }
 
-  .movie-poster {
+  .recommend-movie-poster {
     width: 100px;
     height: 150px;
   }
 
-  .movie-title {
+  .recommend-movie-title {
     font-size: 1.1rem;
   }
 

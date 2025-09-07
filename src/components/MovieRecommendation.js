@@ -149,19 +149,19 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
 
             <div className="recommendations-list">
               {recommendations.map((movie) => (
-                <div key={movie.id} className="movie-card" onClick={() => onMovieClick(movie)}>
-                  <div className="movie-poster-container">
+                <div key={movie.id} className="recommend-movie-card" onClick={() => onMovieClick(movie)}>
+                  <div className="recommend-movie-poster-container">
                     <img 
                       src={movie.poster} 
                       alt={movie.title} 
-                      className="movie-poster"
+                      className="recommend-movie-poster"
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/150x225/666/fff?text=포스터+없음';
                       }}
                     />
                   </div>
                   <div className="movie-info">
-                    <h3 className="movie-title">{movie.title}</h3>
+                    <h3 className="recommend-movie-title">{movie.title}</h3>
                     <p className="movie-genre">{movie.genre} • {movie.year}</p>
                     <p className="movie-description">{movie.description}</p>
                   </div>
