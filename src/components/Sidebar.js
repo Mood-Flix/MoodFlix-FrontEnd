@@ -7,7 +7,7 @@ const Sidebar = ({ onPlusClick, onHomeClick, onCalendarClick, onProfileClick, cu
     <nav className="sidebar">
       <div className="logo-section">
         <img 
-          src="/MoodFlix (Logo).png" 
+          src="/MoodFlix_Logo.png" 
           alt="MoodFlix Logo" 
           className="logo-image"
         />
