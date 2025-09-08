@@ -92,6 +92,7 @@ const MainContent = ({ onMovieClick }) => {
       // 캐러셀용으로 처음 5개 영화 선택
       const carouselData = newReleases.slice(0, 5);
       setCarouselMovies(carouselData);
+      setCurrentCarouselIndex(0);
     }
   }, [newReleases]);
 
