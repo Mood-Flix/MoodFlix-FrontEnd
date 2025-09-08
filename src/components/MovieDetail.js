@@ -3,7 +3,7 @@ import { FaPlay, FaStar, FaCalendar, FaClock, FaGlobe, FaTag } from 'react-icons
 import { getMovieDetails } from '../services/movieService';
 import './MovieDetail.css';
 
-const MovieDetail = ({ movie, onBack }) => {
+const MovieDetail = ({ movie }) => {
   const [movieData, setMovieData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

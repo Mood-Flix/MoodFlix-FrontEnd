@@ -65,10 +65,6 @@ function App() {
     setCurrentView('detail');
   };
 
-  const handleBackFromDetail = () => {
-    setCurrentView(previousView);
-    setSelectedMovie(null);
-  };
 
   return (
     <div className={`app ${showHome ? 'home-view' : ''}`}>
@@ -92,7 +88,7 @@ function App() {
           ) : currentView === 'profile' ? (
             <Profile onBack={handleBackToMain} />
           ) : (
-            <MovieDetail movie={selectedMovie} onBack={handleBackFromDetail} />
+            <MovieDetail movie={selectedMovie} />
           )}
         </>
       )}
