@@ -53,14 +53,18 @@ export const useMovies = () => {
     try {
       await syncMovies();
       // 동기화 후 데이터 새로고침
-      await loadAllMovies();
+      await Promise.all([
+        loadFeaturedMovie(),
+        loadNewReleases(),
+        loadMovieList()
+      ]);
     } catch (err) {
       console.error('영화 동기화 실패:', err);
       setError('영화 동기화에 실패했습니다.');
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [loadFeaturedMovie, loadNewReleases, loadMovieList]);
 
 
 
