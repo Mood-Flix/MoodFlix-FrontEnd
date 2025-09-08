@@ -55,7 +55,194 @@
   box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
 }
 
-/* Featured Movie Section */
+/* Carousel Section */
+.carousel-section {
+  height: 60vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.carousel-slides-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-slide {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.carousel-slide.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.carousel-content {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 40px;
+  z-index: 2;
+}
+
+.carousel-poster {
+  flex-shrink: 0;
+  width: 300px;
+  height: 450px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #2d2d2d;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.carousel-poster:hover .carousel-poster-image {
+  transform: scale(1.05);
+}
+
+.carousel-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2d2d2d, #404040);
+  color: #888;
+  font-size: 1rem;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.carousel-poster-text {
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.carousel-text {
+  color: white;
+  flex: 1;
+  text-align: left;
+}
+
+.carousel-title {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 0 0 20px 0;
+  line-height: 1.1;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-subtitle {
+  font-size: 1.5rem;
+  color: #cccccc;
+  margin: 0 0 15px 0;
+  font-weight: 400;
+}
+
+.carousel-description {
+  font-size: 1.1rem;
+  color: #aaaaaa;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+/* 캐러셀 네비게이션 버튼 */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-prev {
+  left: 30px;
+}
+
+.carousel-next {
+  right: 30px;
+}
+
+/* 캐러셀 인디케이터 */
+.carousel-indicators {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 3;
+}
+
+.carousel-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-indicator.active {
+  background: #ff4444;
+  transform: scale(1.2);
+}
+
+.carousel-indicator:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* Featured Movie Section (기존 스타일 유지) */
 .featured-section {
   height: 60vh;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
@@ -287,6 +474,20 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+  .carousel-section {
+    padding: 0 40px;
+  }
+  
+  .carousel-content {
+    gap: 40px;
+    padding: 0 20px;
+  }
+  
+  .carousel-poster {
+    width: 250px;
+    height: 375px;
+  }
+  
   .featured-section {
     padding: 0 40px;
   }
@@ -300,6 +501,10 @@
     gap: 25px;
   }
   
+  .carousel-title {
+    font-size: 3rem;
+  }
+  
   .featured-title {
     font-size: 3rem;
   }
@@ -310,6 +515,26 @@
 }
 
 @media (max-width: 768px) {
+  .carousel-section {
+    height: 50vh;
+    padding: 0 30px;
+  }
+  
+  .carousel-content {
+    flex-direction: column;
+    gap: 30px;
+    text-align: center;
+  }
+  
+  .carousel-poster {
+    width: 200px;
+    height: 300px;
+  }
+  
+  .carousel-text {
+    text-align: center;
+  }
+  
   .featured-section {
     height: 50vh;
     padding: 0 30px;
@@ -326,6 +551,10 @@
   
   .main-movie-poster {
     height: 250px;
+  }
+  
+  .carousel-title {
+    font-size: 2.5rem;
   }
   
   .featured-title {
@@ -346,6 +575,30 @@
 }
 
 @media (max-width: 480px) {
+  .carousel-section {
+    height: 40vh;
+    padding: 0 20px;
+  }
+  
+  .carousel-poster {
+    width: 150px;
+    height: 225px;
+  }
+  
+  .carousel-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .carousel-prev {
+    left: 15px;
+  }
+  
+  .carousel-next {
+    right: 15px;
+  }
+  
   .featured-section {
     height: 40vh;
     padding: 0 20px;
@@ -371,6 +624,10 @@
   .rating-star,
   .rating-score {
     font-size: 0.8rem;
+  }
+  
+  .carousel-title {
+    font-size: 2rem;
   }
   
   .featured-title {

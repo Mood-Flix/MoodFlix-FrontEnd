@@ -62,7 +62,7 @@ const HomeScreen = ({ onStart }) => {
       <div className="home-content">
         <div className="logo-section">
           <img 
-            src="/MoodFlix (Logo).png" 
+            src="/MoodFlix_Logo.png" 
             alt="MoodFlix Logo" 
             className="home-logo"
           />

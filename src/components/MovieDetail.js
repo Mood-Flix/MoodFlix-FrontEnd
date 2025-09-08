@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaPlay, FaStar, FaCalendar, FaClock, FaGlobe, FaTag } from 'react-icons/fa';
+import { FaPlay, FaStar, FaCalendar, FaClock, FaGlobe, FaTag } from 'react-icons/fa';
 import { getMovieDetails } from '../services/movieService';
 import './MovieDetail.css';
 
@@ -316,10 +316,6 @@ const MovieDetail = ({ movie, onBack }) => {
       <div className="movie-detail">
         <div className="error-container">
           <p className="error-message">{error}</p>
-          <button onClick={onBack} className="back-button">
-            <FaArrowLeft />
-            돌아가기
-          </button>
         </div>
       </div>
     );
@@ -330,10 +326,6 @@ const MovieDetail = ({ movie, onBack }) => {
       <div className="movie-detail">
         <div className="error-container">
           <p className="error-message">영화 정보를 찾을 수 없습니다.</p>
-          <button onClick={onBack} className="back-button">
-            <FaArrowLeft />
-            돌아가기
-          </button>
         </div>
       </div>
     );
@@ -344,10 +336,6 @@ const MovieDetail = ({ movie, onBack }) => {
       <div className="movie-detail-container">
         {/* 헤더 */}
         <div className="movie-detail-header">
-          <button className="back-button" onClick={onBack}>
-            <FaArrowLeft />
-            돌아가기
-          </button>
         </div>
 
         {/* 네비게이션 탭 */}
