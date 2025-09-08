@@ -224,15 +224,44 @@ const MovieDetail = ({ movie, onBack }) => {
       );
     }
 
+    const handleVideoClick = (video) => {
+      let url = '';
+      
+      if (video.site === 'YouTube') {
+        url = `https://www.youtube.com/watch?v=${video.key}`;
+      } else if (video.url) {
+        url = video.url;
+      } else {
+        console.warn('비디오 URL을 찾을 수 없습니다:', video);
+        return;
+      }
+      
+      const win = window.open(url, '_blank', 'noopener,noreferrer');
+      if (win) {
+        win.opener = null;
+      }
+    };
+
+    const handleVideoKeyDown = (e, video) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleVideoClick(video);
+      }
+    };
+
     return (
       <div className="videos-content">
         <div className="videos-grid">
           {movieData.videos.map((video, index) => (
-            <div key={index} className="video-item">
+            <div key={video.key ?? index} className="video-item">
               <div className="video-thumbnail">
                 <div 
                   className="play-overlay"
-                  onClick={() => window.open(getYouTubeUrl(video.key), '_blank')}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${video.name} 재생`}
+                  onClick={() => handleVideoClick(video)}
+                  onKeyDown={(e) => handleVideoKeyDown(e, video)}
                 >
                   <FaPlay />
                 </div>
