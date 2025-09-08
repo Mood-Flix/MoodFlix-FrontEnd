@@ -15,14 +15,16 @@ export const API_ENDPOINTS = {
   USER_PROFILE: '/api/user/profile',
   USER_PREFERENCES: '/api/user/preferences',
   
-  // 영화 추천 관련
-  MOVIE_RECOMMENDATIONS: '/api/movies/recommendations',
-  MOVIE_SEARCH: '/api/movies/search',
+  // 영화 관련 (백엔드 API에 맞게 수정)
+  MOVIE_SYNC: '/api/movies/sync', // TMDb 동기화 (ADMIN 권한 필요)
+  MOVIE_LIST: '/api/movies', // 영화 목록 (페이징 지원)
+  MOVIE_DETAILS: '/api/movies', // 영화 상세 정보
+  MOVIE_SEARCH: '/api/movies/search', // 영화 검색
   
-  // 메인 페이지 영화 관련
+  // 기존 엔드포인트 (호환성을 위해 유지)
+  MOVIE_RECOMMENDATIONS: '/api/movies/recommendations',
   FEATURED_MOVIES: '/api/movies/featured',
   NEW_RELEASES: '/api/movies/new-releases',
-  MOVIE_DETAILS: '/api/movies',
   MOVIE_TRAILER: '/api/movies/trailer',
 };
 

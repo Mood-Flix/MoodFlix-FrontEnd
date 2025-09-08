@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMovies } from '../hooks/useMovies';
-import { getMovieTrailer } from '../services/movieService';
 import './MainContent.css';
 
 const MainContent = ({ onMovieClick }) => {
@@ -12,6 +11,10 @@ const MainContent = ({ onMovieClick }) => {
     refreshMovies 
   } = useMovies();
 
+  // 캐러셀을 위한 상태
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
+  const [carouselMovies, setCarouselMovies] = useState([]);
+
   // 무한 스크롤을 위한 상태
   const [displayedMovies, setDisplayedMovies] = useState([]);
   const [hasMore, setHasMore] = useState(true);
@@ -19,49 +22,19 @@ const MainContent = ({ onMovieClick }) => {
   const isLoadingMoreRef = useRef(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // URL 안전성 검증 함수
-  const isSafeHttpUrl = (url) => {
-    try {
-      const parsed = new URL(url, window.location.origin);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
 
-  // 예고편 보기 버튼 클릭 핸들러
-  const handleTrailerClick = async () => {
-    if (!featuredMovie) return;
-    
-    try {
-      const trailerData = await getMovieTrailer(featuredMovie.id);
-      const url = trailerData.trailerUrl || featuredMovie.trailerUrl;
-      if (url) {
-        if (isSafeHttpUrl(url)) {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        } else {
-          console.warn('Unsafe trailer URL blocked:', url);
-          alert('안전하지 않은 예고편 링크가 감지되어 열지 않았습니다.');
-        }
-      } else {
-        console.warn('예고편 URL 없음');
-        // TODO: 토스트/알림 컴포넌트로 안내 메시지 표시
-        alert('이 영화의 예고편을 찾을 수 없습니다.');
-      }
-    } catch (err) {
-      console.error('예고편 로딩 실패:', err);
-      const fallback = featuredMovie.trailerUrl;
-      if (fallback) {
-        if (isSafeHttpUrl(fallback)) {
-          window.open(fallback, '_blank', 'noopener,noreferrer');
-        } else {
-          console.warn('Unsafe fallback URL blocked:', fallback);
-        }
-      } else {
-        alert('예고편을 불러오는 중 오류가 발생했습니다.');
-      }
-    }
-  };
+  // 캐러셀 관련 함수들
+  const nextCarouselSlide = useCallback(() => {
+    setCurrentCarouselIndex(prev => 
+      prev === carouselMovies.length - 1 ? 0 : prev + 1
+    );
+  }, [carouselMovies.length]);
+
+  const prevCarouselSlide = useCallback(() => {
+    setCurrentCarouselIndex(prev => 
+      prev === 0 ? carouselMovies.length - 1 : prev - 1
+    );
+  }, [carouselMovies.length]);
 
   // 영화 카드 클릭 핸들러
   const handleMovieClick = (movie) => {
@@ -113,6 +86,16 @@ const MainContent = ({ onMovieClick }) => {
     }
   }, [loading, loadingMore, hasMore, loadMoreMovies]);
 
+  // 캐러셀 데이터 초기화
+  useEffect(() => {
+    if (newReleases.length > 0) {
+      // 캐러셀용으로 처음 5개 영화 선택
+      const carouselData = newReleases.slice(0, 5);
+      setCarouselMovies(carouselData);
+      setCurrentCarouselIndex(0);
+    }
+  }, [newReleases]);
+
   // 초기 영화 로드 및 스크롤 이벤트 리스너
   useEffect(() => {
     if (newReleases.length > 0) {
@@ -126,6 +109,19 @@ const MainContent = ({ onMovieClick }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
+
+  // 자동 슬라이드 기능
+  useEffect(() => {
+    if (carouselMovies.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentCarouselIndex(prev => 
+        prev === carouselMovies.length - 1 ? 0 : prev + 1
+      );
+    }, 5000); // 5초마다 자동 슬라이드
+
+    return () => clearInterval(interval);
+  }, [carouselMovies.length]);
 
   // 로딩 상태
   if (loading) {
@@ -155,35 +151,88 @@ const MainContent = ({ onMovieClick }) => {
 
   return (
     <main className="main-content">
-      {/* Featured Movie Section */}
-      {featuredMovie && (
-        <section className="featured-section">
-          <div className="featured-content">
-            <div className="featured-text">
-              <h1 className="featured-title">
-                {(() => {
-                  const t = featuredMovie.title || '';
-                  const i = t.indexOf(' ');
-                  const first = i !== -1 ? t.slice(0, i) : t;
-                  const rest = i !== -1 ? t.slice(i + 1) : '';
-                  return (
-                    <>
-                      <span className="title-part-1">{first}</span>
-                      {rest && <span className="title-part-2">{rest}</span>}
-                    </>
-                  );
-                })()}
-              </h1>
-              <p className="featured-subtitle">{featuredMovie.subtitle}</p>
-              {featuredMovie.description && (
-                <p className="featured-description">{featuredMovie.description}</p>
-              )}
-              <button 
-                className="trailer-button"
-                onClick={handleTrailerClick}
-              >
-                예고편 보기
-              </button>
+      {/* Carousel Section */}
+      {carouselMovies.length > 0 && (
+        <section className="carousel-section">
+          <div className="carousel-container">
+            <div className="carousel-slides-wrapper">
+              {carouselMovies.map((movie, index) => (
+                <div 
+                  key={movie.id}
+                  className={`carousel-slide ${index === currentCarouselIndex ? 'active' : ''}`}
+                  style={{
+                    transform: `translateX(${(index - currentCarouselIndex) * 100}%)`,
+                    opacity: index === currentCarouselIndex ? 1 : 0
+                  }}
+                >
+                  <div className="carousel-content">
+                    <div className="carousel-poster">
+                      {movie.posterUrl ? (
+                        <img 
+                          src={movie.posterUrl} 
+                          alt={movie.title}
+                          className="carousel-poster-image"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className="carousel-poster-placeholder" style={{ display: movie.posterUrl ? 'none' : 'flex' }}>
+                        <span className="carousel-poster-text">{movie.title}</span>
+                      </div>
+                    </div>
+                    <div className="carousel-text">
+                      <h1 className="carousel-title">
+                        {(() => {
+                          const t = movie.title || '';
+                          const i = t.indexOf(' ');
+                          const first = i !== -1 ? t.slice(0, i) : t;
+                          const rest = i !== -1 ? t.slice(i + 1) : '';
+                          return (
+                            <>
+                              <span className="title-part-1">{first}</span>
+                              {rest && <span className="title-part-2">{rest}</span>}
+                            </>
+                          );
+                        })()}
+                      </h1>
+                      <p className="carousel-subtitle">{movie.genre}</p>
+                      {movie.releaseDate && (
+                        <p className="carousel-description">개봉일: {movie.releaseDate}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* 캐러셀 네비게이션 */}
+            <button 
+              className="carousel-nav carousel-prev" 
+              onClick={prevCarouselSlide}
+              aria-label="이전 영화"
+            >
+              ‹
+            </button>
+            <button 
+              className="carousel-nav carousel-next" 
+              onClick={nextCarouselSlide}
+              aria-label="다음 영화"
+            >
+              ›
+            </button>
+            
+            {/* 캐러셀 인디케이터 */}
+            <div className="carousel-indicators">
+              {carouselMovies.map((_, index) => (
+                <button
+                  key={index}
+                  className={`carousel-indicator ${index === currentCarouselIndex ? 'active' : ''}`}
+                  onClick={() => setCurrentCarouselIndex(index)}
+                  aria-label={`${index + 1}번째 영화로 이동`}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -191,24 +240,24 @@ const MainContent = ({ onMovieClick }) => {
 
       {/* New Releases Section */}
       <section className="new-releases-section">
-        <h2 className="section-title">이번주 신작</h2>
+        <h2 className="section-title">영화</h2>
         <div className="movie-grid">
           {displayedMovies.map((movie) => (
             <div 
               key={movie.id} 
-              className="movie-card"
+              className="main-movie-card"
               role="button"
               tabIndex={0}
               aria-label={`${movie.title} 상세 보기`}
               onClick={() => handleMovieClick(movie)}
               onKeyDown={(e) => handleMovieKeyDown(e, movie)}
             >
-              <div className="movie-poster">
+              <div className="main-movie-poster">
                 {movie.posterUrl ? (
                   <img 
                     src={movie.posterUrl} 
                     alt={movie.title}
-                    className="movie-poster-image"
+                    className="main-movie-poster-image"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'flex';
@@ -219,13 +268,7 @@ const MainContent = ({ onMovieClick }) => {
                   <span className="poster-text">{movie.title}</span>
                 </div>
               </div>
-              <h3 className="movie-title">{movie.title}</h3>
-              {movie.rating && (
-                <div className="movie-rating">
-                  <span className="rating-star">★</span>
-                  <span className="rating-score">{movie.rating}</span>
-                </div>
-              )}
+              <h3 className="main-movie-title">{movie.title}</h3>
             </div>
           ))}
         </div>

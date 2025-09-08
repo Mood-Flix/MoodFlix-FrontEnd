@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -21,6 +21,13 @@ function App() {
   const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'calendar', 'detail', 'profile'
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [previousView, setPreviousView] = useState('main');
+
+  // 로그인 상태에 따라 자동으로 메인 페이지로 이동
+  useEffect(() => {
+    if (isAuthenticated && showHome) {
+      handleStartApp();
+    }
+  }, [isAuthenticated, showHome, handleStartApp]);
 
   // 로딩 중일 때 표시
   if (isLoading) {
@@ -58,10 +65,6 @@ function App() {
     setCurrentView('detail');
   };
 
-  const handleBackFromDetail = () => {
-    setCurrentView(previousView);
-    setSelectedMovie(null);
-  };
 
   return (
     <div className={`app ${showHome ? 'home-view' : ''}`}>
@@ -85,7 +88,7 @@ function App() {
           ) : currentView === 'profile' ? (
             <Profile onBack={handleBackToMain} />
           ) : (
-            <MovieDetail movie={selectedMovie} onBack={handleBackFromDetail} />
+            <MovieDetail movie={selectedMovie} />
           )}
         </>
       )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import KakaoLogin from './KakaoLogin';
+import MovieSyncButton from './MovieSyncButton';
 import { useAuth } from '../hooks/useAuth';
 import './HomeScreen.css';
 
@@ -26,8 +27,22 @@ const HomeScreen = ({ onStart }) => {
     logout();
   };
 
-  const handleStartApp = () => {
-    onStart();
+  const handleStartApp = async () => {
+    try {
+      // 바로 메인 앱으로 이동
+      onStart();
+    } catch (err) {
+      console.error('앱 시작 실패:', err);
+    }
+  };
+
+  const handleSyncSuccess = () => {
+    console.log('영화 동기화 성공');
+  };
+
+  const handleSyncError = (error) => {
+    console.error('영화 동기화 실패:', error);
+    // 에러 메시지를 사용자에게 표시할 수 있음
   };
 
   // 인증 상태를 확인하는 동안 로딩 화면 표시
@@ -47,7 +62,7 @@ const HomeScreen = ({ onStart }) => {
       <div className="home-content">
         <div className="logo-section">
           <img 
-            src="/MoodFlix (Logo).png" 
+            src="/MoodFlix_Logo.png" 
             alt="MoodFlix Logo" 
             className="home-logo"
           />
@@ -104,6 +119,17 @@ const HomeScreen = ({ onStart }) => {
                 로그아웃
               </button>
             </div>
+            
+            {/* 관리자용 영화 동기화 버튼 */}
+            {user?.role === 'ADMIN' && (
+              <div className="admin-section">
+                <MovieSyncButton 
+                  onSyncComplete={handleSyncSuccess}
+                  onSyncError={handleSyncError}
+                />
+              </div>
+            )}
+            
             <div className="action-section">
               <button 
                 className="start-button"
@@ -119,6 +145,7 @@ const HomeScreen = ({ onStart }) => {
         <div className="features-section">
           {/* ... 기능 아이템들 ... */}
         </div>
+
       </div>
     </div>
   );
