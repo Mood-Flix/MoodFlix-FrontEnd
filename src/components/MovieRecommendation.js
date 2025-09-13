@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaSmile, FaSadTear, FaGrinTongue, FaPeace, FaHeart, FaTired } from 'react-icons/fa';
+import { getMovieRecommendations } from '../services/movieService';
 import './MovieRecommendation.css';
 
 const MovieRecommendation = ({ onMovieClick }) => {
@@ -36,11 +37,17 @@ const MovieRecommendation = ({ onMovieClick }) => {
     setRecommendations(null);
 
     try {
-      // 여기에 실제 추천 알고리즘 API 호출이 들어갈 예정
-      // 현재는 시뮬레이션을 위한 지연 시간
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // 실제 영화 포스터를 사용한 추천 결과
+      // 실제 API 호출 시도
+      try {
+        const apiResponse = await getMovieRecommendations(selectedMood, customMood);
+        setRecommendations(apiResponse);
+        return;
+      } catch (apiError) {
+        console.warn('API 호출 실패, 모의 데이터 사용:', apiError);
+        // API 실패 시 모의 데이터로 fallback
+      }
+      
+      // 모의 데이터 (API 실패 시 사용)
       const mockRecommendations = [
         {
           id: 1,
