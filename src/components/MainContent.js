@@ -4,7 +4,6 @@ import './MainContent.css';
 
 const MainContent = ({ onMovieClick }) => {
   const { 
-    featuredMovie, 
     newReleases, 
     loading, 
     error, 
@@ -37,18 +36,18 @@ const MainContent = ({ onMovieClick }) => {
   }, [carouselMovies.length]);
 
   // 영화 카드 클릭 핸들러
-  const handleMovieClick = (movie) => {
+  const handleMovieClick = useCallback((movie) => {
     if (onMovieClick) {
       onMovieClick(movie);
     }
-  };
+  }, [onMovieClick]);
 
   const handleMovieKeyDown = useCallback((e, movie) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleMovieClick(movie);
     }
-  }, []);
+  }, [handleMovieClick]);
 
   // 더 많은 영화 로드
   const loadMoreMovies = useCallback(() => {
@@ -163,6 +162,16 @@ const MainContent = ({ onMovieClick }) => {
                   style={{
                     transform: `translateX(${(index - currentCarouselIndex) * 100}%)`,
                     opacity: index === currentCarouselIndex ? 1 : 0
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${movie.title} 상세 보기`}
+                  onClick={() => handleMovieClick(movie)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleMovieClick(movie);
+                    }
                   }}
                 >
                   <div className="carousel-content">

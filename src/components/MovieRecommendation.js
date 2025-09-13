@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FaArrowLeft, FaSmile, FaSadTear, FaGrinTongue, FaPeace, FaHeart, FaTired } from 'react-icons/fa';
+import { FaSmile, FaSadTear, FaGrinTongue, FaPeace, FaHeart, FaTired } from 'react-icons/fa';
 import './MovieRecommendation.css';
 
-const MovieRecommendation = ({ onBack, onMovieClick }) => {
+const MovieRecommendation = ({ onMovieClick }) => {
   const [selectedMood, setSelectedMood] = useState('');
   const [customMood, setCustomMood] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -137,10 +137,6 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
     return (
       <div className="movie-recommendation">
         <div className="recommendation-container">
-          <button className="back-button" onClick={onBack}>
-            <FaArrowLeft />
-          </button>
-
           <div className="recommendation-content">
             <div className="title-section">
               <h1 className="main-title">추천 영화</h1>
@@ -183,11 +179,6 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
   return (
     <div className="movie-recommendation">
       <div className="recommendation-container">
-        {/* 뒤로가기 버튼 */}
-        <button className="back-button" onClick={onBack}>
-          <FaArrowLeft />
-        </button>
-
         {/* 메인 콘텐츠 */}
         <div className="recommendation-content">
           {/* 제목 섹션 */}

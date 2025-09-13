@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaPlay, FaStar, FaCalendar, FaClock, FaGlobe, FaTag } from 'react-icons/fa';
 import { getMovieDetails } from '../services/movieService';
 import './MovieDetail.css';
 
-const MovieDetail = ({ movie }) => {
+const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [movieData, setMovieData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(propActiveTab || 'overview');
 
   const tabs = [
     { id: 'overview', label: '개요' },
@@ -15,6 +18,21 @@ const MovieDetail = ({ movie }) => {
     { id: 'videos', label: '비디오' },
     { id: 'photos', label: '포토' }
   ];
+
+  // 탭 변경 핸들러
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    if (id) {
+      navigate(`/movie/${id}/${tabId}`);
+    }
+  };
+
+  // propActiveTab이 변경될 때 activeTab 상태 업데이트
+  useEffect(() => {
+    if (propActiveTab && propActiveTab !== activeTab) {
+      setActiveTab(propActiveTab);
+    }
+  }, [propActiveTab, activeTab]);
 
   useEffect(() => {
     const loadMovieDetails = async () => {
@@ -60,9 +78,6 @@ const MovieDetail = ({ movie }) => {
     return `$${revenue.toLocaleString()}`;
   };
 
-  const getYouTubeUrl = (key) => {
-    return `https://www.youtube.com/watch?v=${key}`;
-  };
 
   const renderOverview = () => {
     if (!movieData) return null;
@@ -373,7 +388,7 @@ const MovieDetail = ({ movie }) => {
             <button
               key={tab.id}
               className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
             >
               {tab.label}
             </button>

@@ -7,7 +7,6 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  margin-left: 80px; /* 사이드바 너비만큼 여백 */
 }
 
 .movie-detail-container {
@@ -456,7 +455,6 @@
 @media (max-width: 768px) {
   .movie-detail {
     padding: 15px;
-    margin-left: 0; /* 모바일에서는 사이드바가 없으므로 여백 제거 */
   }
 
   .movie-header {

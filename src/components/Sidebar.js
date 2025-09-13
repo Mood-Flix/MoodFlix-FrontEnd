@@ -1,8 +1,23 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaSearch, FaPlus, FaCalendar, FaUser } from 'react-icons/fa';
 import './Sidebar.css';
 
-const Sidebar = ({ onPlusClick, onHomeClick, onCalendarClick, onProfileClick, currentView }) => {
+const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
+  const isActive = (path) => {
+    if (path === '/home') {
+      return location.pathname === '/home' || location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <nav className="sidebar">
       <div className="logo-section">
@@ -15,10 +30,10 @@ const Sidebar = ({ onPlusClick, onHomeClick, onCalendarClick, onProfileClick, cu
       <div className="nav-icons">
         <button
           type="button"
-          className={`nav-button ${currentView === 'main' ? 'active' : ''}`}
+          className={`nav-button ${isActive('/home') ? 'active' : ''}`}
           aria-label="홈으로 이동"
-          aria-pressed={currentView === 'main'}
-          onClick={onHomeClick}
+          aria-pressed={isActive('/home')}
+          onClick={() => handleNavigation('/home')}
         >
           <FaHome className="nav-icon" aria-hidden="true" />
         </button>
@@ -31,28 +46,28 @@ const Sidebar = ({ onPlusClick, onHomeClick, onCalendarClick, onProfileClick, cu
         </button>
         <button 
           type="button"
-          className={`nav-button ${currentView === 'recommendation' ? 'active' : ''}`}
+          className={`nav-button ${isActive('/recommendation') ? 'active' : ''}`}
           aria-label="영화 추천"
-          aria-pressed={currentView === 'recommendation'}
-          onClick={onPlusClick}
+          aria-pressed={isActive('/recommendation')}
+          onClick={() => handleNavigation('/recommendation')}
         >
           <FaPlus className="nav-icon" aria-hidden="true" />
         </button>
         <button 
           type="button"
-          className={`nav-button ${currentView === 'calendar' ? 'active' : ''}`}
+          className={`nav-button ${isActive('/calendar') ? 'active' : ''}`}
           aria-label="캘린더"
-          aria-pressed={currentView === 'calendar'}
-          onClick={onCalendarClick}
+          aria-pressed={isActive('/calendar')}
+          onClick={() => handleNavigation('/calendar')}
         >
           <FaCalendar className="nav-icon" aria-hidden="true" />
         </button>
         <button 
           type="button"
-          className={`nav-button ${currentView === 'profile' ? 'active' : ''}`}
+          className={`nav-button ${isActive('/profile') ? 'active' : ''}`}
           aria-label="프로필"
-          aria-pressed={currentView === 'profile'}
-          onClick={onProfileClick}
+          aria-pressed={isActive('/profile')}
+          onClick={() => handleNavigation('/profile')}
         >
           <FaUser className="nav-icon" aria-hidden="true" />
         </button>
