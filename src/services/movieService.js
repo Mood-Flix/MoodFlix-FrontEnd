@@ -1,26 +1,55 @@
 import axios from 'axios';
 import { API_BASE_URL, API_ENDPOINTS, getAuthHeaders, handleApiResponse, handleApiError } from '../constants/api';
 
-// axios 인스턴스 생성
+// axios 인스턴스 생성 (성능 최적화)
 const movieApi = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  // 압축 지원
+  headers: {
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept': 'application/json',
+  },
+  // 성능 최적화
+  maxRedirects: 3,
+  maxContentLength: 50 * 1024 * 1024, // 50MB
 });
 
-// 요청 인터셉터 - 인증 헤더 추가
+// 요청 인터셉터 - 인증 헤더 추가 및 성능 최적화
 movieApi.interceptors.request.use(
   (config) => {
     const authHeaders = getAuthHeaders();
     config.headers = { ...config.headers, ...authHeaders };
+    
+    // 캐시 제어 헤더 추가
+    if (config.url?.includes('/api/movies')) {
+      config.headers['Cache-Control'] = 'max-age=300'; // 5분 캐시
+    }
+    
+    // 요청 시간 기록 (성능 측정용)
+    config.metadata = { startTime: Date.now() };
+    
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터 - 에러 처리
+// 응답 인터셉터 - 에러 처리 및 성능 측정
 movieApi.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 응답 시간 측정
+    if (response.config.metadata?.startTime) {
+      const duration = Date.now() - response.config.metadata.startTime;
+      console.log(`API 응답 시간: ${response.config.url} - ${duration}ms`);
+    }
+    return response;
+  },
   (error) => {
+    // 에러 응답 시간도 측정
+    if (error.config?.metadata?.startTime) {
+      const duration = Date.now() - error.config.metadata.startTime;
+      console.log(`API 에러 응답 시간: ${error.config.url} - ${duration}ms`);
+    }
     handleApiError(error);
     return Promise.reject(error);
   }
@@ -39,10 +68,18 @@ export const syncMovies = async () => {
   }
 };
 
-// 영화 데이터 캐시
+// 영화 데이터 캐시 (더 공격적인 캐싱)
 let movieDataCache = null;
 let cacheTimestamp = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5분
+const CACHE_DURATION = 30 * 60 * 1000; // 30분으로 연장
+
+// 영화 상세 정보 캐시 (개별 영화별)
+const movieDetailsCache = new Map();
+const MOVIE_CACHE_DURATION = 60 * 60 * 1000; // 1시간
+
+// 프리로딩 큐
+const preloadQueue = new Set();
+const preloadInProgress = new Set();
 
 // 통합된 영화 데이터 가져오기 (캐싱 포함)
 export const getMovieData = async (forceRefresh = false) => {
@@ -115,7 +152,64 @@ export const clearMovieCache = () => {
   cacheTimestamp = null;
 };
 
-// 영화 상세 정보 가져오기
+// 영화 기본 정보만 가져오기 (개요 탭용 - 빠른 로딩)
+export const getMovieBasicInfo = async (movieId) => {
+  // 캐시 확인
+  const cacheKey = `basic_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION) {
+    // 캐시된 데이터가 있으면 즉시 반환하고 백그라운드에서 프리로딩 시작
+    preloadMovieData(movieId);
+    return cached.data;
+  }
+
+  try {
+    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/basic`);
+    const data = handleApiResponse(response);
+    
+    // 캐시에 저장
+    movieDetailsCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    
+    // 백그라운드에서 추가 데이터 프리로딩
+    preloadMovieData(movieId);
+    
+    return data;
+  } catch (error) {
+    console.error('영화 기본 정보 로딩 실패:', error);
+    // 기본 정보 API가 없으면 전체 정보를 가져와서 필요한 부분만 반환
+    const fullData = await getMovieDetails(movieId);
+    const basicData = {
+      id: fullData.id,
+      title: fullData.title,
+      originalTitle: fullData.originalTitle,
+      posterUrl: fullData.posterUrl,
+      releaseDate: fullData.releaseDate,
+      runtime: fullData.runtime,
+      countryName: fullData.countryName,
+      certification: fullData.certification,
+      genres: fullData.genres,
+      voteAverage: fullData.voteAverage,
+      voteCount: fullData.voteCount,
+      popularity: fullData.popularity,
+      overview: fullData.overview,
+      keywords: fullData.keywords
+    };
+    
+    // 캐시에 저장
+    movieDetailsCache.set(cacheKey, {
+      data: basicData,
+      timestamp: Date.now()
+    });
+    
+    return basicData;
+  }
+};
+
+// 영화 상세 정보 가져오기 (전체 데이터)
 export const getMovieDetails = async (movieId) => {
   try {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}`);
@@ -124,6 +218,30 @@ export const getMovieDetails = async (movieId) => {
   } catch (error) {
     console.error('영화 상세 정보 로딩 실패:', error);
     throw error;
+  }
+};
+
+// 영화 비디오 정보 가져오기
+export const getMovieVideos = async (movieId) => {
+  try {
+    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/videos`);
+    const data = handleApiResponse(response);
+    return data;
+  } catch (error) {
+    console.error('영화 비디오 로딩 실패:', error);
+    return { videos: [] };
+  }
+};
+
+// 영화 포토 정보 가져오기
+export const getMoviePhotos = async (movieId) => {
+  try {
+    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/photos`);
+    const data = handleApiResponse(response);
+    return data;
+  } catch (error) {
+    console.error('영화 포토 로딩 실패:', error);
+    return { posters: [], backdrops: [] };
   }
 };
 
@@ -162,5 +280,90 @@ export const getMovieRecommendations = async (mood, customMood = '') => {
   } catch (error) {
     console.error('영화 추천 실패:', error);
     throw error;
+  }
+};
+
+// 프리로딩 함수들
+export const preloadMovieData = async (movieId) => {
+  if (preloadInProgress.has(movieId)) return;
+  
+  preloadInProgress.add(movieId);
+  
+  try {
+    // 병렬로 비디오와 포토 데이터 프리로딩
+    const promises = [
+      preloadMovieVideos(movieId),
+      preloadMoviePhotos(movieId)
+    ];
+    
+    await Promise.allSettled(promises);
+  } finally {
+    preloadInProgress.delete(movieId);
+  }
+};
+
+export const preloadMovieVideos = async (movieId) => {
+  const cacheKey = `videos_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION) {
+    return cached.data;
+  }
+  
+  try {
+    const data = await getMovieVideos(movieId);
+    movieDetailsCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    return data;
+  } catch (error) {
+    console.error('비디오 프리로딩 실패:', error);
+    return { videos: [] };
+  }
+};
+
+export const preloadMoviePhotos = async (movieId) => {
+  const cacheKey = `photos_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION) {
+    return cached.data;
+  }
+  
+  try {
+    const data = await getMoviePhotos(movieId);
+    movieDetailsCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    return data;
+  } catch (error) {
+    console.error('포토 프리로딩 실패:', error);
+    return { posters: [], backdrops: [] };
+  }
+};
+
+// 캐시된 데이터 가져오기 (즉시 반환)
+export const getCachedMovieVideos = (movieId) => {
+  const cacheKey = `videos_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  return cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION ? cached.data : null;
+};
+
+export const getCachedMoviePhotos = (movieId) => {
+  const cacheKey = `photos_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  return cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION ? cached.data : null;
+};
+
+// 캐시 무효화 (개별 영화)
+export const clearMovieDetailCache = (movieId) => {
+  if (movieId) {
+    movieDetailsCache.delete(`basic_${movieId}`);
+    movieDetailsCache.delete(`videos_${movieId}`);
+    movieDetailsCache.delete(`photos_${movieId}`);
+  } else {
+    movieDetailsCache.clear();
   }
 };

@@ -1,8 +1,88 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaPlay, FaStar, FaCalendar, FaClock, FaGlobe, FaTag } from 'react-icons/fa';
-import { getMovieDetails } from '../services/movieService';
+import { 
+  getMovieBasicInfo, 
+  getMovieDetails, 
+  getMovieVideos, 
+  getMoviePhotos,
+  getCachedMovieVideos,
+  getCachedMoviePhotos,
+  preloadMovieData
+} from '../services/movieService';
 import './MovieDetail.css';
+
+// WebP 지원 확인
+const supportsWebP = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+};
+
+// 최적화된 이미지 URL 생성
+const getOptimizedImageUrl = (originalUrl, width = null, quality = 80) => {
+  if (!originalUrl) return originalUrl;
+  
+  // WebP 지원 확인
+  const useWebP = supportsWebP();
+  
+  // 이미지 최적화 파라미터 추가
+  const params = new URLSearchParams();
+  if (width) params.append('w', width);
+  params.append('q', quality);
+  if (useWebP) params.append('f', 'webp');
+  
+  const separator = originalUrl.includes('?') ? '&' : '?';
+  return `${originalUrl}${separator}${params.toString()}`;
+};
+
+// 지연 로딩 이미지 컴포넌트 (React.memo로 최적화)
+const LazyImage = React.memo(({ src, alt, className, onError, ...props }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const [optimizedSrc, setOptimizedSrc] = useState('');
+
+  // 이미지 URL 최적화
+  useEffect(() => {
+    if (src) {
+      setOptimizedSrc(getOptimizedImageUrl(src));
+    }
+  }, [src]);
+
+  const handleLoad = useCallback(() => {
+    setLoaded(true);
+  }, []);
+
+  const handleError = useCallback((e) => {
+    setError(true);
+    if (onError) onError(e);
+  }, [onError]);
+
+  return (
+    <div className={`lazy-image-container ${className}`} {...props}>
+      {!loaded && !error && (
+        <div className="image-placeholder">
+          <div className="placeholder-spinner"></div>
+        </div>
+      )}
+      {!error && optimizedSrc && (
+        <img
+          src={optimizedSrc}
+          alt={alt}
+          className={`lazy-image ${loaded ? 'loaded' : 'loading'}`}
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+      )}
+      {error && (
+        <div className="image-error">
+          <span>이미지 로딩 실패</span>
+        </div>
+      )}
+    </div>
+  );
+});
 
 // 영화 상세 정보 캐시
 const movieDetailCache = new Map();
@@ -15,6 +95,14 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(propActiveTab || 'overview');
+  
+  // 점진적 로딩을 위한 상태 관리
+  const [loadingStates, setLoadingStates] = useState({
+    overview: false,
+    details: false,
+    videos: false,
+    photos: false
+  });
 
   const tabs = [
     { id: 'overview', label: '개요' },
@@ -38,8 +126,8 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
     }
   }, [propActiveTab, activeTab]);
 
-  // 영화 상세 정보 로딩 (캐싱 포함)
-  const loadMovieDetails = useCallback(async () => {
+  // 기본 영화 정보만 로딩 (개요 탭용)
+  const loadBasicMovieInfo = useCallback(async () => {
     if (!movie?.id) {
       setError('영화 정보가 없습니다.');
       setLoading(false);
@@ -47,38 +135,163 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
     }
 
     // 캐시 확인
-    const cacheKey = `movie_${movie.id}`;
+    const cacheKey = `movie_basic_${movie.id}`;
     const cached = movieDetailCache.get(cacheKey);
     
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       setMovieData(cached.data);
       setLoading(false);
+      // 캐시된 데이터가 있으면 추가 데이터도 로딩 시작
+      loadAdditionalData();
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      const data = await getMovieDetails(movie.id);
+      
+      // 기본 정보만 먼저 로딩
+      const basicData = await getMovieBasicInfo(movie.id);
       
       // 캐시에 저장
       movieDetailCache.set(cacheKey, {
-        data,
+        data: basicData,
         timestamp: Date.now()
       });
       
-      setMovieData(data);
+      setMovieData(basicData);
+      setLoading(false);
+      
+      // 기본 정보 로딩 완료 후 추가 데이터 로딩 시작
+      loadAdditionalData();
     } catch (err) {
-      console.error('영화 상세 정보 로딩 실패:', err);
-      setError('영화 상세 정보를 불러오는데 실패했습니다.');
-    } finally {
+      console.error('영화 기본 정보 로딩 실패:', err);
+      setError('영화 기본 정보를 불러오는데 실패했습니다.');
       setLoading(false);
     }
   }, [movie?.id]);
 
+  // 추가 데이터 로딩 (상세정보, 비디오, 포토) - 캐시 우선
+  const loadAdditionalData = useCallback(async () => {
+    if (!movie?.id) return;
+
+    // 1. 상세정보 로딩 (즉시 완료)
+    setLoadingStates(prev => ({ ...prev, details: true }));
+    setTimeout(() => {
+      setLoadingStates(prev => ({ ...prev, details: false }));
+    }, 10);
+
+    // 2. 비디오 로딩 (캐시 우선)
+    setLoadingStates(prev => ({ ...prev, videos: true }));
+    const cachedVideos = getCachedMovieVideos(movie.id);
+    if (cachedVideos) {
+      // 캐시된 데이터가 있으면 즉시 적용
+      setMovieData(prev => ({
+        ...prev,
+        videos: cachedVideos.videos || []
+      }));
+      setLoadingStates(prev => ({ ...prev, videos: false }));
+    } else {
+      // 캐시가 없으면 API 호출
+      getMovieVideos(movie.id)
+        .then(videoData => {
+          setMovieData(prev => ({
+            ...prev,
+            videos: videoData.videos || []
+          }));
+        })
+        .catch(err => {
+          console.error('비디오 로딩 실패:', err);
+        })
+        .finally(() => {
+          setLoadingStates(prev => ({ ...prev, videos: false }));
+        });
+    }
+
+    // 3. 포토 로딩 (캐시 우선)
+    setLoadingStates(prev => ({ ...prev, photos: true }));
+    const cachedPhotos = getCachedMoviePhotos(movie.id);
+    if (cachedPhotos) {
+      // 캐시된 데이터가 있으면 즉시 적용
+      setMovieData(prev => ({
+        ...prev,
+        posters: cachedPhotos.posters || [],
+        backdrops: cachedPhotos.backdrops || []
+      }));
+      setLoadingStates(prev => ({ ...prev, photos: false }));
+    } else {
+      // 캐시가 없으면 API 호출
+      getMoviePhotos(movie.id)
+        .then(photoData => {
+          setMovieData(prev => ({
+            ...prev,
+            posters: photoData.posters || [],
+            backdrops: photoData.backdrops || []
+          }));
+        })
+        .catch(err => {
+          console.error('포토 로딩 실패:', err);
+        })
+        .finally(() => {
+          setLoadingStates(prev => ({ ...prev, photos: false }));
+        });
+    }
+  }, [movie?.id]);
+
+  // 전체 영화 상세 정보 로딩 (상세정보 탭용)
+  const loadFullMovieDetails = useCallback(async () => {
+    if (!movie?.id || loadingStates.details) return;
+
+    try {
+      setLoadingStates(prev => ({ ...prev, details: true }));
+      
+      const fullData = await getMovieDetails(movie.id);
+      
+      setMovieData(prev => ({
+        ...prev,
+        ...fullData
+      }));
+    } catch (err) {
+      console.error('전체 영화 상세 정보 로딩 실패:', err);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, details: false }));
+    }
+  }, [movie?.id, loadingStates.details]);
+
   useEffect(() => {
-    loadMovieDetails();
-  }, [loadMovieDetails]);
+    loadBasicMovieInfo();
+  }, [loadBasicMovieInfo]);
+
+  // 이미지 프리로딩
+  const preloadImages = useCallback((imageUrls) => {
+    imageUrls.forEach(url => {
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  }, []);
+
+  // 포스터 이미지 프리로딩
+  useEffect(() => {
+    if (movieData?.posterUrl) {
+      preloadImages([movieData.posterUrl]);
+    }
+  }, [movieData?.posterUrl, preloadImages]);
+
+  // 포토 이미지들 프리로딩
+  useEffect(() => {
+    if (movieData?.posters || movieData?.backdrops) {
+      const allImages = [
+        ...(movieData.posters || []),
+        ...(movieData.backdrops || [])
+      ];
+      if (allImages.length > 0) {
+        const imageUrls = allImages.slice(0, 12).map(img => img.url);
+        preloadImages(imageUrls);
+      }
+    }
+  }, [movieData?.posters, movieData?.backdrops, preloadImages]);
 
   // 포맷팅 함수들 (useCallback으로 최적화)
   const formatDate = useCallback((dateString) => {
@@ -110,9 +323,10 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         {/* 영화 포스터와 기본 정보 */}
         <div className="movie-header">
           <div className="detail-movie-poster">
-            <img 
+            <LazyImage 
               src={movieData.posterUrl} 
               alt={movieData.title}
+              className="movie-poster-image"
               onError={(e) => {
                 e.target.src = '/logo.svg';
               }}
@@ -192,6 +406,45 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
   const renderDetails = useMemo(() => {
     if (!movieData) return null;
 
+    if (loadingStates.details) {
+      return (
+        <div className="details-content">
+          <div className="loading-skeleton">
+            <div className="skeleton-grid">
+              {[...Array(8)].map((_, index) => (
+                <div key={index} className="skeleton-detail-item">
+                  <div className="skeleton-label"></div>
+                  <div className="skeleton-value"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 상세정보가 없으면 전체 데이터를 로딩
+    if (!movieData.budget && !movieData.revenue && !movieData.status) {
+      // 상세정보 로딩 시작
+      if (!loadingStates.details) {
+        loadFullMovieDetails();
+      }
+      return (
+        <div className="details-content">
+          <div className="loading-skeleton">
+            <div className="skeleton-grid">
+              {[...Array(8)].map((_, index) => (
+                <div key={index} className="skeleton-detail-item">
+                  <div className="skeleton-label"></div>
+                  <div className="skeleton-value"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="details-content">
         <div className="details-grid">
@@ -251,9 +504,29 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         </div>
       </div>
     );
-  }, [movieData, formatDate, formatRuntime, formatBudget, formatRevenue]);
+  }, [movieData, formatDate, formatRuntime, formatBudget, formatRevenue, loadingStates.details, loadFullMovieDetails]);
 
   const renderVideos = useMemo(() => {
+    if (loadingStates.videos) {
+      return (
+        <div className="videos-content">
+          <div className="loading-skeleton">
+            <div className="skeleton-videos-grid">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="skeleton-video-item">
+                  <div className="skeleton-video-thumbnail"></div>
+                  <div className="skeleton-video-info">
+                    <div className="skeleton-video-title"></div>
+                    <div className="skeleton-video-site"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     if (!movieData?.videos || movieData.videos.length === 0) {
       return (
         <div className="no-content">
@@ -314,10 +587,26 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         </div>
       </div>
     );
-  }, [movieData]);
+  }, [movieData, loadingStates.videos]);
 
   const renderPhotos = useMemo(() => {
     if (!movieData) return null;
+
+    if (loadingStates.photos) {
+      return (
+        <div className="photos-content">
+          <div className="loading-skeleton">
+            <div className="skeleton-photos-grid">
+              {[...Array(12)].map((_, index) => (
+                <div key={index} className="skeleton-photo-item">
+                  <div className="skeleton-photo-image"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     const allImages = [
       ...(movieData.posters || []),
@@ -337,7 +626,7 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         <div className="photos-grid">
           {allImages.slice(0, 12).map((image, index) => (
             <div key={index} className="photo-item">
-              <img 
+              <LazyImage 
                 src={image.url} 
                 alt={`${movieData.title} 이미지 ${index + 1}`}
                 className="photo-image"
@@ -350,7 +639,7 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         </div>
       </div>
     );
-  }, [movieData]);
+  }, [movieData, loadingStates.photos]);
 
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
@@ -414,6 +703,11 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
               onClick={() => handleTabChange(tab.id)}
             >
               {tab.label}
+              {loadingStates[tab.id] && (
+                <span className="tab-loading-indicator">
+                  <div className="mini-spinner"></div>
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -427,4 +721,4 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
   );
 };
 
-export default MovieDetail;
+export default React.memo(MovieDetail);
