@@ -13,6 +13,8 @@ const HomeScreen = ({ onStart }) => {
       clearError(); // 이전 에러 메시지 초기화
       await login(kakaoAccessToken); 
       console.log('HomeScreen: 로그인 프로세스 성공');
+      // 로그인 성공 시 자동으로 메인 페이지로 이동
+      window.location.reload();
     } catch (err) {
       console.error('HomeScreen: 로그인 프로세스 실패', err);
     }

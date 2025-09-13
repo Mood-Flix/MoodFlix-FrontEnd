@@ -7,6 +7,7 @@ import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
 import Profile from './components/Profile';
+import HomeScreen from './components/HomeScreen';
 import { useAuth } from './hooks/useAuth';
 
 // 메인 앱 레이아웃 컴포넌트
@@ -107,7 +108,7 @@ function MovieDetailWrapper() {
 }
 
 function App() {
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
 
   // 로딩 중일 때 표시
   if (isLoading) {
@@ -121,7 +122,15 @@ function App() {
 
   return (
     <Router>
-      <AppLayout />
+      <Routes>
+        {/* 인증되지 않은 사용자는 로그인 페이지로 */}
+        {!isAuthenticated ? (
+          <Route path="*" element={<HomeScreen onStart={() => window.location.reload()} />} />
+        ) : (
+          /* 인증된 사용자는 메인 앱으로 */
+          <Route path="*" element={<AppLayout />} />
+        )}
+      </Routes>
     </Router>
   );
 }
