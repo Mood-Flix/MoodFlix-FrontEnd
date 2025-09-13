@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaPlay, FaStar, FaCalendar, FaClock, FaGlobe, FaTag } from 'react-icons/fa';
 import { getMovieDetails } from '../services/movieService';
 import './MovieDetail.css';
+
+// 영화 상세 정보 캐시
+const movieDetailCache = new Map();
+const CACHE_DURATION = 10 * 60 * 1000; // 10분
 
 const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
   const navigate = useNavigate();
@@ -19,13 +23,13 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
     { id: 'photos', label: '포토' }
   ];
 
-  // 탭 변경 핸들러
-  const handleTabChange = (tabId) => {
+  // 탭 변경 핸들러 (useCallback으로 최적화)
+  const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
     if (id) {
       navigate(`/movie/${id}/${tabId}`);
     }
-  };
+  }, [id, navigate]);
 
   // propActiveTab이 변경될 때 activeTab 상태 업데이트
   useEffect(() => {
@@ -34,52 +38,71 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
     }
   }, [propActiveTab, activeTab]);
 
-  useEffect(() => {
-    const loadMovieDetails = async () => {
-      if (!movie?.id) {
-        setError('영화 정보가 없습니다.');
-        setLoading(false);
-        return;
-      }
+  // 영화 상세 정보 로딩 (캐싱 포함)
+  const loadMovieDetails = useCallback(async () => {
+    if (!movie?.id) {
+      setError('영화 정보가 없습니다.');
+      setLoading(false);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getMovieDetails(movie.id);
-        setMovieData(data);
-      } catch (err) {
-        console.error('영화 상세 정보 로딩 실패:', err);
-        setError('영화 상세 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // 캐시 확인
+    const cacheKey = `movie_${movie.id}`;
+    const cached = movieDetailCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      setMovieData(cached.data);
+      setLoading(false);
+      return;
+    }
 
-    loadMovieDetails();
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getMovieDetails(movie.id);
+      
+      // 캐시에 저장
+      movieDetailCache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      
+      setMovieData(data);
+    } catch (err) {
+      console.error('영화 상세 정보 로딩 실패:', err);
+      setError('영화 상세 정보를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   }, [movie?.id]);
 
-  const formatDate = (dateString) => {
+  useEffect(() => {
+    loadMovieDetails();
+  }, [loadMovieDetails]);
+
+  // 포맷팅 함수들 (useCallback으로 최적화)
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '미상';
     return new Date(dateString).toLocaleDateString('ko-KR');
-  };
+  }, []);
 
-  const formatRuntime = (runtime) => {
+  const formatRuntime = useCallback((runtime) => {
     if (!runtime) return '미상';
     return `${runtime}분`;
-  };
+  }, []);
 
-  const formatBudget = (budget) => {
+  const formatBudget = useCallback((budget) => {
     if (!budget || budget === 0) return '미상';
     return `$${budget.toLocaleString()}`;
-  };
+  }, []);
 
-  const formatRevenue = (revenue) => {
+  const formatRevenue = useCallback((revenue) => {
     if (!revenue || revenue === 0) return '미상';
     return `$${revenue.toLocaleString()}`;
-  };
+  }, []);
 
 
-  const renderOverview = () => {
+  const renderOverview = useMemo(() => {
     if (!movieData) return null;
 
     return (
@@ -164,9 +187,9 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         )}
       </div>
     );
-  };
+  }, [movieData, formatDate, formatRuntime]);
 
-  const renderDetails = () => {
+  const renderDetails = useMemo(() => {
     if (!movieData) return null;
 
     return (
@@ -228,9 +251,9 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         </div>
       </div>
     );
-  };
+  }, [movieData, formatDate, formatRuntime, formatBudget, formatRevenue]);
 
-  const renderVideos = () => {
+  const renderVideos = useMemo(() => {
     if (!movieData?.videos || movieData.videos.length === 0) {
       return (
         <div className="no-content">
@@ -291,9 +314,9 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         </div>
       </div>
     );
-  };
+  }, [movieData]);
 
-  const renderPhotos = () => {
+  const renderPhotos = useMemo(() => {
     if (!movieData) return null;
 
     const allImages = [
@@ -327,22 +350,22 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         </div>
       </div>
     );
-  };
+  }, [movieData]);
 
-  const renderTabContent = () => {
+  const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'overview':
-        return renderOverview();
+        return renderOverview;
       case 'details':
-        return renderDetails();
+        return renderDetails;
       case 'videos':
-        return renderVideos();
+        return renderVideos;
       case 'photos':
-        return renderPhotos();
+        return renderPhotos;
       default:
-        return renderOverview();
+        return renderOverview;
     }
-  };
+  }, [activeTab, renderOverview, renderDetails, renderVideos, renderPhotos]);
 
   if (loading) {
     return (
@@ -397,7 +420,7 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
 
         {/* 메인 콘텐츠 */}
         <div className="movie-detail-content">
-          {renderTabContent()}
+          {renderTabContent}
         </div>
       </div>
     </div>
