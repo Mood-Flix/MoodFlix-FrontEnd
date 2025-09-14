@@ -134,8 +134,8 @@ export const getMovieData = async (page = 0, size = 20, forceRefresh = false) =>
 // 영화 목록 가져오기 (단순 배열 형태) - 캐시된 데이터 사용
 export const getMovieList = async () => {
   try {
-    const data = await getMovieData();
-    return data;
+    const page = await getMovieData();
+    return Array.isArray(page) ? page : (page?.content || []);
   } catch (error) {
     console.error('영화 목록 로딩 실패:', error);
     throw error;
