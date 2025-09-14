@@ -40,7 +40,9 @@
 }
 
 .kakao-icon {
-  font-size: 1.2rem;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .kakao-text {
@@ -62,6 +64,7 @@
   }
   
   .kakao-icon {
-    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 }
