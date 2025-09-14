@@ -183,7 +183,10 @@ async function handleStaticRequest(request) {
     
     if (networkResponse.ok) {
       const responseClone = networkResponse.clone();
-      cache.put(request, responseClone);
+      // chrome-extension 스키마는 캐시에 저장하지 않음
+      if (request.url && !request.url.startsWith('chrome-extension:')) {
+        cache.put(request, responseClone);
+      }
     }
     
     return networkResponse;

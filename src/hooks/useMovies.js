@@ -17,7 +17,7 @@ export const useMovies = () => {
   // 통합된 영화 데이터 로딩 (페이지네이션 지원)
   const loadAllMovieData = useCallback(async (page = 0, forceRefresh = false) => {
     try {
-      const data = await getMovieData(page, 24, forceRefresh);
+      const data = await getMovieData(page, 28, forceRefresh);
       
       // 새로운 API 구조에 맞춰 데이터 처리
       const movies = data.content || [];

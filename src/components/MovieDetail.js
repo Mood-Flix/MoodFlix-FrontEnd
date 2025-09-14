@@ -202,6 +202,11 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         })
         .catch(err => {
           console.error('비디오 로딩 실패:', err);
+          // 에러가 발생해도 빈 배열로 설정하여 UI가 깨지지 않도록 함
+          setMovieData(prev => ({
+            ...prev,
+            videos: []
+          }));
         })
         .finally(() => {
           setLoadingStates(prev => ({ ...prev, videos: false }));
@@ -231,6 +236,12 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         })
         .catch(err => {
           console.error('포토 로딩 실패:', err);
+          // 에러가 발생해도 빈 배열로 설정하여 UI가 깨지지 않도록 함
+          setMovieData(prev => ({
+            ...prev,
+            posters: [],
+            backdrops: []
+          }));
         })
         .finally(() => {
           setLoadingStates(prev => ({ ...prev, photos: false }));
@@ -253,6 +264,18 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
       }));
     } catch (err) {
       console.error('전체 영화 상세 정보 로딩 실패:', err);
+      // 에러가 발생해도 기본 데이터는 유지하고 상세 정보만 기본값으로 설정
+      setMovieData(prev => ({
+        ...prev,
+        budget: prev.budget || 0,
+        revenue: prev.revenue || 0,
+        status: prev.status || '미상',
+        castTop: prev.castTop || [],
+        crewCore: prev.crewCore || [],
+        similar: prev.similar || [],
+        recommendations: prev.recommendations || [],
+        reviewsTop: prev.reviewsTop || []
+      }));
     } finally {
       setLoadingStates(prev => ({ ...prev, details: false }));
     }

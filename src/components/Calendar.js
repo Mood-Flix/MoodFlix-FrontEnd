@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
 import './Calendar.css';
 
 const Calendar = () => {
+  const navigate = useNavigate();
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMood, setSelectedMood] = useState('');
@@ -121,6 +123,10 @@ const Calendar = () => {
     return `${months[date.getMonth()]} ${date.getDate()}일 ${days[date.getDay()]}`;
   };
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   // 로딩 상태 플래그 (데이터 조회 시에만 전역 오버레이)
   const showGlobalLoading = loading && !isEditMode;
   
@@ -150,6 +156,7 @@ const Calendar = () => {
             // 기본 캘린더 뷰
             <div className="calendar-popup">
               <div className="calendar-header">
+                <button className="close-btn" onClick={handleClose}>×</button>
                 <div className="calendar-navigation">
                   <button className="nav-btn" onClick={goToPreviousMonth}>‹</button>
                   <h2>{`${displayMonth + 1}월 ${displayYear}`}</h2>

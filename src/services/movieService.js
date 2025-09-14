@@ -190,24 +190,10 @@ export const getMovieBasicInfo = async (movieId) => {
   }
 
   try {
-    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/basic`);
-    const data = handleApiResponse(response);
+    // 전체 데이터를 한 번에 가져와서 필요한 부분만 반환
+    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}`);
+    const fullData = handleApiResponse(response);
     
-    // 캐시에 저장
-    movieDetailsCache.set(cacheKey, {
-      data,
-      timestamp: Date.now()
-    });
-    evictOldestDetailIfNeeded();
-    
-    // 백그라운드에서 추가 데이터 프리로딩
-    preloadMovieData(movieId);
-    
-    return data;
-  } catch (error) {
-    console.error('영화 기본 정보 로딩 실패:', error);
-    // 기본 정보 API가 없으면 전체 정보를 가져와서 필요한 부분만 반환
-    const fullData = await getMovieDetails(movieId);
     const basicData = {
       id: fullData.id,
       title: fullData.title,
@@ -225,21 +211,50 @@ export const getMovieBasicInfo = async (movieId) => {
       keywords: fullData.keywords
     };
     
-    // 캐시에 저장
+    // 전체 데이터도 캐시에 저장 (중복 호출 방지)
+    movieDetailsCache.set(`full_${movieId}`, {
+      data: fullData,
+      timestamp: Date.now()
+    });
+    
+    // 기본 데이터도 캐시에 저장
     movieDetailsCache.set(cacheKey, {
       data: basicData,
       timestamp: Date.now()
     });
+    evictOldestDetailIfNeeded();
+    
+    // 백그라운드에서 추가 데이터 프리로딩
+    preloadMovieData(movieId);
     
     return basicData;
+  } catch (error) {
+    console.error('영화 기본 정보 로딩 실패:', error);
+    throw error;
   }
 };
 
 // 영화 상세 정보 가져오기 (전체 데이터)
 export const getMovieDetails = async (movieId) => {
+  // 캐시 확인
+  const cacheKey = `full_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}`);
     const data = handleApiResponse(response);
+    
+    // 캐시에 저장
+    movieDetailsCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    evictOldestDetailIfNeeded();
+    
     return data;
   } catch (error) {
     console.error('영화 상세 정보 로딩 실패:', error);
@@ -249,12 +264,22 @@ export const getMovieDetails = async (movieId) => {
 
 // 영화 비디오 정보 가져오기
 export const getMovieVideos = async (movieId) => {
+  // 캐시 확인
+  const cacheKey = `videos_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
-    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/videos`);
-    const data = handleApiResponse(response);
-    movieDetailsCache.set(`videos_${movieId}`, { data, timestamp: Date.now() });
+    // /videos 엔드포인트가 없으므로 전체 데이터를 가져와서 videos 부분만 반환
+    const fullData = await getMovieDetails(movieId);
+    const videoData = { videos: fullData.videos || [] };
+    
+    movieDetailsCache.set(cacheKey, { data: videoData, timestamp: Date.now() });
     evictOldestDetailIfNeeded();
-    return data;
+    return videoData;
   } catch (error) {
     console.error('영화 비디오 로딩 실패:', error);
     return { videos: [] };
@@ -263,12 +288,25 @@ export const getMovieVideos = async (movieId) => {
 
 // 영화 포토 정보 가져오기
 export const getMoviePhotos = async (movieId) => {
+  // 캐시 확인
+  const cacheKey = `photos_${movieId}`;
+  const cached = movieDetailsCache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MOVIE_CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
-    const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/photos`);
-    const data = handleApiResponse(response);
-    movieDetailsCache.set(`photos_${movieId}`, { data, timestamp: Date.now() });
+    // /photos 엔드포인트가 없으므로 전체 데이터를 가져와서 photos 부분만 반환
+    const fullData = await getMovieDetails(movieId);
+    const photoData = { 
+      posters: fullData.posters || [], 
+      backdrops: fullData.backdrops || [] 
+    };
+    
+    movieDetailsCache.set(cacheKey, { data: photoData, timestamp: Date.now() });
     evictOldestDetailIfNeeded();
-    return data;
+    return photoData;
   } catch (error) {
     console.error('영화 포토 로딩 실패:', error);
     return { posters: [], backdrops: [] };
@@ -391,6 +429,7 @@ export const getCachedMoviePhotos = (movieId) => {
 export const clearMovieDetailCache = (movieId) => {
   if (movieId) {
     movieDetailsCache.delete(`basic_${movieId}`);
+    movieDetailsCache.delete(`full_${movieId}`);
     movieDetailsCache.delete(`videos_${movieId}`);
     movieDetailsCache.delete(`photos_${movieId}`);
   } else {
