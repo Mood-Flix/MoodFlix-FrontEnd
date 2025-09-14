@@ -66,14 +66,33 @@ export const syncMovies = async () => {
 // 영화 데이터 캐시 (더 공격적인 캐싱)
 let movieDataCache = null;
 const CACHE_DURATION = 30 * 60 * 1000; // 30분으로 연장
+// in-flight 요청 디듀프
+const inflightRequests = new Map();
 
 // 영화 상세 정보 캐시 (개별 영화별)
 const movieDetailsCache = new Map();
 const MOVIE_CACHE_DURATION = 60 * 60 * 1000; // 1시간
+const MAX_DETAIL_ENTRIES = 500;
 
 // 프리로딩 큐
 const preloadQueue = new Set();
 const preloadInProgress = new Set();
+
+// 캐시 관리 헬퍼 함수들
+const evictOldestDetailIfNeeded = () => {
+  if (movieDetailsCache.size <= MAX_DETAIL_ENTRIES) return;
+  const oldestKey = movieDetailsCache.keys().next().value;
+  movieDetailsCache.delete(oldestKey);
+};
+
+const sweepExpiredDetails = () => {
+  const now = Date.now();
+  for (const [k, v] of movieDetailsCache) {
+    if (!v?.timestamp || now - v.timestamp >= MOVIE_CACHE_DURATION) {
+      movieDetailsCache.delete(k);
+    }
+  }
+};
 
 // 통합된 영화 데이터 가져오기 (캐싱 포함) - 페이지네이션 지원
 export const getMovieData = async (page = 0, size = 20, forceRefresh = false) => {
@@ -87,15 +106,23 @@ export const getMovieData = async (page = 0, size = 20, forceRefresh = false) =>
       return movieDataCache[cacheKey].data;
     }
 
+    // 동시 요청 디듀프
+    if (!forceRefresh && inflightRequests.has(cacheKey)) {
+      return await inflightRequests.get(cacheKey);
+    }
+
     // API 호출 (페이지네이션 파라미터 추가)
-    const response = await movieApi.get(API_ENDPOINTS.MOVIE_LIST, {
-      params: { page, size }
-    });
-    const data = handleApiResponse(response);
-    
-    // 캐시 업데이트
-    movieDataCache ||= {};
-    movieDataCache[cacheKey] = { data, timestamp: Date.now() };
+    const req = movieApi
+      .get(API_ENDPOINTS.MOVIE_LIST, { params: { page, size } })
+      .then((res) => handleApiResponse(res))
+      .then((data) => {
+        movieDataCache ||= {};
+        movieDataCache[cacheKey] = { data, timestamp: Date.now() };
+        return data;
+      })
+      .finally(() => inflightRequests.delete(cacheKey));
+    inflightRequests.set(cacheKey, req);
+    const data = await req;
     
     return data;
   } catch (error) {
@@ -171,6 +198,7 @@ export const getMovieBasicInfo = async (movieId) => {
       data,
       timestamp: Date.now()
     });
+    evictOldestDetailIfNeeded();
     
     // 백그라운드에서 추가 데이터 프리로딩
     preloadMovieData(movieId);
@@ -225,6 +253,7 @@ export const getMovieVideos = async (movieId) => {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/videos`);
     const data = handleApiResponse(response);
     movieDetailsCache.set(`videos_${movieId}`, { data, timestamp: Date.now() });
+    evictOldestDetailIfNeeded();
     return data;
   } catch (error) {
     console.error('영화 비디오 로딩 실패:', error);
@@ -238,6 +267,7 @@ export const getMoviePhotos = async (movieId) => {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/photos`);
     const data = handleApiResponse(response);
     movieDetailsCache.set(`photos_${movieId}`, { data, timestamp: Date.now() });
+    evictOldestDetailIfNeeded();
     return data;
   } catch (error) {
     console.error('영화 포토 로딩 실패:', error);
@@ -366,4 +396,6 @@ export const clearMovieDetailCache = (movieId) => {
   } else {
     movieDetailsCache.clear();
   }
+  // 필요 시 만료 스윕
+  sweepExpiredDetails();
 };
