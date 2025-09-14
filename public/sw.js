@@ -83,20 +83,36 @@ async function handleApiRequest(request) {
     return fetch(request);
   }
 
+  // 인증 요청은 캐시하지 않음
+  const isAuth = request.headers.has('Authorization') || request.headers.has('authorization');
+  
   const cache = await caches.open(API_CACHE_NAME);
   
   try {
     // 네트워크 우선 전략
     const networkResponse = await fetch(request);
     
-    // 성공적인 응답만 캐시
-    if (networkResponse.ok) {
+    // 성공적인 응답만 캐시 (인증 요청 제외)
+    if (networkResponse.ok && !isAuth) {
       const responseClone = networkResponse.clone();
       cache.put(request, responseClone);
     }
     
     return networkResponse;
   } catch (error) {
+    // 인증 요청은 캐시에서 반환하지 않음
+    if (isAuth) {
+      return new Response(
+        JSON.stringify({ 
+          error: '오프라인 상태입니다. 네트워크 연결을 확인해주세요.' 
+        }),
+        { 
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     // 네트워크 실패 시 캐시에서 반환
     const cachedResponse = await cache.match(request);
     if (cachedResponse) {
