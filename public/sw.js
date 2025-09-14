@@ -63,7 +63,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // API 요청 처리
-  if (url.pathname.startsWith('/api/')) {
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(request));
   }
   // 이미지 요청 처리
