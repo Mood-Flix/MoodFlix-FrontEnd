@@ -113,9 +113,9 @@
 
 .mood-button {
   background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 3px solid transparent;
   border-radius: 15px;
-  padding: 15px 20px;
+  padding: 20px 15px;
   color: white;
   font-size: 1rem;
   font-weight: 500;
@@ -125,9 +125,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 100px;
-  min-height: 80px;
+  gap: 10px;
+  min-width: 120px;
+  min-height: 100px;
   justify-content: center;
 }
 
@@ -139,10 +139,16 @@
 }
 
 .mood-button.selected {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  background: rgba(255, 255, 255, 0.2);
   border-color: #ff6b6b;
   box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
   transform: translateY(-2px);
+}
+
+.mood-icon {
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
 .mood-emoji {
@@ -162,7 +168,8 @@
 }
 
 .custom-mood-input {
-  width: 100%;
+  width: 80%;
+  max-width: 500px;
   min-height: 60px;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -172,8 +179,17 @@
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
+  margin: 0 auto;
+  display: block;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  overflow: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.custom-mood-input::-webkit-scrollbar {
+  display: none; /* WebKit */
 }
 
 .custom-mood-input::placeholder {
@@ -377,6 +393,11 @@
   .mood-label {
     font-size: 0.85rem;
   }
+  
+  .custom-mood-input {
+    width: 90%;
+    max-width: 450px;
+  }
 
   .recommendations-list {
     grid-template-columns: repeat(2, 1fr);
@@ -432,6 +453,16 @@
   .mood-button {
     min-width: 140px;
     min-height: 80px;
+  }
+  
+  .mood-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .custom-mood-input {
+    width: 95%;
+    max-width: none;
   }
   
   .recommend-button {
