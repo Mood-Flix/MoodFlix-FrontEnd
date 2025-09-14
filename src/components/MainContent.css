@@ -13,8 +13,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  min-height: 50vh;
   gap: 20px;
+  padding: 40px 20px;
 }
 
 .main-content .loading-spinner {
@@ -57,20 +58,19 @@
 
 /* Carousel Section */
 .carousel-section {
-  height: 60vh;
+  min-height: 70vh;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   display: flex;
   align-items: center;
-  padding: 0 60px;
+  padding: 40px 60px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .carousel-container {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 
 .carousel-slides-wrapper {
@@ -115,8 +115,10 @@
   gap: 60px;
   max-width: 1200px;
   width: 100%;
-  padding: 0 40px;
+  padding: 20px 40px 60px 40px;
   z-index: 2;
+  min-height: 450px;
+  overflow: visible;
 }
 
 .carousel-poster {
@@ -164,6 +166,10 @@
   color: white;
   flex: 1;
   text-align: left;
+  overflow: visible;
+  word-wrap: break-word;
+  max-width: 100%;
+  padding-bottom: 50px;
 }
 
 .carousel-title {
@@ -172,6 +178,9 @@
   margin: 0 0 20px 0;
   line-height: 1.1;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .carousel-subtitle {
@@ -179,6 +188,8 @@
   color: #cccccc;
   margin: 0 0 15px 0;
   font-weight: 400;
+  overflow: visible;
+  word-wrap: break-word;
 }
 
 .carousel-description {
@@ -187,6 +198,8 @@
   margin: 0;
   line-height: 1.6;
   max-width: 500px;
+  overflow: visible;
+  word-wrap: break-word;
 }
 
 /* 캐러셀 네비게이션 버튼 */
@@ -230,7 +243,7 @@
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  z-index: 3;
+  z-index: 10;
 }
 
 .carousel-indicator {
@@ -485,17 +498,48 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .carousel-section {
-    padding: 0 40px;
+    padding: 30px 40px;
+    min-height: 70vh;
+    overflow: visible;
   }
   
   .carousel-content {
     gap: 40px;
-    padding: 0 20px;
+    padding: 20px 20px 60px 20px;
+    min-height: 450px;
+    overflow: visible;
   }
   
   .carousel-poster {
     width: 250px;
     height: 375px;
+  }
+  
+  .carousel-text {
+    overflow: visible;
+    word-wrap: break-word;
+    padding-bottom: 50px;
+  }
+  
+  .carousel-indicators {
+    bottom: 35px;
+  }
+  
+  .carousel-title {
+    font-size: 3.5rem;
+    overflow: visible;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  .carousel-subtitle {
+    overflow: visible;
+    word-wrap: break-word;
+  }
+  
+  .carousel-description {
+    overflow: visible;
+    word-wrap: break-word;
   }
   
   .featured-section {
@@ -511,10 +555,6 @@
     gap: 25px;
   }
   
-  .carousel-title {
-    font-size: 3rem;
-  }
-  
   .featured-title {
     font-size: 3rem;
   }
@@ -526,14 +566,18 @@
 
 @media (max-width: 768px) {
   .carousel-section {
-    height: 50vh;
-    padding: 0 30px;
+    min-height: 75vh;
+    padding: 25px 30px;
+    overflow: visible;
   }
   
   .carousel-content {
     flex-direction: column;
     gap: 30px;
     text-align: center;
+    min-height: 450px;
+    padding: 25px 0 70px 0;
+    overflow: visible;
   }
   
   .carousel-poster {
@@ -543,6 +587,37 @@
   
   .carousel-text {
     text-align: center;
+    overflow: visible;
+    word-wrap: break-word;
+    max-width: 100%;
+    padding-bottom: 60px;
+  }
+  
+  .carousel-indicators {
+    bottom: 25px;
+  }
+  
+  .carousel-title {
+    font-size: 2.8rem;
+    line-height: 1.2;
+    margin-bottom: 18px;
+    overflow: visible;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  .carousel-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    overflow: visible;
+    word-wrap: break-word;
+  }
+  
+  .carousel-description {
+    font-size: 1rem;
+    line-height: 1.5;
+    overflow: visible;
+    word-wrap: break-word;
   }
   
   .featured-section {
@@ -561,10 +636,6 @@
   
   .main-movie-poster {
     height: 250px;
-  }
-  
-  .carousel-title {
-    font-size: 2.5rem;
   }
   
   .featured-title {
@@ -586,13 +657,52 @@
 
 @media (max-width: 480px) {
   .carousel-section {
-    height: 40vh;
-    padding: 0 20px;
+    min-height: 70vh;
+    padding: 20px 15px;
+    overflow: visible;
+  }
+  
+  .carousel-content {
+    min-height: 400px;
+    padding: 20px 0 80px 0;
+    overflow: visible;
+    gap: 20px;
   }
   
   .carousel-poster {
     width: 150px;
     height: 225px;
+  }
+  
+  .carousel-text {
+    text-align: center;
+    overflow: visible;
+    word-wrap: break-word;
+    max-width: 100%;
+    padding-bottom: 70px;
+  }
+  
+  .carousel-title {
+    font-size: 2.2rem;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    overflow: visible;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  .carousel-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    overflow: visible;
+    word-wrap: break-word;
+  }
+  
+  .carousel-description {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    overflow: visible;
+    word-wrap: break-word;
   }
   
   .carousel-nav {
@@ -607,6 +717,15 @@
   
   .carousel-next {
     right: 15px;
+  }
+  
+  .carousel-indicators {
+    bottom: 20px;
+  }
+  
+  .carousel-indicator {
+    width: 10px;
+    height: 10px;
   }
   
   .featured-section {
@@ -634,10 +753,6 @@
   .rating-star,
   .rating-score {
     font-size: 0.8rem;
-  }
-  
-  .carousel-title {
-    font-size: 2rem;
   }
   
   .featured-title {

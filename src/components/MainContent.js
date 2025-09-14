@@ -115,10 +115,31 @@ const MainContent = ({ onMovieClick }) => {
     return () => clearInterval(interval);
   }, [carouselMovies.length]);
 
-  // 로딩 상태
+  // 로딩 상태 - 배너는 항상 표시
   if (loading) {
     return (
       <main className="main-content">
+        {/* Carousel Section - 로딩 중에도 표시 */}
+        <section className="carousel-section">
+          <div className="carousel-container">
+            <div className="carousel-content">
+              <div className="carousel-poster">
+                <div className="carousel-poster-placeholder">
+                  <span className="carousel-poster-text">MoodFlix</span>
+                </div>
+              </div>
+              <div className="carousel-text">
+                <h1 className="carousel-title">
+                  <span className="title-part-1">MoodFlix</span>
+                  <span className="title-part-2">와 함께하는</span>
+                </h1>
+                <p className="carousel-subtitle">나만의 영화 추천</p>
+                <p className="carousel-description">기분에 맞는 영화를 찾아보세요</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>영화 정보를 불러오는 중...</p>
@@ -127,10 +148,31 @@ const MainContent = ({ onMovieClick }) => {
     );
   }
 
-  // 에러 상태
+  // 에러 상태 - 배너는 항상 표시
   if (error) {
     return (
       <main className="main-content">
+        {/* Carousel Section - 에러 중에도 표시 */}
+        <section className="carousel-section">
+          <div className="carousel-container">
+            <div className="carousel-content">
+              <div className="carousel-poster">
+                <div className="carousel-poster-placeholder">
+                  <span className="carousel-poster-text">MoodFlix</span>
+                </div>
+              </div>
+              <div className="carousel-text">
+                <h1 className="carousel-title">
+                  <span className="title-part-1">MoodFlix</span>
+                  <span className="title-part-2">와 함께하는</span>
+                </h1>
+                <p className="carousel-subtitle">나만의 영화 추천</p>
+                <p className="carousel-description">기분에 맞는 영화를 찾아보세요</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
         <div className="error-container">
           <p className="error-message">{error}</p>
           <button onClick={refreshMovies} className="retry-button">
@@ -144,8 +186,8 @@ const MainContent = ({ onMovieClick }) => {
   return (
     <main className="main-content">
       {/* Carousel Section */}
-      {carouselMovies.length > 0 && (
-        <section className="carousel-section">
+      <section className="carousel-section">
+        {carouselMovies.length > 0 ? (
           <div className="carousel-container">
             <div className="carousel-slides-wrapper">
               {carouselMovies.map((movie, index) => (
@@ -225,20 +267,41 @@ const MainContent = ({ onMovieClick }) => {
               ›
             </button>
             
-            {/* 캐러셀 인디케이터 */}
-            <div className="carousel-indicators">
-              {carouselMovies.map((_, index) => (
-                <button
-                  key={index}
-                  className={`carousel-indicator ${index === currentCarouselIndex ? 'active' : ''}`}
-                  onClick={() => setCurrentCarouselIndex(index)}
-                  aria-label={`${index + 1}번째 영화로 이동`}
-                />
-              ))}
+          </div>
+        ) : (
+          <div className="carousel-container">
+            <div className="carousel-content">
+              <div className="carousel-poster">
+                <div className="carousel-poster-placeholder">
+                  <span className="carousel-poster-text">MoodFlix</span>
+                </div>
+              </div>
+              <div className="carousel-text">
+                <h1 className="carousel-title">
+                  <span className="title-part-1">MoodFlix</span>
+                  <span className="title-part-2">와 함께하는</span>
+                </h1>
+                <p className="carousel-subtitle">나만의 영화 추천</p>
+                <p className="carousel-description">기분에 맞는 영화를 찾아보세요</p>
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        )}
+        
+        {/* 캐러셀 인디케이터 - 섹션 레벨로 이동 */}
+        {carouselMovies.length > 1 && (
+          <div className="carousel-indicators">
+            {carouselMovies.map((_, index) => (
+              <button
+                key={index}
+                className={`carousel-indicator ${index === currentCarouselIndex ? 'active' : ''}`}
+                onClick={() => setCurrentCarouselIndex(index)}
+                aria-label={`${index + 1}번째 영화로 이동`}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* New Releases Section */}
       <section className="new-releases-section">
