@@ -57,6 +57,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // 비-GET 요청은 가로채지 않음
+  if (request.method !== 'GET') {
+    return;
+  }
+
   // API 요청 처리
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(request));
@@ -73,6 +78,11 @@ self.addEventListener('fetch', (event) => {
 
 // API 요청 처리
 async function handleApiRequest(request) {
+  // 안전 가드: 비-GET은 캐싱하지 않음
+  if (request.method !== 'GET') {
+    return fetch(request);
+  }
+
   const cache = await caches.open(API_CACHE_NAME);
   
   try {
