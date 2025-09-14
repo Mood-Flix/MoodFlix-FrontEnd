@@ -224,6 +224,7 @@ export const getMovieVideos = async (movieId) => {
   try {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/videos`);
     const data = handleApiResponse(response);
+    movieDetailsCache.set(`videos_${movieId}`, { data, timestamp: Date.now() });
     return data;
   } catch (error) {
     console.error('영화 비디오 로딩 실패:', error);
@@ -236,6 +237,7 @@ export const getMoviePhotos = async (movieId) => {
   try {
     const response = await movieApi.get(`${API_ENDPOINTS.MOVIE_DETAILS}/${movieId}/photos`);
     const data = handleApiResponse(response);
+    movieDetailsCache.set(`photos_${movieId}`, { data, timestamp: Date.now() });
     return data;
   } catch (error) {
     console.error('영화 포토 로딩 실패:', error);
