@@ -7,7 +7,6 @@ const movieApi = axios.create({
   timeout: 10000,
   // 압축 지원
   headers: {
-    'Accept-Encoding': 'gzip, deflate, br',
     'Accept': 'application/json',
   },
   // 성능 최적화
