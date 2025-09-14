@@ -53,6 +53,7 @@ function MovieDetailWrapper() {
 
 function App() {
   const { isLoading, isAuthenticated } = useAuth();
+  const [isGuest, setIsGuest] = useState(false);
 
   // 로딩 중일 때 표시
   if (isLoading) {
@@ -67,11 +68,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 인증되지 않은 사용자는 로그인 페이지로 */}
-        {!isAuthenticated ? (
-          <Route path="*" element={<HomeScreen onStart={() => window.location.reload()} />} />
+        {/* 인증 X && 게스트 X -> 홈 스크린 */}
+        {!isAuthenticated && !isGuest ? (
+          <Route path="*" element={<HomeScreen onStart={() => setIsGuest(true)} />} />
         ) : (
-          /* 인증된 사용자는 메인 앱으로 */
+          /* 인증된 사용자 또는 게스트는 메인 앱으로 */
           <Route path="*" element={<AppLayout />} />
         )}
       </Routes>
