@@ -6,8 +6,7 @@ const IMAGE_CACHE_NAME = 'moodflix-images-v1';
 // 캐시할 리소스들
 const STATIC_ASSETS = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
+  '/index.html',
   '/manifest.json',
   '/logo.svg',
   '/favicon.ico'
@@ -16,17 +15,17 @@ const STATIC_ASSETS = [
 // 설치 이벤트
 self.addEventListener('install', (event) => {
   console.log('Service Worker 설치 중...');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('정적 리소스 캐싱 중...');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => {
-        console.log('Service Worker 설치 완료');
-        return self.skipWaiting();
-      })
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    try {
+      console.log('정적 리소스 캐싱 중...');
+      await cache.addAll(STATIC_ASSETS);
+    } catch (e) {
+      console.warn('일부 리소스 캐싱 실패(설치 계속):', e);
+    }
+    console.log('Service Worker 설치 완료');
+    await self.skipWaiting();
+  })());
 });
 
 // 활성화 이벤트
