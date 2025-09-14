@@ -156,7 +156,7 @@ const Calendar = () => {
             // 기본 캘린더 뷰
             <div className="calendar-popup">
               <div className="calendar-header">
-                <button className="close-btn" onClick={handleClose}>×</button>
+                <button className="close-btn" onClick={handleClose} aria-label="캘린더 닫기">×</button>
                 <div className="calendar-navigation">
                   <button className="nav-btn" onClick={goToPreviousMonth}>‹</button>
                   <h2>{`${displayMonth + 1}월 ${displayYear}`}</h2>
