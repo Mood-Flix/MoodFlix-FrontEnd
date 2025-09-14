@@ -20,10 +20,6 @@ movieApi.interceptors.request.use(
     const authHeaders = getAuthHeaders();
     config.headers = { ...config.headers, ...authHeaders };
     
-    // 캐시 제어 헤더 추가
-    if (config.url?.includes('/api/movies')) {
-      config.headers['Cache-Control'] = 'max-age=300'; // 5분 캐시
-    }
     
     // 요청 시간 기록 (성능 측정용)
     config.metadata = { startTime: Date.now() };
