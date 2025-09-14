@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FaArrowLeft, FaSmile, FaSadTear, FaGrinTongue, FaPeace, FaHeart, FaTired } from 'react-icons/fa';
+import { getMovieRecommendations } from '../services/movieService';
+import { HappyIcon, SadIcon, ExcitedIcon, PeacefulIcon, RomanticIcon, AnxiousIcon } from './EmotionIcons';
 import './MovieRecommendation.css';
 
-const MovieRecommendation = ({ onBack, onMovieClick }) => {
+const MovieRecommendation = ({ onMovieClick }) => {
   const [selectedMood, setSelectedMood] = useState('');
   const [customMood, setCustomMood] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -10,20 +11,20 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
   const [error, setError] = useState('');
 
   const moodOptions = [
-    { id: 'happy', label: '행복해요', icon: FaSmile, emoji: '😊' },
-    { id: 'sad', label: '슬퍼요', icon: FaSadTear, emoji: '😢' },
-    { id: 'excited', label: '신나요', icon: FaGrinTongue, emoji: '😛' },
-    { id: 'calm', label: '평온해요', icon: FaPeace, emoji: '😌' },
-    { id: 'romantic', label: '로맨틱해요', icon: FaHeart, emoji: '💕' },
-    { id: 'anxious', label: '불안해요', icon: FaTired, emoji: '😰' }
+    { id: 'happy', label: '행복해요', icon: HappyIcon, color: '#FFD700' },
+    { id: 'sad', label: '슬퍼요', icon: SadIcon, color: '#87CEEB' },
+    { id: 'excited', label: '신나요', icon: ExcitedIcon, color: '#FF6B6B' },
+    { id: 'peaceful', label: '평온해요', icon: PeacefulIcon, color: '#98FB98' },
+    { id: 'romantic', label: '로맨틱해요', icon: RomanticIcon, color: '#FF69B4' },
+    { id: 'anxious', label: '불안해요', icon: AnxiousIcon, color: '#DDA0DD' }
   ];
 
   const handleMoodSelect = (moodId) => {
     setSelectedMood(selectedMood === moodId ? '' : moodId);
-    // 새로운 기분을 선택하면 이전 추천 결과 초기화
     setRecommendations(null);
     setError('');
   };
+
 
   const handleRecommendMovies = async () => {
     if (!selectedMood && !customMood.trim()) {
@@ -36,11 +37,17 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
     setRecommendations(null);
 
     try {
-      // 여기에 실제 추천 알고리즘 API 호출이 들어갈 예정
-      // 현재는 시뮬레이션을 위한 지연 시간
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // 실제 영화 포스터를 사용한 추천 결과
+      // 실제 API 호출 시도
+      try {
+        const apiResponse = await getMovieRecommendations(selectedMood, customMood);
+        setRecommendations(apiResponse);
+        return;
+      } catch (apiError) {
+        console.warn('API 호출 실패, 모의 데이터 사용:', apiError);
+        // API 실패 시 모의 데이터로 fallback
+      }
+      
+      // 모의 데이터 (API 실패 시 사용)
       const mockRecommendations = [
         {
           id: 1,
@@ -137,10 +144,6 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
     return (
       <div className="movie-recommendation">
         <div className="recommendation-container">
-          <button className="back-button" onClick={onBack}>
-            <FaArrowLeft />
-          </button>
-
           <div className="recommendation-content">
             <div className="title-section">
               <h1 className="main-title">추천 영화</h1>
@@ -183,11 +186,6 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
   return (
     <div className="movie-recommendation">
       <div className="recommendation-container">
-        {/* 뒤로가기 버튼 */}
-        <button className="back-button" onClick={onBack}>
-          <FaArrowLeft />
-        </button>
-
         {/* 메인 콘텐츠 */}
         <div className="recommendation-content">
           {/* 제목 섹션 */}
@@ -203,30 +201,42 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
             <div className="mood-buttons-container">
               {/* 상단 3개 버튼 */}
               <div className="mood-buttons-row">
-                {moodOptions.slice(0, 3).map((mood) => (
-                  <button
-                    key={mood.id}
-                    className={`mood-button ${selectedMood === mood.id ? 'selected' : ''}`}
-                    onClick={() => handleMoodSelect(mood.id)}
-                  >
-                    <span className="mood-emoji">{mood.emoji}</span>
-                    <span className="mood-label">{mood.label}</span>
-                  </button>
-                ))}
+                {moodOptions.slice(0, 3).map((mood) => {
+                  const IconComponent = mood.icon;
+                  return (
+                    <button
+                      key={mood.id}
+                      className={`mood-button ${selectedMood === mood.id ? 'selected' : ''}`}
+                      onClick={() => handleMoodSelect(mood.id)}
+                      style={{
+                        borderColor: selectedMood === mood.id ? mood.color : 'transparent'
+                      }}
+                    >
+                      <IconComponent className="mood-icon" />
+                      <span className="mood-label">{mood.label}</span>
+                    </button>
+                  );
+                })}
               </div>
               
               {/* 하단 3개 버튼 */}
               <div className="mood-buttons-row">
-                {moodOptions.slice(3, 6).map((mood) => (
-                  <button
-                    key={mood.id}
-                    className={`mood-button ${selectedMood === mood.id ? 'selected' : ''}`}
-                    onClick={() => handleMoodSelect(mood.id)}
-                  >
-                    <span className="mood-emoji">{mood.emoji}</span>
-                    <span className="mood-label">{mood.label}</span>
-                  </button>
-                ))}
+                {moodOptions.slice(3, 6).map((mood) => {
+                  const IconComponent = mood.icon;
+                  return (
+                    <button
+                      key={mood.id}
+                      className={`mood-button ${selectedMood === mood.id ? 'selected' : ''}`}
+                      onClick={() => handleMoodSelect(mood.id)}
+                      style={{
+                        borderColor: selectedMood === mood.id ? mood.color : 'transparent'
+                      }}
+                    >
+                      <IconComponent className="mood-icon" />
+                      <span className="mood-label">{mood.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -235,7 +245,7 @@ const MovieRecommendation = ({ onBack, onMovieClick }) => {
           <div className="custom-mood-section">
             <textarea
               className="custom-mood-input"
-              placeholder="더 자세히 오늘의 기분을 알려주세요... 예: 오늘 너무 기분이 좋아 행복해"
+              placeholder="더 자세히 오늘의 기분을 알려주세요...&#10;예: 오늘 너무 기분이 좋아 행복해"
               value={customMood}
               onChange={(e) => setCustomMood(e.target.value)}
             />

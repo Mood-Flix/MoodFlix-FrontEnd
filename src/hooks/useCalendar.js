@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   getMonthlyCalendarData, 
   saveMonthlyCalendarData,
-  getCalendarEntry,
   saveCalendarEntry,
   deleteCalendarEntry
 } from '../services/calendarService';

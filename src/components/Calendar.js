@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import './Calendar.css';
 
-const Calendar = ({ onBack }) => {
+const Calendar = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMood, setSelectedMood] = useState('');
@@ -31,7 +31,6 @@ const Calendar = ({ onBack }) => {
     { emoji: '🤩', text: '신나요' }
   ];
 
-  const currentDate = new Date();
   const displayMonth = calendarMonth;
   const displayYear = calendarYear;
 
@@ -151,7 +150,6 @@ const Calendar = ({ onBack }) => {
             // 기본 캘린더 뷰
             <div className="calendar-popup">
               <div className="calendar-header">
-                <button className="close-btn" onClick={onBack}>×</button>
                 <div className="calendar-navigation">
                   <button className="nav-btn" onClick={goToPreviousMonth}>‹</button>
                   <h2>{`${displayMonth + 1}월 ${displayYear}`}</h2>
@@ -223,7 +221,6 @@ const Calendar = ({ onBack }) => {
               )}
               <div className="calendar-edit-header">
                 <button className="back-btn" onClick={() => setIsEditMode(false)}>← 뒤로가기</button>
-                <button className="close-btn" onClick={onBack}>×</button>
               </div>
               <div className="calendar-edit-content">
                 {/* 왼쪽 패널 - 나만의 캘린더 */}

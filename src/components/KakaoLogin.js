@@ -69,7 +69,11 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError }) => {
         disabled={isLoading}
         aria-label="카카오로 로그인"
       >
-        <span className="kakao-icon">🎯</span>
+        <img 
+          src="/kakao-logo.svg" 
+          alt="카카오" 
+          className="kakao-icon"
+        />
         <span className="kakao-text">
           {isLoading ? '로그인 중...' : '카카오로 로그인'}
         </span>

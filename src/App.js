@@ -1,33 +1,59 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
-import HomeScreen from './components/HomeScreen';
 import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
 import Profile from './components/Profile';
-import { useMood } from './hooks/useMood';
+import HomeScreen from './components/HomeScreen';
 import { useAuth } from './hooks/useAuth';
 
-function App() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const {
-    showHome,
-    handleStartApp,
-    handleGoHome
-  } = useMood();
-  
-  const [currentView, setCurrentView] = useState('main'); // 'main', 'recommendation', 'calendar', 'detail', 'profile'
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  const [previousView, setPreviousView] = useState('main');
+// 메인 앱 레이아웃 컴포넌트
+function AppLayout() {
+  const navigate = useNavigate();
 
-  // 로그인 상태에 따라 자동으로 메인 페이지로 이동
-  useEffect(() => {
-    if (isAuthenticated && showHome) {
-      handleStartApp();
-    }
-  }, [isAuthenticated, showHome, handleStartApp]);
+  const handleMovieClick = (movie) => {
+    navigate(`/movie/${movie.id}`);
+  };
+
+  return (
+    <div className="app">
+      <Sidebar />
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
+        <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/movie/:id" element={<MovieDetailRedirect />} />
+        <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
+
+// 영화 상세 페이지 리다이렉트 컴포넌트
+function MovieDetailRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/movie/${id}/overview`} replace />;
+}
+
+// 영화 상세 페이지 래퍼 컴포넌트
+function MovieDetailWrapper() {
+  const { id, tab } = useParams();
+  
+  // 최적화: ID만 전달하고 MovieDetail에서 직접 상세 정보 로딩
+  const movie = { id: parseInt(id) };
+
+  return <MovieDetail movie={movie} activeTab={tab || 'overview'} />;
+}
+
+function App() {
+  const { isLoading, isAuthenticated } = useAuth();
+  const [isGuest, setIsGuest] = useState(false);
 
   // 로딩 중일 때 표시
   if (isLoading) {
@@ -39,60 +65,18 @@ function App() {
     );
   }
 
-  const handleShowRecommendation = () => {
-    setCurrentView('recommendation');
-  };
-
-  const handleShowCalendar = () => {
-    setCurrentView('calendar');
-  };
-
-  const handleShowProfile = () => {
-    setCurrentView('profile');
-  };
-
-  const handleBackToMain = () => {
-    setCurrentView('main');
-  };
-
-  const handleGoToHome = () => {
-    setCurrentView('main');
-  };
-
-  const handleMovieClick = (movie) => {
-    setPreviousView(currentView);
-    setSelectedMovie(movie);
-    setCurrentView('detail');
-  };
-
-
   return (
-    <div className={`app ${showHome ? 'home-view' : ''}`}>
-      {showHome ? (
-        <HomeScreen onStart={handleStartApp} />
-      ) : (
-        <>
-          <Sidebar 
-            onPlusClick={handleShowRecommendation} 
-            onHomeClick={handleGoToHome}
-            onCalendarClick={handleShowCalendar}
-            onProfileClick={handleShowProfile}
-            currentView={currentView}
-          />
-          {currentView === 'main' ? (
-            <MainContent onMovieClick={handleMovieClick} />
-          ) : currentView === 'recommendation' ? (
-            <MovieRecommendation onBack={handleBackToMain} onMovieClick={handleMovieClick} />
-          ) : currentView === 'calendar' ? (
-            <Calendar onBack={handleBackToMain} />
-          ) : currentView === 'profile' ? (
-            <Profile onBack={handleBackToMain} />
-          ) : (
-            <MovieDetail movie={selectedMovie} />
-          )}
-        </>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        {/* 인증 X && 게스트 X -> 홈 스크린 */}
+        {!isAuthenticated && !isGuest ? (
+          <Route path="*" element={<HomeScreen onStart={() => setIsGuest(true)} />} />
+        ) : (
+          /* 인증된 사용자 또는 게스트는 메인 앱으로 */
+          <Route path="*" element={<AppLayout />} />
+        )}
+      </Routes>
+    </Router>
   );
 }
 

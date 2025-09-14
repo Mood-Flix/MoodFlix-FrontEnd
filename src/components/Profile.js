@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Profile.css';
 import { useAuth } from '../hooks/useAuth';
 
-const Profile = ({ onBack }) => {
+const Profile = () => {
   const { user, isAuthenticated, loadUserProfile, isLoading } = useAuth();
   const [imgError, setImgError] = useState(false);
 
@@ -17,11 +17,6 @@ const Profile = ({ onBack }) => {
       <div className="profile-card">
         <div className="profile-card-header">
           <h2 className="profile-title">프로필</h2>
-          {onBack && (
-            <button type="button" className="profile-back" onClick={onBack} aria-label="뒤로 가기">
-              ← 뒤로
-            </button>
-          )}
         </div>
         {!isAuthenticated ? (
           <p className="profile-value" style={{ marginBottom: 12, opacity: 0.9 }}>로그인 후 프로필 정보를 확인할 수 있습니다.</p>

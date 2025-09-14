@@ -4,10 +4,11 @@ import './MainContent.css';
 
 const MainContent = ({ onMovieClick }) => {
   const { 
-    featuredMovie, 
     newReleases, 
     loading, 
     error, 
+    hasMore,
+    loadMoreMovies,
     refreshMovies 
   } = useMovies();
 
@@ -17,8 +18,6 @@ const MainContent = ({ onMovieClick }) => {
 
   // 무한 스크롤을 위한 상태
   const [displayedMovies, setDisplayedMovies] = useState([]);
-  const [hasMore, setHasMore] = useState(true);
-  const moviesPerPage = 12; // 한 번에 보여줄 영화 수
   const isLoadingMoreRef = useRef(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -37,40 +36,35 @@ const MainContent = ({ onMovieClick }) => {
   }, [carouselMovies.length]);
 
   // 영화 카드 클릭 핸들러
-  const handleMovieClick = (movie) => {
+  const handleMovieClick = useCallback((movie) => {
     if (onMovieClick) {
       onMovieClick(movie);
     }
-  };
+  }, [onMovieClick]);
 
   const handleMovieKeyDown = useCallback((e, movie) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleMovieClick(movie);
     }
-  }, []);
+  }, [handleMovieClick]);
 
-  // 더 많은 영화 로드
-  const loadMoreMovies = useCallback(() => {
-    if (isLoadingMoreRef.current) return;
+  // 더 많은 영화 로드 (새로운 API 구조 사용)
+  const handleLoadMoreMovies = useCallback(async () => {
+    if (isLoadingMoreRef.current || !hasMore) return;
+    
     isLoadingMoreRef.current = true;
     setLoadingMore(true);
 
-    setDisplayedMovies(prev => {
-      const startIndex = prev.length;
-      const endIndex = startIndex + moviesPerPage;
-      const newMovies = newReleases.slice(startIndex, endIndex);
-      if (newMovies.length === 0) {
-        setHasMore(false);
-        isLoadingMoreRef.current = false;
-        setLoadingMore(false);
-        return prev;
-      }
+    try {
+      await loadMoreMovies();
+    } catch (error) {
+      console.error('추가 영화 로딩 실패:', error);
+    } finally {
       isLoadingMoreRef.current = false;
       setLoadingMore(false);
-      return [...prev, ...newMovies];
-    });
-  }, [newReleases, moviesPerPage]);
+    }
+  }, [hasMore, loadMoreMovies]);
 
   // 무한 스크롤 핸들러
   const handleScroll = useCallback(() => {
@@ -82,9 +76,9 @@ const MainContent = ({ onMovieClick }) => {
 
     // 스크롤이 하단에 가까워지면 더 많은 영화 로드
     if (scrollTop + windowHeight >= documentHeight - 100) {
-      loadMoreMovies();
+      handleLoadMoreMovies();
     }
-  }, [loading, loadingMore, hasMore, loadMoreMovies]);
+  }, [loading, loadingMore, hasMore, handleLoadMoreMovies]);
 
   // 캐러셀 데이터 초기화
   useEffect(() => {
@@ -99,9 +93,7 @@ const MainContent = ({ onMovieClick }) => {
   // 초기 영화 로드 및 스크롤 이벤트 리스너
   useEffect(() => {
     if (newReleases.length > 0) {
-      const initialMovies = newReleases.slice(0, moviesPerPage);
-      setDisplayedMovies(initialMovies);
-      setHasMore(newReleases.length > moviesPerPage);
+      setDisplayedMovies(newReleases);
     }
   }, [newReleases]);
 
@@ -163,6 +155,16 @@ const MainContent = ({ onMovieClick }) => {
                   style={{
                     transform: `translateX(${(index - currentCarouselIndex) * 100}%)`,
                     opacity: index === currentCarouselIndex ? 1 : 0
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${movie.title} 상세 보기`}
+                  onClick={() => handleMovieClick(movie)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleMovieClick(movie);
+                    }
                   }}
                 >
                   <div className="carousel-content">
