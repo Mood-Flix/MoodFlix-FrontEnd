@@ -152,11 +152,15 @@ async function handleImageRequest(request) {
 async function handleStaticRequest(request) {
   const cache = await caches.open(CACHE_NAME);
   
+  // 내비게이션 요청은 App Shell로 폴백
+  if (request.mode === 'navigate') {
+    const shell = await cache.match('/index.html');
+    if (shell) return shell;
+  }
+  
   // 캐시 우선 전략
   const cachedResponse = await cache.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
+  if (cachedResponse) return cachedResponse;
   
   try {
     const networkResponse = await fetch(request);
@@ -168,7 +172,7 @@ async function handleStaticRequest(request) {
     
     return networkResponse;
   } catch (error) {
-    // 오프라인 페이지 반환
+    // 오프라인 페이지 반환(최후 수단)
     return new Response(
       '<!DOCTYPE html><html><head><title>오프라인</title></head><body><h1>오프라인 상태입니다</h1><p>네트워크 연결을 확인해주세요.</p></body></html>',
       { 
