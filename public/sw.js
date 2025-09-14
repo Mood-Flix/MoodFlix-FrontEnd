@@ -147,8 +147,8 @@ async function handleImageRequest(request) {
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
-      const responseClone = networkResponse.clone();
-      cache.put(request, responseClone);
+      await cache.put(request, networkResponse.clone());
+      await enforceCacheLimit(IMAGE_CACHE_NAME, 300);
     }
     
     return networkResponse;
@@ -233,3 +233,12 @@ self.addEventListener('push', (event) => {
     );
   }
 });
+
+// 캐시 제한 강제 함수 (LRU 기반)
+async function enforceCacheLimit(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  while (keys.length > maxEntries) {
+    await cache.delete(keys.shift());
+  }
+}
