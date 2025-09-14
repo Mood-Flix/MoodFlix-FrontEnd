@@ -1,6 +1,9 @@
 :root {
   --accent-color: #e50914;
   --focus-color: #ff6b35;
+  --sidebar-width: 120px;
+  --sidebar-width-mobile: 80px;
+  --sidebar-width-small: 60px;
 }
 
 .sidebar {
@@ -8,7 +11,7 @@
   top: 0;
   left: 0;
   height: 100vh;
-  width: 120px;
+  width: var(--sidebar-width);
   background-color: #0f0f0f;
   display: flex;
   flex-direction: column;
@@ -103,12 +106,12 @@
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .sidebar {
-    width: 80px;
+    width: var(--sidebar-width-mobile);
     padding: 15px 0;
   }
   
   .app {
-    margin-left: 80px;
+    margin-left: var(--sidebar-width-mobile);
   }
   
   .logo-image {
@@ -131,12 +134,12 @@
 
 @media (max-width: 480px) {
   .sidebar {
-    width: 60px;
+    width: var(--sidebar-width-small);
     padding: 10px 0;
   }
   
   .app {
-    margin-left: 60px;
+    margin-left: var(--sidebar-width-small);
   }
   
   .logo-image {
