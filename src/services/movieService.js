@@ -65,7 +65,6 @@ export const syncMovies = async () => {
 
 // 영화 데이터 캐시 (더 공격적인 캐싱)
 let movieDataCache = null;
-let cacheTimestamp = null;
 const CACHE_DURATION = 30 * 60 * 1000; // 30분으로 연장
 
 // 영화 상세 정보 캐시 (개별 영화별)
@@ -83,9 +82,9 @@ export const getMovieData = async (page = 0, size = 20, forceRefresh = false) =>
     const cacheKey = `movies_page_${page}_size_${size}`;
     
     // 캐시가 유효하고 강제 새로고침이 아닌 경우 캐시된 데이터 반환
-    if (!forceRefresh && movieDataCache && movieDataCache[cacheKey] && 
-        cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
-      return movieDataCache[cacheKey];
+    if (!forceRefresh && movieDataCache?.[cacheKey] &&
+        Date.now() - movieDataCache[cacheKey].timestamp < CACHE_DURATION) {
+      return movieDataCache[cacheKey].data;
     }
 
     // API 호출 (페이지네이션 파라미터 추가)
@@ -95,11 +94,8 @@ export const getMovieData = async (page = 0, size = 20, forceRefresh = false) =>
     const data = handleApiResponse(response);
     
     // 캐시 업데이트
-    if (!movieDataCache) {
-      movieDataCache = {};
-    }
-    movieDataCache[cacheKey] = data;
-    cacheTimestamp = Date.now();
+    movieDataCache ||= {};
+    movieDataCache[cacheKey] = { data, timestamp: Date.now() };
     
     return data;
   } catch (error) {
@@ -152,7 +148,6 @@ export const getNewReleases = async () => {
 // 캐시 무효화 함수
 export const clearMovieCache = () => {
   movieDataCache = null;
-  cacheTimestamp = null;
 };
 
 // 영화 기본 정보만 가져오기 (개요 탭용 - 빠른 로딩)
