@@ -81,24 +81,32 @@ const MOVIE_CACHE_DURATION = 60 * 60 * 1000; // 1시간
 const preloadQueue = new Set();
 const preloadInProgress = new Set();
 
-// 통합된 영화 데이터 가져오기 (캐싱 포함)
-export const getMovieData = async (forceRefresh = false) => {
+// 통합된 영화 데이터 가져오기 (캐싱 포함) - 페이지네이션 지원
+export const getMovieData = async (page = 0, size = 20, forceRefresh = false) => {
   try {
+    // 캐시 키 생성 (페이지별)
+    const cacheKey = `movies_page_${page}_size_${size}`;
+    
     // 캐시가 유효하고 강제 새로고침이 아닌 경우 캐시된 데이터 반환
-    if (!forceRefresh && movieDataCache && cacheTimestamp && 
-        Date.now() - cacheTimestamp < CACHE_DURATION) {
-      return movieDataCache;
+    if (!forceRefresh && movieDataCache && movieDataCache[cacheKey] && 
+        cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
+      return movieDataCache[cacheKey];
     }
 
-    // API 호출
-    const response = await movieApi.get(API_ENDPOINTS.MOVIE_LIST);
+    // API 호출 (페이지네이션 파라미터 추가)
+    const response = await movieApi.get(API_ENDPOINTS.MOVIE_LIST, {
+      params: { page, size }
+    });
     const data = handleApiResponse(response);
     
     // 캐시 업데이트
-    movieDataCache = Array.isArray(data) ? data : [];
+    if (!movieDataCache) {
+      movieDataCache = {};
+    }
+    movieDataCache[cacheKey] = data;
     cacheTimestamp = Date.now();
     
-    return movieDataCache;
+    return data;
   } catch (error) {
     console.error('영화 데이터 로딩 실패:', error);
     throw error;
