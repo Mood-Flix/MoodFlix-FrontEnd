@@ -144,7 +144,25 @@ const MainContent = ({ onMovieClick }) => {
   return (
     <main className="main-content">
       {/* Carousel Section */}
-      <section className="carousel-section">
+      <section 
+        className="carousel-section"
+        role="button"
+        tabIndex={0}
+        aria-label="추천 영화 캐러셀 - Enter 또는 Space로 현재 영화 상세 보기"
+        onClick={() => {
+          if (carouselMovies.length > 0) {
+            handleMovieClick(carouselMovies[currentCarouselIndex]);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (carouselMovies.length > 0) {
+              handleMovieClick(carouselMovies[currentCarouselIndex]);
+            }
+          }
+        }}
+      >
         {carouselMovies.length > 0 ? (
           <div className="carousel-container">
             <div className="carousel-slides-wrapper">
@@ -155,16 +173,6 @@ const MainContent = ({ onMovieClick }) => {
                   style={{
                     transform: `translateX(${(index - currentCarouselIndex) * 100}%)`,
                     opacity: index === currentCarouselIndex ? 1 : 0
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${movie.title} 상세 보기`}
-                  onClick={() => handleMovieClick(movie)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleMovieClick(movie);
-                    }
                   }}
                 >
                   <div className="carousel-content">
