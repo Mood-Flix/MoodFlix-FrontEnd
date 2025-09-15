@@ -99,9 +99,17 @@
   transform: translateX(0) scale(1.02);
 }
 
-.carousel-slide:focus {
-  outline: 2px solid var(--accent-color, #ff4444);
-  outline-offset: 4px;
+/* 캐러셀 섹션 포커스 스타일 */
+.carousel-section:focus:not(:focus-visible) {
+  outline: none; /* 마우스/터치 포커스 링 제거 */
+}
+
+/* 키보드 포커스는 캐러셀 섹션 전체에 적용 */
+.carousel-section:focus-visible {
+  outline: 3px solid var(--accent-color, #ff4444);
+  outline-offset: 8px;
+  box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.35);
+  border-radius: 12px;
 }
 
 .carousel-slide.active {

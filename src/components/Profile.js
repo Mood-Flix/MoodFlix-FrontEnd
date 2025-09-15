@@ -43,10 +43,6 @@ const Profile = () => {
                 <span className="profile-label">이메일</span>
                 <span className="profile-value">{displayUser?.email || '-'}</span>
               </div>
-              <div className="profile-row">
-                <span className="profile-label">아이디</span>
-                <span className="profile-value">{displayUser?.id || '-'}</span>
-              </div>
             </div>
             <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
               <button type="button" className="profile-back" onClick={() => loadUserProfile()} disabled={isLoading}>
