@@ -100,8 +100,7 @@
 }
 
 .carousel-slide:focus {
-  outline: 2px solid var(--accent-color, #ff4444);
-  outline-offset: 4px;
+  outline: none;
 }
 
 .carousel-slide.active {
