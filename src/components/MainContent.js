@@ -220,14 +220,20 @@ const MainContent = ({ onMovieClick }) => {
             {/* 캐러셀 네비게이션 */}
             <button 
               className="carousel-nav carousel-prev" 
-              onClick={prevCarouselSlide}
+              onClick={(e) => {
+                e.stopPropagation();
+                prevCarouselSlide();
+              }}
               aria-label="이전 영화"
             >
               ‹
             </button>
             <button 
               className="carousel-nav carousel-next" 
-              onClick={nextCarouselSlide}
+              onClick={(e) => {
+                e.stopPropagation();
+                nextCarouselSlide();
+              }}
               aria-label="다음 영화"
             >
               ›
@@ -243,7 +249,10 @@ const MainContent = ({ onMovieClick }) => {
               <button
                 key={index}
                 className={`carousel-indicator ${index === currentCarouselIndex ? 'active' : ''}`}
-                onClick={() => setCurrentCarouselIndex(index)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentCarouselIndex(index);
+                }}
                 aria-label={`${index + 1}번째 영화로 이동`}
               />
             ))}
