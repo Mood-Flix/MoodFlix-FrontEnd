@@ -224,6 +224,13 @@ const MainContent = ({ onMovieClick }) => {
                 e.stopPropagation();
                 prevCarouselSlide();
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  prevCarouselSlide();
+                }
+              }}
               aria-label="이전 영화"
             >
               ‹
@@ -233,6 +240,13 @@ const MainContent = ({ onMovieClick }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 nextCarouselSlide();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  nextCarouselSlide();
+                }
               }}
               aria-label="다음 영화"
             >
@@ -252,6 +266,13 @@ const MainContent = ({ onMovieClick }) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   setCurrentCarouselIndex(index);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setCurrentCarouselIndex(index);
+                  }
                 }}
                 aria-label={`${index + 1}번째 영화로 이동`}
               />
