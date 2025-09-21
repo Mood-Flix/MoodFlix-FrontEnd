@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaSearch, FaPlus, FaCalendar, FaUser } from 'react-icons/fa';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ onSearchClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,6 +41,7 @@ const Sidebar = () => {
           type="button"
           className="nav-button" 
           aria-label="검색"
+          onClick={onSearchClick}
         >
           <FaSearch className="nav-icon" aria-hidden="true" />
         </button>

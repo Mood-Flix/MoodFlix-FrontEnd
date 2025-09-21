@@ -8,19 +8,29 @@ import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
 import Profile from './components/Profile';
 import HomeScreen from './components/HomeScreen';
+import SearchModal from './components/SearchModal';
 import { useAuth } from './hooks/useAuth';
 
 // 메인 앱 레이아웃 컴포넌트
 function AppLayout() {
   const navigate = useNavigate();
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const handleMovieClick = (movie) => {
     navigate(`/movie/${movie.id}`);
   };
 
+  const handleSearchClick = () => {
+    setIsSearchModalOpen(true);
+  };
+
+  const handleSearchModalClose = () => {
+    setIsSearchModalOpen(false);
+  };
+
   return (
     <div className="app">
-      <Sidebar />
+      <Sidebar onSearchClick={handleSearchClick} />
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
@@ -31,6 +41,10 @@ function AppLayout() {
         <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SearchModal 
+        isOpen={isSearchModalOpen} 
+        onClose={handleSearchModalClose} 
+      />
     </div>
   );
 }
