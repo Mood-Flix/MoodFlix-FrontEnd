@@ -116,8 +116,9 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
   };
 
   // Enter 키로 검색 실행
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       handleSearch();
     }
   };
@@ -151,7 +152,7 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
               placeholder="제목"
               value={searchQuery}
               onChange={handleSearchInput}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               disabled={isSearching}
             />
             {searchQuery && (
