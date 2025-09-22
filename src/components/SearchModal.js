@@ -150,6 +150,7 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
               type="text"
               className="netflix-search-input"
               placeholder="제목"
+              aria-label="영화 제목 검색"
               value={searchQuery}
               onChange={handleSearchInput}
               onKeyDown={handleKeyDown}
