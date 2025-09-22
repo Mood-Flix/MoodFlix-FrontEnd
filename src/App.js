@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -8,22 +8,44 @@ import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
 import Profile from './components/Profile';
 import HomeScreen from './components/HomeScreen';
+import SearchModal from './components/SearchModal';
 import { useAuth } from './hooks/useAuth';
 
 // 메인 앱 레이아웃 컴포넌트
 function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchResults, setSearchResults] = useState(null);
 
   const handleMovieClick = (movie) => {
     navigate(`/movie/${movie.id}`);
   };
 
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
+  const handleSearchResults = (results) => {
+    setSearchResults(results);
+  };
+
+  const handleCloseSearch = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/home');
+    }
+  };
+
   return (
     <div className="app">
-      <Sidebar />
+      <Sidebar 
+        onNavigation={handleNavigation}
+      />
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
+        <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/profile" element={<Profile />} />
