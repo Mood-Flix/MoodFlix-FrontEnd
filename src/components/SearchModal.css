@@ -1,17 +1,21 @@
-/* 검색 모달 배경 */
-.search-modal-backdrop {
+/* CSS 변수 정의 */
+:root {
+  --sidebar-width: 120px;
+  --sidebar-width-mobile: 80px;
+  --sidebar-width-small: 60px;
+}
+
+/* 넷플릭스 스타일 검색 오버레이 */
+.netflix-search-overlay {
   position: fixed;
   top: 0;
-  left: 0;
+  left: var(--sidebar-width);
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
+  background: #000000;
   z-index: 2000;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 5vh;
+  flex-direction: column;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -24,60 +28,77 @@
   }
 }
 
-/* 검색 모달 컨테이너 */
-.search-modal {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border-radius: 20px;
-  width: 90%;
-  max-width: 800px;
-  max-height: 80vh;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: slideIn 0.3s ease-out;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+/* 넷플릭스 스타일 검색 헤더 */
+.netflix-search-header {
+  background: #000000;
+  border-bottom: 1px solid #333333;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-top: 60px; /* 검색창을 아래로 이동 */
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* 검색 모달 헤더 */
-.search-modal-header {
+.netflix-search-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 25px 30px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  padding: 20px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.search-modal-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #ffb86c;
-  margin: 0;
-  background: linear-gradient(135deg, #ffb86c, #ff79c6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.netflix-search-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 600px;
 }
 
-.search-modal-close {
+.netflix-search-icon {
+  position: absolute;
+  left: 15px;
+  color: #ffffff;
+  font-size: 1.2rem;
+  z-index: 2;
+}
+
+.netflix-search-input {
+  width: 100%;
+  padding: 15px 15px 15px 50px;
+  font-size: 1.1rem;
+  background: #333333;
+  border: 1px solid #555555;
+  border-radius: 4px;
+  color: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.netflix-search-input::placeholder {
+  color: #999999;
+}
+
+.netflix-search-input:focus {
+  border-color: #ffffff;
+  background: #444444;
+}
+
+.netflix-search-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.netflix-search-clear {
+  position: absolute;
+  right: 15px;
   background: none;
   border: none;
-  color: #cccccc;
-  font-size: 1.5rem;
+  color: #ffffff;
+  font-size: 1.2rem;
   cursor: pointer;
-  padding: 8px;
+  padding: 5px;
   border-radius: 50%;
   transition: all 0.3s ease;
   display: flex;
@@ -85,83 +106,22 @@
   justify-content: center;
 }
 
-.search-modal-close:hover {
+.netflix-search-clear:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: white;
-  transform: scale(1.1);
 }
 
-/* 검색 모달 콘텐츠 */
-.search-modal-content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-/* 검색 입력 컨테이너 */
-.search-input-container {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.search-input-wrapper {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-input-icon {
-  position: absolute;
-  left: 15px;
-  color: #888;
-  font-size: 1.1rem;
-  z-index: 2;
-}
-
-.search-input {
-  width: 100%;
-  padding: 15px 15px 15px 45px;
-  font-size: 1.1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: white;
-  transition: all 0.3s ease;
-  outline: none;
-}
-
-.search-input::placeholder {
-  color: #888;
-}
-
-.search-input:focus {
-  border-color: #ffb86c;
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 0 3px rgba(255, 184, 108, 0.2);
-}
-
-.search-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.search-loading {
+.netflix-search-loading {
   position: absolute;
   right: 15px;
   display: flex;
   align-items: center;
 }
 
-.search-spinner {
+.netflix-search-spinner {
   width: 20px;
   height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid #ffb86c;
+  border-top: 2px solid #e50914;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -171,124 +131,205 @@
   100% { transform: rotate(360deg); }
 }
 
-.search-button {
-  background: linear-gradient(135deg, #ffb86c 0%, #ff79c6 100%);
-  color: #282a36;
-  border: none;
-  padding: 15px 25px;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  min-width: 80px;
-}
 
-.search-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 184, 108, 0.3);
-}
-
-.search-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+/* 넷플릭스 스타일 검색 콘텐츠 */
+.netflix-search-content {
+  flex: 1;
+  padding: 40px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  overflow-y: auto;
 }
 
 /* 검색 결과 영역 */
-.search-results {
-  flex: 1;
-  min-height: 200px;
+.netflix-search-results {
+  margin-bottom: 40px;
 }
 
-.search-results-placeholder {
+.netflix-search-results-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 30px 0;
+}
+
+.netflix-movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.netflix-movie-card {
+  background: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.netflix-movie-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.netflix-movie-poster {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.netflix-movie-poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.netflix-movie-card:hover .netflix-movie-poster-image {
+  transform: scale(1.1);
+}
+
+.netflix-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #333333, #555555);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 20px;
+}
+
+.netflix-poster-text {
+  word-break: break-word;
+}
+
+.netflix-movie-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 15px 15px 5px 15px;
+  line-height: 1.3;
+}
+
+.netflix-movie-genre {
+  font-size: 0.9rem;
+  color: #999999;
+  margin: 0 15px 5px 15px;
+}
+
+.netflix-movie-year {
+  font-size: 0.85rem;
+  color: #666666;
+  margin: 0 15px 15px 15px;
+}
+
+/* 검색 결과 없음 */
+.netflix-no-results {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  height: 400px;
   text-align: center;
-  color: #888;
-  gap: 10px;
+  color: #999999;
 }
 
-.search-placeholder-note {
-  font-size: 0.9rem;
-  color: #666;
-  font-style: italic;
+.netflix-no-results-icon {
+  font-size: 4rem;
+  color: #666666;
+  margin-bottom: 20px;
 }
 
-/* 검색 기록 영역 */
-.search-history {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.search-history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.search-history-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.2rem;
+.netflix-no-results-title {
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #f8f8f2;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+}
+
+.netflix-no-results-text {
+  font-size: 1rem;
+  color: #999999;
   margin: 0;
 }
 
-.search-history-icon {
-  color: #ffb86c;
-  font-size: 1rem;
+/* 검색 기록 영역 */
+.netflix-search-history {
+  margin-bottom: 40px;
 }
 
-.search-history-clear {
+.netflix-search-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.netflix-search-history-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.netflix-search-history-icon {
+  color: #e50914;
+  font-size: 1.1rem;
+}
+
+.netflix-search-history-clear {
   background: none;
-  border: 1px solid rgba(255, 107, 107, 0.3);
-  color: #ff6b6b;
-  padding: 6px 12px;
-  border-radius: 6px;
+  border: 1px solid #666666;
+  color: #999999;
+  padding: 8px 16px;
+  border-radius: 4px;
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.search-history-clear:hover {
-  background: rgba(255, 107, 107, 0.1);
-  border-color: rgba(255, 107, 107, 0.5);
+.netflix-search-history-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #999999;
+  color: #ffffff;
 }
 
-.search-history-list {
+.netflix-search-history-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.search-history-item {
+.netflix-search-history-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 15px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 15px 20px;
+  background: #1a1a1a;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #333333;
   transition: all 0.3s ease;
 }
 
-.search-history-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.netflix-search-history-item:hover {
+  background: #222222;
+  border-color: #555555;
 }
 
-.search-history-text {
+.netflix-search-history-text {
   background: none;
   border: none;
-  color: #f8f8f2;
+  color: #ffffff;
   font-size: 1rem;
   cursor: pointer;
   flex: 1;
@@ -297,17 +338,17 @@
   transition: color 0.3s ease;
 }
 
-.search-history-text:hover {
-  color: #ffb86c;
+.netflix-search-history-text:hover {
+  color: #e50914;
 }
 
-.search-history-delete {
+.netflix-search-history-delete {
   background: none;
   border: none;
-  color: #888;
-  font-size: 0.9rem;
+  color: #666666;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 4px;
+  padding: 5px;
   border-radius: 4px;
   transition: all 0.3s ease;
   display: flex;
@@ -315,136 +356,177 @@
   justify-content: center;
 }
 
-.search-history-delete:hover {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.1);
+.netflix-search-history-delete:hover {
+  color: #e50914;
+  background: rgba(229, 9, 20, 0.1);
 }
 
 /* 빈 상태 */
-.search-empty {
+.netflix-search-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  height: 400px;
   text-align: center;
-  color: #888;
-  gap: 15px;
+  color: #999999;
 }
 
-.search-empty-icon {
-  font-size: 3rem;
-  color: #555;
-  margin-bottom: 10px;
+.netflix-search-empty-icon {
+  font-size: 4rem;
+  color: #666666;
+  margin-bottom: 20px;
 }
 
-.search-empty-text {
-  font-size: 1.3rem;
+.netflix-search-empty-title {
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #f8f8f2;
-  margin: 0;
+  color: #ffffff;
+  margin: 0 0 10px 0;
 }
 
-.search-empty-subtext {
+.netflix-search-empty-text {
   font-size: 1rem;
-  color: #888;
+  color: #999999;
   margin: 0;
   line-height: 1.5;
 }
 
 /* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .netflix-search-container {
+    padding: 20px 40px;
+  }
+  
+  .netflix-search-content {
+    padding: 30px 40px;
+  }
+}
+
 @media (max-width: 768px) {
-  .search-modal-backdrop {
-    padding-top: 2vh;
+  .netflix-search-overlay {
+    left: var(--sidebar-width-mobile);
   }
   
-  .search-modal {
-    width: 95%;
-    max-height: 85vh;
-    border-radius: 15px;
+  .netflix-search-container {
+    padding: 15px 20px;
   }
   
-  .search-modal-header {
-    padding: 20px 25px;
+  .netflix-search-content {
+    padding: 20px 20px;
   }
   
-  .search-modal-title {
-    font-size: 1.5rem;
-  }
-  
-  .search-modal-content {
-    padding: 25px;
-    gap: 20px;
-  }
-  
-  .search-input-container {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .search-input {
+  .netflix-search-input {
     font-size: 1rem;
-    padding: 12px 12px 12px 40px;
+    padding: 12px 12px 12px 45px;
   }
   
-  .search-button {
-    width: 100%;
-    padding: 12px 20px;
+  .netflix-movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
   }
   
-  .search-history-item {
-    padding: 10px 12px;
+  .netflix-movie-poster {
+    height: 225px;
   }
   
-  .search-history-text {
-    font-size: 0.95rem;
+  .netflix-movie-title {
+    font-size: 0.9rem;
+    margin: 12px 12px 4px 12px;
+  }
+  
+  .netflix-movie-genre {
+    font-size: 0.8rem;
+    margin: 0 12px 4px 12px;
+  }
+  
+  .netflix-movie-year {
+    font-size: 0.75rem;
+    margin: 0 12px 12px 12px;
+  }
+  
+  .netflix-search-results-title {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+  
+  .netflix-search-history-title {
+    font-size: 1.1rem;
+  }
+  
+  .netflix-search-history-item {
+    padding: 12px 15px;
+  }
+  
+  .netflix-search-history-text {
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 480px) {
-  .search-modal {
-    width: 98%;
-    max-height: 90vh;
-    border-radius: 12px;
+  .netflix-search-overlay {
+    left: var(--sidebar-width-small);
   }
   
-  .search-modal-header {
-    padding: 15px 20px;
+  .netflix-search-container {
+    padding: 10px 15px;
   }
   
-  .search-modal-title {
-    font-size: 1.3rem;
+  .netflix-search-content {
+    padding: 15px 15px;
   }
   
-  .search-modal-content {
-    padding: 20px;
-    gap: 15px;
-  }
-  
-  .search-input {
+  .netflix-search-input {
     font-size: 0.95rem;
-    padding: 10px 10px 10px 35px;
+    padding: 10px 10px 10px 40px;
   }
   
-  .search-input-icon {
+  .netflix-search-icon {
     left: 12px;
     font-size: 1rem;
   }
   
-  .search-button {
-    padding: 10px 15px;
-    font-size: 0.95rem;
+  .netflix-movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
   }
   
-  .search-empty-icon {
-    font-size: 2.5rem;
+  .netflix-movie-poster {
+    height: 180px;
   }
   
-  .search-empty-text {
+  .netflix-movie-title {
+    font-size: 0.8rem;
+    margin: 10px 10px 3px 10px;
+  }
+  
+  .netflix-movie-genre {
+    font-size: 0.7rem;
+    margin: 0 10px 3px 10px;
+  }
+  
+  .netflix-movie-year {
+    font-size: 0.65rem;
+    margin: 0 10px 10px 10px;
+  }
+  
+  .netflix-search-results-title {
     font-size: 1.1rem;
+    margin-bottom: 15px;
   }
   
-  .search-empty-subtext {
+  .netflix-no-results-icon,
+  .netflix-search-empty-icon {
+    font-size: 3rem;
+  }
+  
+  .netflix-no-results-title,
+  .netflix-search-empty-title {
+    font-size: 1.2rem;
+  }
+  
+  .netflix-no-results-text,
+  .netflix-search-empty-text {
     font-size: 0.9rem;
   }
 }

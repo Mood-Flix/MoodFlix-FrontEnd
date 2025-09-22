@@ -3,17 +3,24 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaSearch, FaPlus, FaCalendar, FaUser } from 'react-icons/fa';
 import './Sidebar.css';
 
-const Sidebar = ({ onSearchClick }) => {
+const Sidebar = ({ onNavigation }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleNavigation = (path) => {
-    navigate(path);
+    if (onNavigation) {
+      onNavigation(path);
+    } else {
+      navigate(path);
+    }
   };
 
   const isActive = (path) => {
     if (path === '/home') {
       return location.pathname === '/home' || location.pathname === '/';
+    }
+    if (path === '/search') {
+      return location.pathname === '/search';
     }
     return location.pathname.startsWith(path);
   };
@@ -39,9 +46,10 @@ const Sidebar = ({ onSearchClick }) => {
         </button>
         <button 
           type="button"
-          className="nav-button" 
+          className={`nav-button ${isActive('/search') ? 'active' : ''}`}
           aria-label="검색"
-          onClick={onSearchClick}
+          aria-pressed={isActive('/search')}
+          onClick={() => handleNavigation('/search')}
         >
           <FaSearch className="nav-icon" aria-hidden="true" />
         </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -14,26 +14,30 @@ import { useAuth } from './hooks/useAuth';
 // 메인 앱 레이아웃 컴포넌트
 function AppLayout() {
   const navigate = useNavigate();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const location = useLocation();
+  const [searchResults, setSearchResults] = useState(null);
 
   const handleMovieClick = (movie) => {
     navigate(`/movie/${movie.id}`);
   };
 
-  const handleSearchClick = () => {
-    setIsSearchModalOpen(true);
+  const handleNavigation = (path) => {
+    navigate(path);
   };
 
-  const handleSearchModalClose = () => {
-    setIsSearchModalOpen(false);
+  const handleSearchResults = (results) => {
+    setSearchResults(results);
   };
 
   return (
     <div className="app">
-      <Sidebar onSearchClick={handleSearchClick} />
+      <Sidebar 
+        onNavigation={handleNavigation}
+      />
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
+        <Route path="/search" element={<SearchModal isOpen={true} onClose={() => navigate('/home')} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/profile" element={<Profile />} />
@@ -41,10 +45,6 @@ function AppLayout() {
         <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <SearchModal 
-        isOpen={isSearchModalOpen} 
-        onClose={handleSearchModalClose} 
-      />
     </div>
   );
 }
