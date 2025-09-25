@@ -7,7 +7,6 @@ import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
 import Profile from './components/Profile';
-import HomeScreen from './components/HomeScreen';
 import SearchModal from './components/SearchModal';
 import { useAuth } from './hooks/useAuth';
 
@@ -33,7 +32,7 @@ function AppLayout() {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-      navigate('/home');
+      navigate('/');
     }
   };
 
@@ -43,7 +42,7 @@ function AppLayout() {
         onNavigation={handleNavigation}
       />
       <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<MainContent onMovieClick={handleMovieClick} />} />
         <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
         <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
@@ -74,8 +73,7 @@ function MovieDetailWrapper() {
 }
 
 function App() {
-  const { isLoading, isAuthenticated } = useAuth();
-  const [isGuest, setIsGuest] = useState(false);
+  const { isLoading } = useAuth();
 
   // 로딩 중일 때 표시
   if (isLoading) {
@@ -90,13 +88,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 인증 X && 게스트 X -> 홈 스크린 */}
-        {!isAuthenticated && !isGuest ? (
-          <Route path="*" element={<HomeScreen onStart={() => setIsGuest(true)} />} />
-        ) : (
-          /* 인증된 사용자 또는 게스트는 메인 앱으로 */
-          <Route path="*" element={<AppLayout />} />
-        )}
+        {/* 모든 사용자는 바로 메인 앱으로 이동 */}
+        <Route path="*" element={<AppLayout />} />
       </Routes>
     </Router>
   );

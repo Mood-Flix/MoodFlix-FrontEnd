@@ -6,6 +6,95 @@
   padding: 0;
 }
 
+/* Compact Auth Section - 우측 상단 */
+.compact-auth-section {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.compact-user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.compact-welcome {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.compact-logout-button {
+  background: linear-gradient(90deg, #ff4444, #ff6b6b);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.compact-logout-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+}
+
+.compact-login-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.compact-auth-error {
+  background: rgba(255, 107, 107, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid #ff6b6b;
+  border-radius: 15px;
+  padding: 6px 12px;
+  color: white;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 250px;
+}
+
+.compact-auth-error button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.compact-auth-error button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 /* Loading and Error States */
 .loading-container,
 .error-container {
@@ -505,6 +594,19 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+  .compact-auth-section {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .compact-welcome {
+    font-size: 0.85rem;
+  }
+  
+  .compact-logout-button {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
   .carousel-section {
     padding: 30px 40px;
     min-height: 70vh;
@@ -573,6 +675,31 @@
 }
 
 @media (max-width: 768px) {
+  .compact-auth-section {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .compact-user-info {
+    flex-direction: column;
+    gap: 8px;
+    padding: 6px 12px;
+  }
+  
+  .compact-welcome {
+    font-size: 0.8rem;
+  }
+  
+  .compact-logout-button {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+  
+  .compact-auth-error {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    max-width: 200px;
+  }
   .carousel-section {
     min-height: 75vh;
     padding: 25px 30px;
@@ -664,6 +791,30 @@
 }
 
 @media (max-width: 480px) {
+  .compact-auth-section {
+    top: 8px;
+    right: 8px;
+  }
+  
+  .compact-user-info {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  
+  .compact-welcome {
+    font-size: 0.75rem;
+  }
+  
+  .compact-logout-button {
+    padding: 3px 6px;
+    font-size: 0.65rem;
+  }
+  
+  .compact-auth-error {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    max-width: 150px;
+  }
   .carousel-section {
     min-height: 70vh;
     padding: 20px 15px;
