@@ -50,7 +50,7 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError }) => {
       
       // console.debug('카카오 로그인 성공'); // 필요 시 개발 환경에서만
 
-      // ✅ [핵심 수정] 성공 시, 백엔드 통신 없이 액세스 토큰만 부모(HomeScreen)에게 전달합니다.
+      // ✅ [핵심 수정] 성공 시, 백엔드 통신 없이 액세스 토큰만 부모 컴포넌트에게 전달합니다.
       onLoginSuccess?.(authObj.access_token);
 
     } catch (error) {
