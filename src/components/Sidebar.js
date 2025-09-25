@@ -16,7 +16,7 @@ const Sidebar = ({ onNavigation }) => {
   };
 
   const isActive = (path) => {
-    if (path === '/home') {
+    if (path === '/') {
       return location.pathname === '/home' || location.pathname === '/';
     }
     if (path === '/search') {
@@ -37,10 +37,10 @@ const Sidebar = ({ onNavigation }) => {
       <div className="nav-icons">
         <button
           type="button"
-          className={`nav-button ${isActive('/home') ? 'active' : ''}`}
+          className={`nav-button ${isActive('/') ? 'active' : ''}`}
           aria-label="홈으로 이동"
-          aria-pressed={isActive('/home')}
-          onClick={() => handleNavigation('/home')}
+          aria-pressed={isActive('/')}
+          onClick={() => handleNavigation('/')}
         >
           <FaHome className="nav-icon" aria-hidden="true" />
         </button>

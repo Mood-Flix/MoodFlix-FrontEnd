@@ -32,7 +32,7 @@ function AppLayout() {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-      navigate('/home');
+      navigate('/');
     }
   };
 
@@ -42,7 +42,7 @@ function AppLayout() {
         onNavigation={handleNavigation}
       />
       <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<MainContent onMovieClick={handleMovieClick} />} />
         <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
         <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
