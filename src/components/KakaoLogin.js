@@ -127,10 +127,27 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
     try {
       // OAuth 보안 강화: state 파라미터와 환경변수 리다이렉트 URI 사용
       const redirectUri = process.env.REACT_APP_KAKAO_REDIRECT_URI || window.location.origin;
-      const state = btoa(JSON.stringify({ 
-        ts: Date.now(), 
-        path: window.location.pathname 
-      }));
+      
+      // 암호학적으로 안전한 랜덤 state 생성
+      const state = (() => {
+        // 최우선: crypto.randomUUID() 사용 (최신 브라우저)
+        if (window.crypto?.randomUUID) {
+          return window.crypto.randomUUID();
+        }
+        
+        // 대안: crypto.getRandomValues() 사용
+        if (window.crypto?.getRandomValues) {
+          const array = new Uint8Array(16);
+          window.crypto.getRandomValues(array);
+          return Array.from(array)
+            .map(byte => byte.toString(16).padStart(2, '0'))
+            .join('');
+        }
+        
+        // 최후 수단: 비암호학적 랜덤 (보안상 권장하지 않음)
+        console.warn('암호학적 랜덤 생성기를 사용할 수 없습니다. 보안이 약화될 수 있습니다.');
+        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      })();
       
       // state를 sessionStorage에 저장 (CSRF 방지)
       sessionStorage.setItem('oauth_state', state);
