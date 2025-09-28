@@ -167,10 +167,10 @@ export const getUserProfile = () => {
 };
 
 /**
- * 카카오 인증 상태 확인
+ * 카카오 인증 상태 확인 (최신 API 사용)
  */
 export const checkKakaoAuthStatus = async () => {
-  if (!window.Kakao || !window.Kakao.Auth) {
+  if (!window.Kakao || !window.Kakao.Auth || !window.Kakao.API) {
     return { isConnected: false, token: null };
   }
 
@@ -180,20 +180,17 @@ export const checkKakaoAuthStatus = async () => {
       return { isConnected: false, token: null };
     }
 
-    return new Promise((resolve) => {
-      window.Kakao.Auth.getStatusInfo({
-        success: (response) => {
-          resolve({
-            isConnected: response.status === 'connected',
-            token: token,
-            userInfo: response.user
-          });
-        },
-        fail: () => {
-          resolve({ isConnected: false, token: null });
-        }
-      });
+    // 최신 패턴: /v2/user/me 호출로 토큰 유효성 및 사용자 정보 확인
+    const response = await window.Kakao.API.request({ 
+      url: '/v2/user/me' 
     });
+
+    return {
+      isConnected: !!response.id,
+      token: token,
+      userInfo: response
+    };
+
   } catch (error) {
     console.error('카카오 토큰 상태 확인 실패:', error);
     return { isConnected: false, token: null };
