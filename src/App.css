@@ -28,6 +28,24 @@ body {
   /* Fallback + modern viewport unit for mobile browsers */
   min-height: 100vh;
   min-height: 100dvh;
+  overflow-x: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* 전역 스크롤바 숨김 */
+html {
+  overflow-x: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* WebKit */
 }
 
 /* 기존 스타일 유지 */

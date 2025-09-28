@@ -22,20 +22,50 @@ html {
   scroll-behavior: smooth;
 }
 
-/* 스크롤바 스타일링 */
-::-webkit-scrollbar {
+/* 전역 스크롤바 숨김 */
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* 특정 영역에서만 스크롤바 표시 (팝업, 사이드바 등) */
+.sidebar, .calendar-edit-popup, .recommendations-list, .custom-mood-input {
+  scrollbar-width: thin;
+  scrollbar-color: #e50914 #0f0f0f;
+}
+
+.sidebar::-webkit-scrollbar, 
+.calendar-edit-popup::-webkit-scrollbar,
+.recommendations-list::-webkit-scrollbar,
+.custom-mood-input::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
-  background: #282a36;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #6272a4;
+.sidebar::-webkit-scrollbar-track,
+.calendar-edit-popup::-webkit-scrollbar-track,
+.recommendations-list::-webkit-scrollbar-track,
+.custom-mood-input::-webkit-scrollbar-track {
+  background: #0f0f0f;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #bd93f9;
+.sidebar::-webkit-scrollbar-thumb,
+.calendar-edit-popup::-webkit-scrollbar-thumb,
+.recommendations-list::-webkit-scrollbar-thumb,
+.custom-mood-input::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e50914 0%, #ff4444 50%, #e50914 100%);
+  border-radius: 4px;
+  border: 1px solid #000;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.calendar-edit-popup::-webkit-scrollbar-thumb:hover,
+.recommendations-list::-webkit-scrollbar-thumb:hover,
+.custom-mood-input::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff1744 0%, #ff6b6b 50%, #ff1744 100%);
+  box-shadow: 0 0 6px rgba(229, 9, 20, 0.5);
 }

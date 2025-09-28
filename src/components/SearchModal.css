@@ -39,6 +39,95 @@
   margin-top: 60px; /* 검색창을 아래로 이동 */
 }
 
+/* 자동완성 드롭다운 */
+.netflix-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #000000;
+  border: 1px solid #333333;
+  border-top: none;
+  z-index: 1001;
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-top: -1px; /* 검색창과 연결되도록 */
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.2s ease-in-out;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.netflix-suggestions-container {
+  padding: 0;
+}
+
+.netflix-suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #222222;
+  transition: all 0.2s ease;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.netflix-suggestion-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.netflix-suggestion-item:hover::before {
+  left: 100%;
+}
+
+.netflix-suggestion-item:hover,
+.netflix-suggestion-item.selected {
+  background-color: #333333;
+}
+
+.netflix-suggestion-icon {
+  margin-right: 12px;
+  color: #999999;
+  font-size: 14px;
+}
+
+.netflix-suggestion-text {
+  font-size: 16px;
+  color: #ffffff;
+  flex: 1;
+}
+
+/* 자동완성 아이템 호버 효과 */
+.netflix-suggestion-item:hover .netflix-suggestion-icon {
+  color: #ffffff;
+}
+
+.netflix-suggestion-item.selected .netflix-suggestion-icon {
+  color: #e50914;
+}
+
 .netflix-search-container {
   display: flex;
   align-items: center;
@@ -54,6 +143,7 @@
   display: flex;
   align-items: center;
   max-width: 600px;
+  z-index: 1000;
 }
 
 .netflix-search-icon {
@@ -145,6 +235,21 @@
 /* 검색 결과 영역 */
 .netflix-search-results {
   margin-bottom: 40px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease-in-out;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .netflix-search-results-title {
@@ -167,11 +272,23 @@
   overflow: hidden;
   transition: all 0.3s ease;
   cursor: pointer;
+  outline: none;
+  border: 2px solid transparent;
 }
 
 .netflix-movie-card:hover {
   transform: scale(1.05);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.netflix-movie-card:focus {
+  border-color: #e50914;
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
+}
+
+.netflix-movie-card:focus:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(229, 9, 20, 0.3);
 }
 
 .netflix-movie-poster {
@@ -239,6 +356,10 @@
   height: 400px;
   text-align: center;
   color: #999999;
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease-in-out;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .netflix-no-results-icon {

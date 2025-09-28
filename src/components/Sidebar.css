@@ -19,6 +19,29 @@
   border-right: 1px solid #333;
   padding: 20px 0;
   z-index: 1000;
+  scrollbar-width: thin;
+  scrollbar-color: #e50914 #0f0f0f;
+  overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #0f0f0f;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e50914 0%, #ff4444 50%, #e50914 100%);
+  border-radius: 3px;
+  border: 1px solid #000;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff1744 0%, #ff6b6b 50%, #ff1744 100%);
+  box-shadow: 0 0 4px rgba(229, 9, 20, 0.5);
 }
 
 .logo-section {

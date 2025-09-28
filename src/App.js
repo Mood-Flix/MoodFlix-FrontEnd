@@ -15,6 +15,7 @@ function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchResults, setSearchResults] = useState(null);
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const handleMovieClick = (movie) => {
     navigate(`/movie/${movie.id}`);
@@ -22,13 +23,23 @@ function AppLayout() {
 
   const handleNavigation = (path) => {
     navigate(path);
+    // 검색 페이지가 아닌 곳으로 이동할 때 검색 모드 해제
+    if (path !== '/search') {
+      setIsSearchMode(false);
+      setSearchResults(null);
+    }
   };
 
   const handleSearchResults = (results) => {
+    console.log('📥 App.js에서 검색 결과 받음:', results);
     setSearchResults(results);
+    setIsSearchMode(true);
+    console.log('🔍 검색 모드 활성화:', true);
   };
 
   const handleCloseSearch = () => {
+    setIsSearchMode(false);
+    setSearchResults(null);
     if (window.history.length > 1) {
       navigate(-1);
     } else {
@@ -42,8 +53,21 @@ function AppLayout() {
         onNavigation={handleNavigation}
       />
       <Routes>
-        <Route path="/" element={<MainContent onMovieClick={handleMovieClick} />} />
-        <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
+        <Route path="/" element={
+          <MainContent 
+            onMovieClick={handleMovieClick} 
+            searchResults={searchResults}
+            isSearchMode={isSearchMode}
+          />
+        } />
+        <Route path="/search" element={
+          <SearchModal 
+            isOpen={true} 
+            onClose={handleCloseSearch} 
+            onSearchResults={handleSearchResults}
+            onMovieClick={handleMovieClick}
+          />
+        } />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/profile" element={<Profile />} />

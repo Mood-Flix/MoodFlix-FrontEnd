@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaSearch, FaTimes, FaHistory } from 'react-icons/fa';
+import { searchMovies, searchMovieSuggestions } from '../services/movieService';
 import './SearchModal.css';
 
-const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
+const SearchModal = ({ isOpen, onClose, onSearchResults, onMovieClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false); // 검색을 실행했는지 여부
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchInputRef = useRef(null);
+  const suggestionTimeoutRef = useRef(null);
 
   // 페이지 로드 시 검색창에 포커스
   useEffect(() => {
@@ -35,66 +41,109 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
 
   // 검색어 입력 핸들러
   const handleSearchInput = (e) => {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    console.log('🔤 검색어 입력:', value);
+    setSearchQuery(value);
+    setSelectedSuggestionIndex(-1);
+    
+    // 새로운 검색어 입력 시 이전 검색 결과 초기화
+    if (searchResults.length > 0) {
+      setSearchResults([]);
+      if (onSearchResults) {
+        onSearchResults([]);
+      }
+    }
+    
+    // 검색어가 변경되면 검색 상태 초기화
+    if (hasSearched) {
+      setHasSearched(false);
+    }
+    
+    // 자동완성 검색어 가져오기 (디바운싱)
+    if (suggestionTimeoutRef.current) {
+      clearTimeout(suggestionTimeoutRef.current);
+    }
+    
+    if (value.trim().length > 0) {
+      console.log('⏰ 자동완성 타이머 시작:', value);
+      
+      suggestionTimeoutRef.current = setTimeout(async () => {
+        try {
+          console.log('🔍 자동완성 API 호출:', value);
+          const suggestions = await searchMovieSuggestions(value, 5);
+          console.log('💡 자동완성 결과:', suggestions);
+          setSuggestions(suggestions);
+          setShowSuggestions(true);
+          console.log('✅ 자동완성 상태 업데이트:', { suggestions, showSuggestions: true });
+        } catch (error) {
+          console.error('❌ 자동완성 검색 실패:', error);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      }, 300); // 300ms 디바운싱
+    } else {
+      console.log('🧹 검색어 비어있음 - 자동완성 숨김');
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
   };
 
   // 검색 실행 핸들러
   const handleSearch = async (query = searchQuery) => {
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      console.log('❌ 검색어가 비어있음');
+      return;
+    }
 
-    setIsSearching(true);
+    console.log('🚀 검색 시작:', { query, searchQuery });
+
+    // 자동완성 숨기기
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
     
-    // 검색 기록에 추가
-    const newHistory = [query, ...searchHistory.filter(item => item !== query)].slice(0, 10);
+    setIsSearching(true);
+    setHasSearched(true); // 검색 시작 표시
+    
+    // 검색 기록에 추가 (최대 7개)
+    const newHistory = [query, ...searchHistory.filter(item => item !== query)].slice(0, 7);
     setSearchHistory(newHistory);
     localStorage.setItem('searchHistory', JSON.stringify(newHistory));
 
     try {
-      // TODO: 백엔드 API 연동
-      console.log('검색어:', query);
+      console.log('🔍 API 호출 시작:', query);
       
-      // 임시로 1초 대기 (실제 API 호출 시뮬레이션)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 실제 API 호출
+      const searchResponse = await searchMovies(query, 0, 20);
+      console.log('📡 API 응답 원본:', searchResponse);
       
-      // 임시 검색 결과 생성 (실제 API 연동 시 제거)
-      const mockResults = generateMockSearchResults(query);
-      setSearchResults(mockResults);
+      const results = searchResponse.content || [];
+      console.log('🎬 검색 결과 배열:', results);
+      console.log('🎬 검색 결과 개수:', results.length);
+      
+      setSearchResults(results);
+      console.log('✅ 검색 결과 상태 업데이트 완료');
       
       // 부모 컴포넌트에 검색 결과 전달
       if (onSearchResults) {
-        onSearchResults(mockResults);
+        console.log('📤 부모 컴포넌트에 결과 전달:', results);
+        onSearchResults(results);
       }
       
     } catch (error) {
-      console.error('검색 실패:', error);
+      console.error('❌ 검색 실패:', error);
+      console.error('❌ 에러 상세:', error.message);
+      setSearchResults([]);
+      
+      // 에러 시에도 부모 컴포넌트에 빈 결과 전달
+      if (onSearchResults) {
+        onSearchResults([]);
+      }
     } finally {
       setIsSearching(false);
+      console.log('🏁 검색 프로세스 완료');
     }
   };
 
-  // 임시 검색 결과 생성 함수 (실제 API 연동 시 제거)
-  const generateMockSearchResults = (query) => {
-    const mockMovies = [
-      { id: 1, title: '미니언즈', genre: '애니메이션', posterUrl: '/emotion-happy.svg', releaseDate: '2015' },
-      { id: 2, title: '슈퍼 배드 3', genre: '애니메이션', posterUrl: '/emotion-excited.svg', releaseDate: '2017' },
-      { id: 3, title: '미니언즈 & 모어 1', genre: '애니메이션', posterUrl: '/emotion-peaceful.svg', releaseDate: '2019' },
-      { id: 4, title: '미니언즈 & 모어 2', genre: '애니메이션', posterUrl: '/emotion-romantic.svg', releaseDate: '2021' },
-      { id: 5, title: '슈퍼 배드 2', genre: '애니메이션', posterUrl: '/emotion-sad.svg', releaseDate: '2013' },
-      { id: 6, title: '슈퍼 배드', genre: '애니메이션', posterUrl: '/emotion-anxious.svg', releaseDate: '2010' },
-      { id: 7, title: '쿵푸팬더', genre: '애니메이션', posterUrl: '/emotion-happy.svg', releaseDate: '2008' },
-      { id: 8, title: '몬스터 호텔 3', genre: '애니메이션', posterUrl: '/emotion-excited.svg', releaseDate: '2018' },
-      { id: 9, title: '하늘에서 음식이 내린다면 2', genre: '애니메이션', posterUrl: '/emotion-peaceful.svg', releaseDate: '2013' },
-      { id: 10, title: '라바 패밀리', genre: '애니메이션', posterUrl: '/emotion-romantic.svg', releaseDate: '2020' },
-      { id: 11, title: '괴수 8호', genre: '애니메이션', posterUrl: '/emotion-sad.svg', releaseDate: '2024' },
-      { id: 12, title: '케이팝 데몬헌터스', genre: '애니메이션', posterUrl: '/emotion-anxious.svg', releaseDate: '2023' }
-    ];
-
-    // 검색어와 관련된 영화 필터링
-    return mockMovies.filter(movie => 
-      movie.title.toLowerCase().includes(query.toLowerCase()) ||
-      movie.genre.toLowerCase().includes(query.toLowerCase())
-    );
-  };
 
   // 검색 기록 클릭 핸들러
   const handleHistoryClick = (historyItem) => {
@@ -115,9 +164,53 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
     localStorage.removeItem('searchHistory');
   };
 
-  // Enter 키로 검색 실행
+  // 자동완성 검색어 선택 핸들러
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+    handleSearch(suggestion);
+  };
+
+  // 영화 카드 클릭 핸들러
+  const handleMovieCardClick = (movie) => {
+    console.log('🎬 영화 카드 클릭:', movie);
+    if (onMovieClick) {
+      onMovieClick(movie);
+    }
+  };
+
+  // 영화 카드 키보드 핸들러
+  const handleMovieCardKeyDown = (e, movie) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleMovieCardClick(movie);
+    }
+  };
+
+  // 키보드 네비게이션 핸들러
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0) {
+          handleSuggestionClick(suggestions[selectedSuggestionIndex]);
+        } else {
+          handleSearch();
+        }
+      } else if (e.key === 'Escape') {
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    } else if (e.key === 'Enter') {
       e.preventDefault();
       handleSearch();
     }
@@ -133,6 +226,15 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
         console.error('검색 기록 로드 실패:', error);
       }
     }
+  }, []);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (suggestionTimeoutRef.current) {
+        clearTimeout(suggestionTimeoutRef.current);
+      }
+    };
   }, []);
 
 
@@ -162,6 +264,10 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
                 onClick={() => {
                   setSearchQuery('');
                   setSearchResults([]);
+                  setSuggestions([]);
+                  setShowSuggestions(false);
+                  setSelectedSuggestionIndex(-1);
+                  setHasSearched(false);
                   if (onSearchResults) {
                     onSearchResults([]);
                   }
@@ -176,20 +282,66 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
                 <div className="netflix-search-spinner"></div>
               </div>
             )}
+            
+            {/* 자동완성 드롭다운 */}
+            {(() => {
+              console.log('🎨 자동완성 렌더링 체크:', { 
+                showSuggestions, 
+                suggestionsLength: suggestions.length, 
+                suggestions 
+              });
+              return showSuggestions && suggestions.length > 0;
+            })() && (
+              <div className="netflix-suggestions-dropdown">
+                <div className="netflix-suggestions-container">
+                  {suggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className={`netflix-suggestion-item ${
+                        index === selectedSuggestionIndex ? 'selected' : ''
+                      }`}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                    >
+                      <FaSearch className="netflix-suggestion-icon" />
+                      <span className="netflix-suggestion-text">{suggestion}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* 검색 결과 영역 */}
       <div className="netflix-search-content">
-        {searchQuery && searchResults.length > 0 && (
+        {(() => {
+          const shouldShowResults = searchQuery && searchResults.length > 0 && !showSuggestions && !isSearching;
+          console.log('🎨 검색 결과 렌더링 체크:', {
+            searchQuery,
+            searchResultsLength: searchResults.length,
+            showSuggestions,
+            isSearching,
+            shouldShowResults
+          });
+          return shouldShowResults;
+        })() && (
           <div className="netflix-search-results">
             <h2 className="netflix-search-results-title">
               "{searchQuery}"에 대한 검색 결과
             </h2>
             <div className="netflix-movie-grid">
               {searchResults.map((movie) => (
-                <div key={movie.id} className="netflix-movie-card">
+                <div 
+                  key={movie.id} 
+                  className="netflix-movie-card"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${movie.title} 상세 보기`}
+                  onClick={() => handleMovieCardClick(movie)}
+                  onKeyDown={(e) => handleMovieCardKeyDown(e, movie)}
+                >
                   <div className="netflix-movie-poster">
                     {movie.posterUrl ? (
                       <img 
@@ -217,7 +369,7 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
           </div>
         )}
 
-        {searchQuery && searchResults.length === 0 && !isSearching && (
+        {searchQuery && hasSearched && searchResults.length === 0 && !isSearching && !showSuggestions && (
           <div className="netflix-no-results">
             <FaSearch className="netflix-no-results-icon" />
             <h2 className="netflix-no-results-title">

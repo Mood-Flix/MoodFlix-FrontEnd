@@ -7,8 +7,7 @@ import {
   getMovieVideos, 
   getMoviePhotos,
   getCachedMovieVideos,
-  getCachedMoviePhotos,
-  preloadMovieData
+  getCachedMoviePhotos
 } from '../services/movieService';
 import './MovieDetail.css';
 

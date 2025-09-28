@@ -185,12 +185,29 @@
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   overflow: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #e50914 #0f0f0f; /* Firefox */
+  -ms-overflow-style: auto; /* Internet Explorer 10+ */
 }
 
 .custom-mood-input::-webkit-scrollbar {
-  display: none; /* WebKit */
+  width: 8px; /* WebKit */
+}
+
+.custom-mood-input::-webkit-scrollbar-track {
+  background: #0f0f0f;
+  border-radius: 4px;
+}
+
+.custom-mood-input::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e50914 0%, #ff4444 50%, #e50914 100%);
+  border-radius: 4px;
+  border: 1px solid #000;
+}
+
+.custom-mood-input::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff1744 0%, #ff6b6b 50%, #ff1744 100%);
+  box-shadow: 0 0 6px rgba(229, 9, 20, 0.5);
 }
 
 .custom-mood-input::placeholder {
@@ -259,6 +276,28 @@
   margin-bottom: 30px;
   max-height: 600px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e50914 #0f0f0f;
+}
+
+.recommendations-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recommendations-list::-webkit-scrollbar-track {
+  background: #0f0f0f;
+  border-radius: 4px;
+}
+
+.recommendations-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e50914 0%, #ff4444 50%, #e50914 100%);
+  border-radius: 4px;
+  border: 1px solid #000;
+}
+
+.recommendations-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff1744 0%, #ff6b6b 50%, #ff1744 100%);
+  box-shadow: 0 0 6px rgba(229, 9, 20, 0.5);
 }
 
 .recommend-movie-card {

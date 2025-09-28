@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import KakaoLogin from './KakaoLogin';
 import './MainContent.css';
 
-const MainContent = ({ onMovieClick }) => {
+const MainContent = ({ onMovieClick, searchResults, isSearchMode }) => {
   const { 
     newReleases, 
     loading, 
@@ -127,10 +127,18 @@ const MainContent = ({ onMovieClick }) => {
 
   // 초기 영화 로드 및 스크롤 이벤트 리스너
   useEffect(() => {
-    if (newReleases.length > 0) {
+    console.log('🔄 MainContent useEffect:', { isSearchMode, searchResults, newReleases: newReleases.length });
+    
+    if (isSearchMode && searchResults) {
+      // 검색 모드일 때는 검색 결과를 표시
+      console.log('🔍 검색 모드 - 검색 결과 표시:', searchResults);
+      setDisplayedMovies(searchResults);
+    } else if (newReleases.length > 0) {
+      // 일반 모드일 때는 기본 영화 목록을 표시
+      console.log('📽️ 일반 모드 - 기본 영화 목록 표시:', newReleases.length);
       setDisplayedMovies(newReleases);
     }
-  }, [newReleases]);
+  }, [newReleases, searchResults, isSearchMode]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
@@ -344,7 +352,9 @@ const MainContent = ({ onMovieClick }) => {
 
       {/* New Releases Section */}
       <section className="new-releases-section">
-        <h2 className="section-title">영화</h2>
+        <h2 className="section-title">
+          {isSearchMode ? '검색 결과' : '영화'}
+        </h2>
         <div className="movie-grid">
           {displayedMovies.map((movie) => (
             <div 
@@ -377,18 +387,25 @@ const MainContent = ({ onMovieClick }) => {
           ))}
         </div>
         
-        {/* 로딩 인디케이터 */}
-        {loadingMore && hasMore && (
+        {/* 로딩 인디케이터 - 검색 모드가 아닐 때만 표시 */}
+        {!isSearchMode && loadingMore && hasMore && (
           <div className="loading-more">
             <div className="loading-spinner-small"></div>
             <p>더 많은 영화를 불러오는 중...</p>
           </div>
         )}
         
-        {/* 더 이상 영화가 없을 때 */}
-        {!hasMore && displayedMovies.length > 0 && (
+        {/* 더 이상 영화가 없을 때 - 검색 모드가 아닐 때만 표시 */}
+        {!isSearchMode && !hasMore && displayedMovies.length > 0 && (
           <div className="no-more-movies">
             <p>모든 영화를 불러왔습니다.</p>
+          </div>
+        )}
+        
+        {/* 검색 결과가 없을 때 */}
+        {isSearchMode && displayedMovies.length === 0 && (
+          <div className="no-search-results">
+            <p>검색 결과가 없습니다.</p>
           </div>
         )}
       </section>

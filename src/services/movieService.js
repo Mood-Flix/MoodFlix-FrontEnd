@@ -75,7 +75,6 @@ const MOVIE_CACHE_DURATION = 60 * 60 * 1000; // 1시간
 const MAX_DETAIL_ENTRIES = 500;
 
 // 프리로딩 큐
-const preloadQueue = new Set();
 const preloadInProgress = new Set();
 
 // 캐시 관리 헬퍼 함수들
@@ -324,16 +323,95 @@ export const getMovieTrailer = async (movieId) => {
   }
 };
 
-// 영화 검색
-export const searchMovies = async (query, page = 1, limit = 20) => {
+// 초성 검색어 자동완성 API
+export const searchMovieSuggestions = async (query, limit = 10) => {
   try {
+    console.log('🔤 자동완성 검색 시작:', { query, limit });
+    
+    // 실제 검색 API를 사용하여 초성 검색
     const response = await movieApi.get(API_ENDPOINTS.MOVIE_SEARCH, {
-      params: { q: query, page, limit }
+      params: { 
+        q: query, 
+        page: 0, 
+        size: limit 
+      }
     });
-    return handleApiResponse(response);
+    
+    const data = handleApiResponse(response);
+    console.log('💡 자동완성 API 응답:', data);
+    
+    // 검색 결과에서 제목만 추출하여 자동완성으로 사용
+    const suggestions = (data.content || []).map(movie => movie.title);
+    
+    console.log('🎯 자동완성 결과:', suggestions);
+    return suggestions;
+    
   } catch (error) {
-    console.error('영화 검색 실패:', error);
-    return { movies: [], total: 0, page: 1 };
+    console.error('❌ 자동완성 API 실패:', error);
+    
+    // API 실패 시 빈 배열 반환 (Mock 데이터 제거)
+    return [];
+  }
+};
+
+// 영화 검색 (실제 API 연동)
+export const searchMovies = async (query, page = 0, size = 20) => {
+  try {
+    console.log('🌐 API 호출 시작:', { 
+      query, 
+      page, 
+      size, 
+      endpoint: API_ENDPOINTS.MOVIE_SEARCH,
+      baseURL: API_BASE_URL,
+      fullURL: `${API_BASE_URL}${API_ENDPOINTS.MOVIE_SEARCH}`
+    });
+    
+    // 실제 검색 API 호출 (연결 테스트 제거)
+    const response = await movieApi.get(API_ENDPOINTS.MOVIE_SEARCH, {
+      params: { 
+        q: query, 
+        page, 
+        size 
+      }
+    });
+    
+    console.log('📡 API 응답 원본:', response.data);
+    const data = handleApiResponse(response);
+    console.log('✅ API 응답 처리됨:', data);
+    
+    // API 응답 구조에 맞게 변환
+    const result = {
+      content: data.content || [],
+      page: data.page || 0,
+      size: data.size || 20,
+      totalElements: data.totalElements || 0,
+      totalPages: data.totalPages || 1,
+      first: data.first || true,
+      last: data.last || true
+    };
+    
+    console.log('🎯 최종 검색 결과:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ 영화 검색 실패:', error);
+    console.error('❌ 에러 상세:', error.response?.data || error.message);
+    console.error('❌ 에러 상태:', error.response?.status);
+    console.error('❌ 에러 헤더:', error.response?.headers);
+    
+    // 네트워크 에러인지 확인
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      console.error('🌐 네트워크 연결 문제 - API 서버가 실행 중인지 확인하세요');
+    }
+    
+    return { 
+      content: [], 
+      page: 0, 
+      size: 20, 
+      totalElements: 0, 
+      totalPages: 1, 
+      first: true, 
+      last: true 
+    };
   }
 };
 
