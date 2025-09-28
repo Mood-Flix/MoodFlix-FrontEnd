@@ -24,7 +24,6 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
   }
 
   isProcessing = true;
-  processedCodes.add(authorizationCode);
 
   try {
     console.log('카카오 토큰 교환 시작');
@@ -69,6 +68,9 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
 
     const userData = await userResponse.json();
     console.log('카카오 사용자 정보 조회 성공');
+
+    // 성공적으로 교환된 코드만 처리 완료로 표시
+    processedCodes.add(authorizationCode);
 
     return {
       accessToken: tokenData.access_token,

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import './KakaoLogin.css';
-import { checkKakaoAuthStatus, exchangeKakaoCodeForToken } from '../services/authService';
+// Kakao 코드 처리는 상위(useAuth)로 위임합니다.
 
 const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [processedCodes, setProcessedCodes] = useState(new Set());
 
   useEffect(() => {
     // 카카오 SDK 초기화
@@ -45,11 +44,10 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
         return;
       }
 
-      if (code && !processedCodes.has(code)) {
-        console.log('카카오 인증 코드 받음');
-        // URL에서 인가 코드 즉시 제거 (중복 실행 방지)
+      if (code) {
+        // URL에서 코드 제거 후 상위로 위임
         window.history.replaceState({}, document.title, window.location.pathname);
-        handleCodeExchange(code);
+        onKakaoCodeLogin?.(code);
         return;
       }
     };
@@ -59,34 +57,6 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
     checkUrlParams();
   }, []);
 
-  // 카카오 인가 코드 처리
-  const handleCodeExchange = async (code) => {
-    if (isLoading || processedCodes.has(code)) {
-      console.log('이미 처리 중이거나 처리된 코드입니다.');
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setProcessedCodes(prev => new Set(prev).add(code));
-      console.log('카카오 인가 코드를 토큰으로 변환 중...');
-
-      const tokenData = await exchangeKakaoCodeForToken(code);
-
-      if (tokenData && tokenData.accessToken) {
-        console.log('카카오 토큰 교환 성공');
-        onLoginSuccess?.(tokenData.accessToken);
-      } else {
-        console.log('토큰 교환 실패, 인가 코드를 상위 컴포넌트로 전달');
-        onKakaoCodeLogin?.(code);
-      }
-    } catch (error) {
-      console.error('카카오 토큰 교환 실패:', error);
-      onLoginError?.('카카오 로그인 처리 중 오류가 발생했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // 카카오 로그인 버튼 클릭
   const handleKakaoLogin = () => {
