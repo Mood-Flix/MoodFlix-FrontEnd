@@ -13,6 +13,9 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
   const maxRetries = 15;
 
   useEffect(() => {
+    // React 18 StrictMode 대응: effect 시작 시 ref를 true로 설정
+    isMountedRef.current = true;
+    
     // 카카오 SDK 초기화
     const initializeKakao = () => {
       // 컴포넌트가 언마운트된 경우 중단
