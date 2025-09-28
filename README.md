@@ -69,9 +69,7 @@ npm start
 
 ### API 엔드포인트
 
-#### 인증 관련
-- `POST /api/auth/kakao` - 카카오 로그인
-- `POST /api/auth/refresh` - 토큰 갱신
+#### 사용자 관련
 - `GET /api/user/profile` - 사용자 프로필 조회
 
 #### 영화 관련 (새로 추가)

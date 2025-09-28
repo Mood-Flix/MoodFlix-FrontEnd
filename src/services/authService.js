@@ -1,111 +1,233 @@
-import axios from 'axios';
-import { jwtDecode } from "jwt-decode";
-import { API_BASE_URL } from '../constants/api';
+/**
+ * 카카오 인증 서비스
+ * 간단하고 명확한 로직으로 재작성
+ */
 
-// API 기본 URL은 constants에서 단일 관리합니다.
-
-const authApi = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-});
-
-// 요청 인터셉터 - 모든 요청에 인증 헤더를 자동으로 추가합니다.
-authApi.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// 전역 처리 상태 (중복 방지)
+let isProcessing = false;
+const processedCodes = new Set();
 
 /**
- * 카카오 로그인 서비스 로직
- * KakaoLogin.js에서 받은 카카오 액세스 토큰으로 백엔드에 로그인/회원가입을 요청합니다.
- * @param {string} kakaoAccessToken - 카카오 SDK로부터 받은 액세스 토큰
- * @returns {object} - 백엔드로부터 받은 { accessToken, userId, name } 데이터
+ * 카카오 인가 코드를 액세스 토큰으로 변환
+ */
+export const exchangeKakaoCodeForToken = async (authorizationCode) => {
+  // 이미 처리된 코드인지 확인
+  if (processedCodes.has(authorizationCode)) {
+    console.log('이미 처리된 인가 코드입니다.');
+    return null;
+  }
+
+  // 현재 처리 중인지 확인
+  if (isProcessing) {
+    console.log('다른 요청이 처리 중입니다. 잠시 후 다시 시도해주세요.');
+    return null;
+  }
+
+  isProcessing = true;
+
+  try {
+    console.log('카카오 토큰 교환 시작');
+    
+    const kakaoAppKey = process.env.REACT_APP_KAKAO_APP_KEY || process.env.REACT_APP_KAKAO_JAVASCRIPT_KEY;
+    if (!kakaoAppKey) {
+      throw new Error('카카오 앱 키가 설정되지 않았습니다.');
+    }
+
+    // 카카오 OAuth API 호출
+    const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: kakaoAppKey,
+        redirect_uri: window.location.origin,
+        code: authorizationCode
+      })
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json();
+      throw new Error(`토큰 요청 실패: ${errorData.error_description || errorData.error}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    console.log('카카오 토큰 획득 성공');
+
+    // 사용자 정보 조회
+    const userResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`
+      }
+    });
+
+    if (!userResponse.ok) {
+      throw new Error('사용자 정보 조회 실패');
+    }
+
+    const userData = await userResponse.json();
+    console.log('카카오 사용자 정보 조회 성공');
+
+    // 성공적으로 교환된 코드만 처리 완료로 표시
+    processedCodes.add(authorizationCode);
+
+    return {
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      userInfo: {
+        id: userData.id,
+        name: userData.kakao_account?.profile?.nickname || '카카오 사용자',
+        email: userData.kakao_account?.email,
+        profileImage: userData.kakao_account?.profile?.profile_image_url
+      }
+    };
+
+  } catch (error) {
+    console.error('카카오 토큰 교환 실패:', error);
+    throw error;
+  } finally {
+    isProcessing = false;
+  }
+};
+
+/**
+ * 카카오 로그인 처리
  */
 export const kakaoLogin = async (kakaoAccessToken) => {
   try {
-    const response = await authApi.post('/api/auth/kakao', {
-      accessToken: kakaoAccessToken,
-    });
+    console.log('카카오 로그인 처리 시작');
     
-    const data = response.data;
-    
-    // 백엔드로부터 받은 JWT와 사용자 정보를 로컬 스토리지에 저장합니다.
-    if (data && data.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken);
-      if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken);
+    // 사용자 정보 조회
+    const userResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
+      headers: {
+        'Authorization': `Bearer ${kakaoAccessToken}`
       }
-      const user = data.user ?? { userId: data.userId, name: data.name, email: data.email, profileImage: data.profileImage };
-      localStorage.setItem('userInfo', JSON.stringify(user));
+    });
+
+    if (!userResponse.ok) {
+      throw new Error('사용자 정보 조회 실패');
     }
-    
-    return data;
+
+    const userData = await userResponse.json();
+    console.log('카카오 사용자 정보 조회 성공');
+
+    // 사용자 정보 정규화
+    const userInfo = {
+      id: userData.id,
+      name: userData.kakao_account?.profile?.nickname || '카카오 사용자',
+      email: userData.kakao_account?.email,
+      profileImage: userData.kakao_account?.profile?.profile_image_url
+    };
+
+    // 로컬 스토리지에 저장
+    localStorage.setItem('accessToken', kakaoAccessToken);
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+    return {
+      accessToken: kakaoAccessToken,
+      user: userInfo
+    };
+
   } catch (error) {
-    console.error('카카오 로그인 API 호출 실패:', error.response?.status, error.message);
+    console.error('카카오 로그인 실패:', error);
     throw error;
   }
 };
 
-// [참고] 토큰 갱신 로직 (백엔드에 /api/auth/refresh API 구현 후 사용 가능)
-export const refreshToken = async () => {
-  const stored = localStorage.getItem('refreshToken');
-  if (!stored) {
-    throw new Error('리프레시 토큰이 없습니다.');
-  }
-  try {
-    const res = await authApi.post('/api/auth/refresh', { refreshToken: stored }, { withCredentials: true });
-    const data = res.data;
-    if (data?.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken);
-    }
-    if (data?.refreshToken) {
-      localStorage.setItem('refreshToken', data.refreshToken);
-    }
-    if (data?.user) {
-      localStorage.setItem('userInfo', JSON.stringify(data.user));
-    }
-    return data;
-  } catch (error) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userInfo');
-    throw error;
-  }
-};
-
-// 로그아웃
+/**
+ * 로그아웃
+ */
 export const logout = () => {
+  console.log('로그아웃 처리');
+  
+  // 로컬 스토리지 정리
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userInfo');
   
-  if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
-    window.Kakao.Auth.logout();
-  }
+  // 카카오 세션 완전 정리
+  clearKakaoSession();
 };
 
-// 토큰 유효성 검사
+/**
+ * 토큰 유효성 검사
+ */
 export const isTokenValid = () => {
   const token = localStorage.getItem('accessToken');
-  if (!token) return false;
-  
+  return !!token;
+};
+
+/**
+ * 저장된 사용자 정보 가져오기
+ */
+export const getUserProfile = () => {
+  const userInfo = localStorage.getItem('userInfo');
+  return userInfo ? JSON.parse(userInfo) : null;
+};
+
+/**
+ * 카카오 인증 상태 확인 (최신 API 사용)
+ */
+export const checkKakaoAuthStatus = async () => {
+  if (!window.Kakao || !window.Kakao.Auth || !window.Kakao.API) {
+    return { isConnected: false, token: null };
+  }
+
   try {
-    const { exp } = jwtDecode(token);
-    const currentTime = Math.floor(Date.now() / 1000);
-    return typeof exp === 'number' && exp > currentTime;
+    const token = window.Kakao.Auth.getAccessToken();
+    if (!token) {
+      return { isConnected: false, token: null };
+    }
+
+    // 최신 패턴: /v2/user/me 호출로 토큰 유효성 및 사용자 정보 확인
+    const response = await window.Kakao.API.request({ 
+      url: '/v2/user/me' 
+    });
+
+    return {
+      isConnected: !!response.id,
+      token: token,
+      userInfo: response
+    };
+
   } catch (error) {
-    return false;
+    console.error('카카오 토큰 상태 확인 실패:', error);
+    return { isConnected: false, token: null };
   }
 };
 
-//  [수정] 저장된 사용자 정보 가져오기 (함수 이름을 원래대로 되돌림)
-export const getUserProfile = () => {
-    const userInfo = localStorage.getItem('userInfo');
-    return userInfo ? JSON.parse(userInfo) : null;
+/**
+ * 카카오 세션 완전 정리
+ */
+export const clearKakaoSession = () => {
+  if (!window.Kakao || !window.Kakao.Auth) {
+    return;
+  }
+
+  try {
+    // 토큰 유효성 먼저 확인
+    const token = window.Kakao.Auth.getAccessToken();
+    
+    if (token) {
+      // 토큰이 있으면 서버에 로그아웃 요청 (에러 무시)
+      window.Kakao.Auth.logout((response) => {
+        console.log('카카오 서버 로그아웃 요청 완료');
+      });
+    }
+    
+    // 로컬 토큰 정리 (서버 요청과 관계없이 항상 수행)
+    window.Kakao.Auth.setAccessToken(null);
+    console.log('카카오 로컬 세션 정리 완료');
+    
+  } catch (error) {
+    // 에러가 발생해도 로컬 토큰은 반드시 정리
+    console.log('카카오 세션 정리 중 에러 발생, 로컬 정리만 수행');
+    try {
+      window.Kakao.Auth.setAccessToken(null);
+      console.log('카카오 로컬 세션 정리 완료');
+    } catch (localError) {
+      console.error('로컬 토큰 정리 실패:', localError);
+    }
+  }
 };

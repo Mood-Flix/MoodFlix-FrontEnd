@@ -6,11 +6,6 @@ export const API_BASE_URL =
 
 // API 엔드포인트
 export const API_ENDPOINTS = {
-  // 인증 관련
-  KAKAO_LOGIN: '/api/auth/kakao',
-  KAKAO_CALLBACK: '/api/auth/kakao/callback',
-  REFRESH_TOKEN: '/api/auth/refresh',
-  
   // 사용자 관련
   USER_PROFILE: '/api/user/profile',
   USER_PREFERENCES: '/api/user/preferences',
