@@ -1,14 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './KakaoLogin.css';
 // Kakao 코드 처리는 상위(useAuth)로 위임합니다.
 
 const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // 재시도 제한 및 타이머 관리를 위한 refs
+  const retryCountRef = useRef(0);
+  const timerRef = useRef(null);
+  const isMountedRef = useRef(true);
+  const maxRetries = 15;
 
   useEffect(() => {
     // 카카오 SDK 초기화
     const initializeKakao = () => {
+      // 컴포넌트가 언마운트된 경우 중단
+      if (!isMountedRef.current) {
+        return;
+      }
+
       const kakaoKey = process.env.REACT_APP_KAKAO_JAVASCRIPT_KEY;
       if (!kakaoKey) {
         console.warn('카카오 JavaScript 키가 설정되지 않았습니다.');
@@ -25,10 +36,23 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
             return;
           }
         }
-        setIsInitialized(true);
+        if (isMountedRef.current) {
+          setIsInitialized(true);
+        }
       } else {
-        // SDK 로드 대기
-        setTimeout(initializeKakao, 1000);
+        // 재시도 횟수 확인
+        if (retryCountRef.current >= maxRetries) {
+          console.error('카카오 SDK 로딩 재시도 한도를 초과했습니다.');
+          return;
+        }
+
+        // SDK 로드 대기 (상한/클린업 포함)
+        retryCountRef.current++;
+        timerRef.current = setTimeout(() => {
+          if (isMountedRef.current) {
+            initializeKakao();
+          }
+        }, 1000);
       }
     };
 
@@ -55,6 +79,15 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
     // 초기화 및 URL 파라미터 확인
     initializeKakao();
     checkUrlParams();
+
+    // cleanup 함수
+    return () => {
+      isMountedRef.current = false;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
   }, []);
 
 
