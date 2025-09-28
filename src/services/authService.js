@@ -144,15 +144,8 @@ export const logout = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userInfo');
   
-  // 카카오 SDK 토큰만 정리 (서버 요청 없이)
-  if (window.Kakao && window.Kakao.Auth) {
-    try {
-      // 서버에 요청을 보내지 않고 로컬 토큰만 정리
-      window.Kakao.Auth.setAccessToken(null);
-    } catch (error) {
-      console.error('카카오 토큰 정리 실패:', error);
-    }
-  }
+  // 카카오 세션 완전 정리
+  clearKakaoSession();
 };
 
 /**
@@ -202,5 +195,40 @@ export const checkKakaoAuthStatus = async () => {
   } catch (error) {
     console.error('카카오 토큰 상태 확인 실패:', error);
     return { isConnected: false, token: null };
+  }
+};
+
+/**
+ * 카카오 세션 완전 정리
+ */
+export const clearKakaoSession = () => {
+  if (!window.Kakao || !window.Kakao.Auth) {
+    return;
+  }
+
+  try {
+    // 토큰 유효성 먼저 확인
+    const token = window.Kakao.Auth.getAccessToken();
+    
+    if (token) {
+      // 토큰이 있으면 서버에 로그아웃 요청 (에러 무시)
+      window.Kakao.Auth.logout((response) => {
+        console.log('카카오 서버 로그아웃 요청 완료');
+      });
+    }
+    
+    // 로컬 토큰 정리 (서버 요청과 관계없이 항상 수행)
+    window.Kakao.Auth.setAccessToken(null);
+    console.log('카카오 로컬 세션 정리 완료');
+    
+  } catch (error) {
+    // 에러가 발생해도 로컬 토큰은 반드시 정리
+    console.log('카카오 세션 정리 중 에러 발생, 로컬 정리만 수행');
+    try {
+      window.Kakao.Auth.setAccessToken(null);
+      console.log('카카오 로컬 세션 정리 완료');
+    } catch (localError) {
+      console.error('로컬 토큰 정리 실패:', localError);
+    }
   }
 };

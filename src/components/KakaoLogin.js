@@ -105,9 +105,10 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
     setIsLoading(true);
 
     try {
-      // 카카오 로그인 페이지로 리다이렉트
+      // 카카오 로그인 페이지로 리다이렉트 (계정 선택 강제)
       window.Kakao.Auth.authorize({
-        redirectUri: window.location.origin
+        redirectUri: window.location.origin,
+        prompt: 'select_account' // 계정 선택 화면 강제 표시
       });
     } catch (error) {
       console.error('카카오 로그인 호출 중 오류:', error);
