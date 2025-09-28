@@ -56,10 +56,11 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
       }
     };
 
-    // URL 파라미터 확인
+    // URL 파라미터 확인 (OAuth state 검증 포함)
     const checkUrlParams = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
+      const state = urlParams.get('state');
       const error = urlParams.get('error');
 
       if (error) {
@@ -69,6 +70,19 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
       }
 
       if (code) {
+        // OAuth state 검증 (CSRF 방지)
+        const storedState = sessionStorage.getItem('oauth_state');
+        if (!state || !storedState || state !== storedState) {
+          console.error('OAuth state 검증 실패: CSRF 공격 가능성');
+          onLoginError?.('보안 검증에 실패했습니다. 다시 시도해주세요.');
+          // 저장된 state 정리
+          sessionStorage.removeItem('oauth_state');
+          return;
+        }
+
+        // state 검증 성공 후 정리
+        sessionStorage.removeItem('oauth_state');
+        
         // URL에서 코드 제거 후 상위로 위임
         window.history.replaceState({}, document.title, window.location.pathname);
         onKakaoCodeLogin?.(code);
@@ -108,10 +122,21 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
     setIsLoading(true);
 
     try {
+      // OAuth 보안 강화: state 파라미터와 환경변수 리다이렉트 URI 사용
+      const redirectUri = process.env.REACT_APP_KAKAO_REDIRECT_URI || window.location.origin;
+      const state = btoa(JSON.stringify({ 
+        ts: Date.now(), 
+        path: window.location.pathname 
+      }));
+      
+      // state를 sessionStorage에 저장 (CSRF 방지)
+      sessionStorage.setItem('oauth_state', state);
+      
       // 카카오 로그인 페이지로 리다이렉트 (계정 선택 강제)
       window.Kakao.Auth.authorize({
-        redirectUri: window.location.origin,
-        prompt: 'select_account' // 계정 선택 화면 강제 표시
+        redirectUri,
+        prompt: 'select_account', // 계정 선택 화면 강제 표시
+        state
       });
     } catch (error) {
       console.error('카카오 로그인 호출 중 오류:', error);
