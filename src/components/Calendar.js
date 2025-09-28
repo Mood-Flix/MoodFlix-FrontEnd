@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
+import UserAuthSection from './UserAuthSection';
 import './Calendar.css';
 
 const Calendar = () => {
@@ -132,6 +133,7 @@ const Calendar = () => {
   
   return (
     <div className="calendar-container">
+      <UserAuthSection />
       {showGlobalLoading && (
         <div className="calendar-popup">
           <div className="loading-container">

@@ -1,0 +1,127 @@
+/* UserAuthSection 컴포넌트 스타일 */
+
+.compact-auth-section {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.compact-welcome {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.compact-logout-button {
+  background: #e50914;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.compact-logout-button:hover {
+  background: #f40612;
+  transform: translateY(-1px);
+}
+
+.compact-logout-button:active {
+  transform: translateY(0);
+}
+
+.compact-login-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-auth-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  margin-top: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.compact-auth-error button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.compact-auth-error button:hover {
+  opacity: 0.8;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .compact-auth-section {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .compact-user-info {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  
+  .compact-welcome {
+    font-size: 13px;
+  }
+  
+  .compact-logout-button {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .compact-auth-section {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .compact-user-info {
+    padding: 5px 10px;
+    gap: 6px;
+  }
+  
+  .compact-welcome {
+    font-size: 12px;
+  }
+  
+  .compact-logout-button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}

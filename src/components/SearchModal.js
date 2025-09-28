@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaSearch, FaTimes, FaHistory } from 'react-icons/fa';
 import { searchMovies, searchMovieSuggestions } from '../services/movieService';
+import UserAuthSection from './UserAuthSection';
 import './SearchModal.css';
 
 const SearchModal = ({ isOpen, onClose, onSearchResults, onMovieClick }) => {
@@ -242,6 +243,9 @@ const SearchModal = ({ isOpen, onClose, onSearchResults, onMovieClick }) => {
 
   return (
     <div className="netflix-search-overlay">
+      {/* 사용자 인증 섹션 */}
+      <UserAuthSection />
+      
       {/* 넷플릭스 스타일 검색 헤더 */}
       <div className="netflix-search-header">
         <div className="netflix-search-container">

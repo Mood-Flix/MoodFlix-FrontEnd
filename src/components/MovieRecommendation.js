@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getMovieRecommendations } from '../services/movieService';
 import { HappyIcon, SadIcon, ExcitedIcon, PeacefulIcon, RomanticIcon, AnxiousIcon } from './EmotionIcons';
+import UserAuthSection from './UserAuthSection';
 import './MovieRecommendation.css';
 
 const MovieRecommendation = ({ onMovieClick }) => {
@@ -59,6 +60,7 @@ const MovieRecommendation = ({ onMovieClick }) => {
   if (recommendations) {
     return (
       <div className="movie-recommendation">
+        <UserAuthSection />
         <div className="recommendation-container">
           <div className="recommendation-content">
             <div className="title-section">
@@ -101,6 +103,7 @@ const MovieRecommendation = ({ onMovieClick }) => {
 
   return (
     <div className="movie-recommendation">
+      <UserAuthSection />
       <div className="recommendation-container">
         {/* 메인 콘텐츠 */}
         <div className="recommendation-content">

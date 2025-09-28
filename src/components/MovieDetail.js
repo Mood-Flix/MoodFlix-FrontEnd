@@ -9,6 +9,7 @@ import {
   getCachedMovieVideos,
   getCachedMoviePhotos
 } from '../services/movieService';
+import UserAuthSection from './UserAuthSection';
 import './MovieDetail.css';
 
 // WebP 지원 확인
@@ -711,6 +712,7 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
 
   return (
     <div className="movie-detail">
+      <UserAuthSection />
       <div className="movie-detail-container">
         {/* 헤더 */}
         <div className="movie-detail-header">

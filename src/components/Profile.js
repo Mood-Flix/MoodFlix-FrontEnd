@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Profile.css';
 import { useAuth } from '../hooks/useAuth';
+import UserAuthSection from './UserAuthSection';
 
 const Profile = () => {
   const { user, isAuthenticated, loadUserProfile, isLoading } = useAuth();
@@ -14,6 +15,7 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
+      <UserAuthSection />
       <div className="profile-card">
         <div className="profile-card-header">
           <h2 className="profile-title">프로필</h2>
