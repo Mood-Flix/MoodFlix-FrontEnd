@@ -43,7 +43,6 @@ function AppLayout() {
       />
       <Routes>
         <Route path="/" element={<MainContent onMovieClick={handleMovieClick} />} />
-        <Route path="/home" element={<MainContent onMovieClick={handleMovieClick} />} />
         <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
         <Route path="/calendar" element={<Calendar />} />

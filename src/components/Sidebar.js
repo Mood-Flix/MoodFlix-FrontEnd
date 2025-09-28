@@ -17,7 +17,7 @@ const Sidebar = ({ onNavigation }) => {
 
   const isActive = (path) => {
     if (path === '/') {
-      return location.pathname === '/home' || location.pathname === '/';
+      return location.pathname === '/' || location.pathname === '/';
     }
     if (path === '/search') {
       return location.pathname === '/search';

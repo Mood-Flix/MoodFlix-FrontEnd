@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { kakaoLogin, logout as authLogout, getUserProfile, isTokenValid, refreshToken } from '../services/authService';
+import { kakaoLogin, logout as authLogout, getUserProfile, isTokenValid } from '../services/authService';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -7,90 +7,116 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 초기 인증 상태 확인 - 로그인 없이도 앱 사용 가능하도록 수정
-   useEffect(() => {
-    // 페이지 로드 시, 로컬 스토리지의 정보로 로그인 상태를 복원하는 로직
+  // 초기 인증 상태 확인
+  useEffect(() => {
     const checkAuthStatus = () => {
       setIsLoading(true);
+      
       if (isTokenValid()) {
         const userInfo = getUserProfile();
         if (userInfo) {
-          const normalized = normalizeUser(userInfo);
-          setUser(normalized);
+          setUser(userInfo);
           setIsAuthenticated(true);
         }
       }
+      
       setIsLoading(false);
     };
+
     checkAuthStatus();
   }, []);
 
-  // ✅ [수정] login 함수가 백엔드 통신 및 상태 업데이트를 모두 책임집니다.
-  const login = useCallback(async (kakaoAccessToken) => {
+  // 카카오 인가 코드로 로그인
+  const loginWithKakaoCode = useCallback(async (authorizationCode) => {
+    if (isLoading) {
+      console.log('이미 로그인 처리 중입니다.');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
-      
-      // authService를 통해 백엔드에 로그인 요청
-      const loginResult = await kakaoLogin(kakaoAccessToken);
 
-      // 저장된 또는 응답 기반 사용자 정보 정규화 후 상태 반영
-      const userPayload = normalizeUser(getUserProfile() || loginResult?.user || loginResult);
-      if (userPayload && (userPayload.id ?? userPayload.userId)) {
-        setUser(userPayload);
-        setIsAuthenticated(true);
+      // 인가 코드를 토큰으로 변환
+      const { exchangeKakaoCodeForToken } = await import('../services/authService');
+      const tokenData = await exchangeKakaoCodeForToken(authorizationCode);
+
+      if (!tokenData || !tokenData.accessToken) {
+        console.log('토큰 교환 결과가 없습니다. 이미 처리되었을 수 있습니다.');
+        return;
       }
-      
+
+      // 사용자 정보 설정
+      if (tokenData.userInfo) {
+        setUser(tokenData.userInfo);
+        setIsAuthenticated(true);
+        
+        // 로컬 스토리지에 저장
+        localStorage.setItem('accessToken', tokenData.accessToken);
+        if (tokenData.refreshToken) {
+          localStorage.setItem('refreshToken', tokenData.refreshToken);
+        }
+        localStorage.setItem('userInfo', JSON.stringify(tokenData.userInfo));
+        
+        console.log('카카오 로그인 성공:', tokenData.userInfo);
+      } else {
+        throw new Error('카카오 사용자 정보를 가져올 수 없습니다.');
+      }
+
     } catch (error) {
-      console.error('로그인 실패 (useAuth):', error);
-      setError(error.message || '로그인에 실패했습니다.');
-      // 실패 시 상태를 확실하게 로그아웃 상태로 변경
+      console.error('카카오 로그인 실패:', error);
+      setError(error.message || '카카오 로그인에 실패했습니다.');
       setIsAuthenticated(false);
       setUser(null);
-      throw error; // 에러를 다시 던져서 호출한 쪽에서도 알 수 있게 함
+      throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isLoading]);
 
-  const logout = useCallback(() => {
-    authLogout();
-    setUser(null);
-    setIsAuthenticated(false);
-    setError(null);
-  }, []);
+  // 카카오 액세스 토큰으로 로그인
+  const login = useCallback(async (kakaoAccessToken) => {
+    if (isLoading) {
+      console.log('이미 로그인 처리 중입니다.');
+      return;
+    }
 
-  // 토큰 갱신
-  const refreshAuthToken = useCallback(async () => {
     try {
-      const result = await refreshToken();
-      if (result.user) {
-        setUser(result.user);
+      setIsLoading(true);
+      setError(null);
+
+      const loginResult = await kakaoLogin(kakaoAccessToken);
+
+      if (loginResult?.user) {
+        setUser(loginResult.user);
+        setIsAuthenticated(true);
+        console.log('카카오 로그인 성공:', loginResult.user);
       }
-      return result;
-    } catch (error) {
-      console.error('토큰 갱신 실패:', error);
-      // 토큰 갱신 실패 시 로그아웃
-      logout();
-      throw error;
-    }
-  }, [logout]);
 
-  // 프로필 강제 로드 (백엔드 연동)
-  const loadUserProfile = useCallback(async () => {
-    try {
-      setIsLoading(true); // 단기 대응은 App에서 profile 뷰일 때 오버레이 비표시(아래 App.js 코멘트 참조)
-      const profile = await getUserProfile();
-      const normalized = normalizeUser(profile);
-      setUser(normalized);
-      setIsAuthenticated(true);
-      return normalized;
     } catch (error) {
-      console.error('프로필 로드 실패:', error);
-      setError(error.message || '프로필을 불러오지 못했습니다.');
+      console.error('카카오 로그인 실패:', error);
+      setError(error.message || '로그인에 실패했습니다.');
+      setIsAuthenticated(false);
+      setUser(null);
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  }, [isLoading]);
+
+  // 로그아웃
+  const logout = useCallback(() => {
+    try {
+      authLogout();
+      setUser(null);
+      setIsAuthenticated(false);
+      setError(null);
+      console.log('로그아웃 완료');
+    } catch (error) {
+      console.error('로그아웃 처리 중 오류:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      setError(null);
     }
   }, []);
 
@@ -105,20 +131,8 @@ export const useAuth = () => {
     isLoading,
     error,
     login,
+    loginWithKakaoCode,
     logout,
-    refreshAuthToken,
-    loadUserProfile,
     clearError,
   };
 };
-
-// 백엔드 응답을 프론트 표준 형태로 변환
-function normalizeUser(raw) {
-  if (!raw || typeof raw !== 'object') return raw;
-  // 가능한 키 매핑
-  const id = raw.id ?? raw.userId ?? raw.kakaoId ?? raw.memberId ?? null;
-  const name = raw.name ?? raw.nickname ?? raw.userName ?? raw.displayName ?? null;
-  const email = raw.email ?? raw.userEmail ?? null;
-  const profileImage = raw.profileImage ?? raw.profile_image ?? raw.profile_image_url ?? raw.avatarUrl ?? raw.picture ?? null;
-  return { ...raw, id, name, email, profileImage };
-}

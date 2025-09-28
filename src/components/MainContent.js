@@ -15,9 +15,9 @@ const MainContent = ({ onMovieClick }) => {
   } = useMovies();
 
   // 인증 관련 상태
-  const { user, isAuthenticated, isLoading: authLoading, error: authError, login, logout, clearError } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
 
-  // 로그인 핸들러
+  // 로그인 핸들러 (카카오 액세스 토큰)
   const handleLoginSuccess = async (kakaoAccessToken) => {
     try {
       clearError();
@@ -25,6 +25,17 @@ const MainContent = ({ onMovieClick }) => {
       console.log('MainContent: 로그인 성공');
     } catch (err) {
       console.error('MainContent: 로그인 실패', err);
+    }
+  };
+
+  // 카카오 인가 코드로 로그인 핸들러
+  const handleKakaoCodeLogin = async (authorizationCode) => {
+    try {
+      clearError();
+      await loginWithKakaoCode(authorizationCode);
+      console.log('MainContent: 카카오 코드 로그인 성공');
+    } catch (err) {
+      console.error('MainContent: 카카오 코드 로그인 실패', err);
     }
   };
 
@@ -181,6 +192,7 @@ const MainContent = ({ onMovieClick }) => {
             <KakaoLogin 
               onLoginSuccess={handleLoginSuccess} 
               onLoginError={handleLoginError}
+              onKakaoCodeLogin={handleKakaoCodeLogin}
             />
             {authError && (
               <div className="compact-auth-error">
