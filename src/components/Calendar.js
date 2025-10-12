@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCalendar } from '../hooks/useCalendar';
+import { useAuth } from '../hooks/useAuth';
+import UserAuthSection from './UserAuthSection';
 import './Calendar.css';
 
 const Calendar = () => {
@@ -24,6 +26,39 @@ const Calendar = () => {
     goToNextMonth,
     goToCurrentMonth
   } = useCalendar();
+
+  // 인증 관련 상태
+  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+
+  // 로그인 핸들러 (카카오 액세스 토큰)
+  const handleLoginSuccess = async (kakaoAccessToken) => {
+    try {
+      clearError();
+      await login(kakaoAccessToken);
+      console.log('Calendar: 로그인 성공');
+    } catch (err) {
+      console.error('Calendar: 로그인 실패', err);
+    }
+  };
+
+  // 카카오 인가 코드로 로그인 핸들러
+  const handleKakaoCodeLogin = async (authorizationCode) => {
+    try {
+      clearError();
+      await loginWithKakaoCode(authorizationCode);
+      console.log('Calendar: 카카오 코드 로그인 성공');
+    } catch (err) {
+      console.error('Calendar: 카카오 코드 로그인 실패', err);
+    }
+  };
+
+  const handleLoginError = (errorMessage) => {
+    console.error("Kakao SDK 에러:", errorMessage);
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const moods = [
     { emoji: '😐', text: '그냥저냥' },
@@ -132,6 +167,18 @@ const Calendar = () => {
   
   return (
     <div className="calendar-container">
+      {/* 사용자 인증 섹션 */}
+      <UserAuthSection 
+        user={user}
+        isAuthenticated={isAuthenticated}
+        authError={authError}
+        onLoginSuccess={handleLoginSuccess}
+        onKakaoCodeLogin={handleKakaoCodeLogin}
+        onLoginError={handleLoginError}
+        onLogout={handleLogout}
+        onClearError={clearError}
+      />
+      
       {showGlobalLoading && (
         <div className="calendar-popup">
           <div className="loading-container">

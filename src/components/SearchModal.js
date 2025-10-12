@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FaSearch, FaTimes, FaHistory } from 'react-icons/fa';
+import { useAuth } from '../hooks/useAuth';
+import { searchMovies } from '../services/movieService';
+import UserAuthSection from './UserAuthSection';
 import './SearchModal.css';
 
 const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
@@ -7,7 +10,45 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
   const [searchHistory, setSearchHistory] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const searchInputRef = useRef(null);
+  const debounceTimerRef = useRef(null);
+
+  // 인증 관련 상태
+  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+
+  // 로그인 핸들러 (카카오 액세스 토큰)
+  const handleLoginSuccess = async (kakaoAccessToken) => {
+    try {
+      clearError();
+      await login(kakaoAccessToken);
+      console.log('SearchModal: 로그인 성공');
+    } catch (err) {
+      console.error('SearchModal: 로그인 실패', err);
+    }
+  };
+
+  // 카카오 인가 코드로 로그인 핸들러
+  const handleKakaoCodeLogin = async (authorizationCode) => {
+    try {
+      clearError();
+      await loginWithKakaoCode(authorizationCode);
+      console.log('SearchModal: 카카오 코드 로그인 성공');
+    } catch (err) {
+      console.error('SearchModal: 카카오 코드 로그인 실패', err);
+    }
+  };
+
+  const handleLoginError = (errorMessage) => {
+    console.error("Kakao SDK 에러:", errorMessage);
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   // 페이지 로드 시 검색창에 포커스
   useEffect(() => {
@@ -33,16 +74,72 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
     };
   }, [isOpen, onClose]);
 
-  // 검색어 입력 핸들러
+  // 디바운싱된 검색 함수
+  const debouncedSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      setSearchResults([]);
+      setIsLoadingSuggestions(false);
+      if (onSearchResults) {
+        onSearchResults([]);
+      }
+      return;
+    }
+
+    setIsLoadingSuggestions(true);
+    
+    try {
+      const suggestions = await searchMovies(query, 0, 10);
+      const suggestionResults = suggestions.content || [];
+      
+      // 연관 검색어가 있으면 제안 표시, 없으면 아무것도 표시하지 않음
+      if (suggestionResults.length > 0) {
+        setSearchSuggestions(suggestionResults);
+        setShowSuggestions(true);
+        // 검색 제안이 표시될 때는 기존 검색 결과를 숨김
+        setSearchResults([]);
+        if (onSearchResults) {
+          onSearchResults([]);
+        }
+      } else {
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+        // 연관 검색어가 없을 때는 검색 결과를 초기화하지 않음
+      }
+    } catch (error) {
+      console.error('검색 제안 로드 실패:', error);
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  }, [onSearchResults]);
+
+  // 검색어 입력 핸들러 (디바운싱 적용)
   const handleSearchInput = (e) => {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    setSearchQuery(value);
+    setIsTyping(true);
+    
+    // 기존 타이머 클리어
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // 500ms 후에 검색 실행
+    debounceTimerRef.current = setTimeout(() => {
+      setIsTyping(false);
+      debouncedSearch(value);
+    }, 500);
   };
 
-  // 검색 실행 핸들러
+  // 검색 실행 핸들러 (백엔드 API 연동)
   const handleSearch = async (query = searchQuery) => {
     if (!query.trim()) return;
 
     setIsSearching(true);
+    setShowSuggestions(false);
     
     // 검색 기록에 추가
     const newHistory = [query, ...searchHistory.filter(item => item !== query)].slice(0, 10);
@@ -50,50 +147,41 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
     localStorage.setItem('searchHistory', JSON.stringify(newHistory));
 
     try {
-      // TODO: 백엔드 API 연동
       console.log('검색어:', query);
       
-      // 임시로 1초 대기 (실제 API 호출 시뮬레이션)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 백엔드 API 호출
+      const response = await searchMovies(query, 0, 20);
+      const results = response.content || [];
       
-      // 임시 검색 결과 생성 (실제 API 연동 시 제거)
-      const mockResults = generateMockSearchResults(query);
-      setSearchResults(mockResults);
-      
-      // 부모 컴포넌트에 검색 결과 전달
-      if (onSearchResults) {
-        onSearchResults(mockResults);
+      // 검색 결과가 실제로 없는 경우에만 빈 배열로 설정
+      if (results.length === 0) {
+        setSearchResults([]);
+        if (onSearchResults) {
+          onSearchResults([]);
+        }
+      } else {
+        setSearchResults(results);
+        if (onSearchResults) {
+          onSearchResults(results);
+        }
       }
       
     } catch (error) {
       console.error('검색 실패:', error);
+      setSearchResults([]);
+      if (onSearchResults) {
+        onSearchResults([]);
+      }
     } finally {
       setIsSearching(false);
     }
   };
 
-  // 임시 검색 결과 생성 함수 (실제 API 연동 시 제거)
-  const generateMockSearchResults = (query) => {
-    const mockMovies = [
-      { id: 1, title: '미니언즈', genre: '애니메이션', posterUrl: '/emotion-happy.svg', releaseDate: '2015' },
-      { id: 2, title: '슈퍼 배드 3', genre: '애니메이션', posterUrl: '/emotion-excited.svg', releaseDate: '2017' },
-      { id: 3, title: '미니언즈 & 모어 1', genre: '애니메이션', posterUrl: '/emotion-peaceful.svg', releaseDate: '2019' },
-      { id: 4, title: '미니언즈 & 모어 2', genre: '애니메이션', posterUrl: '/emotion-romantic.svg', releaseDate: '2021' },
-      { id: 5, title: '슈퍼 배드 2', genre: '애니메이션', posterUrl: '/emotion-sad.svg', releaseDate: '2013' },
-      { id: 6, title: '슈퍼 배드', genre: '애니메이션', posterUrl: '/emotion-anxious.svg', releaseDate: '2010' },
-      { id: 7, title: '쿵푸팬더', genre: '애니메이션', posterUrl: '/emotion-happy.svg', releaseDate: '2008' },
-      { id: 8, title: '몬스터 호텔 3', genre: '애니메이션', posterUrl: '/emotion-excited.svg', releaseDate: '2018' },
-      { id: 9, title: '하늘에서 음식이 내린다면 2', genre: '애니메이션', posterUrl: '/emotion-peaceful.svg', releaseDate: '2013' },
-      { id: 10, title: '라바 패밀리', genre: '애니메이션', posterUrl: '/emotion-romantic.svg', releaseDate: '2020' },
-      { id: 11, title: '괴수 8호', genre: '애니메이션', posterUrl: '/emotion-sad.svg', releaseDate: '2024' },
-      { id: 12, title: '케이팝 데몬헌터스', genre: '애니메이션', posterUrl: '/emotion-anxious.svg', releaseDate: '2023' }
-    ];
-
-    // 검색어와 관련된 영화 필터링
-    return mockMovies.filter(movie => 
-      movie.title.toLowerCase().includes(query.toLowerCase()) ||
-      movie.genre.toLowerCase().includes(query.toLowerCase())
-    );
+  // 검색 제안 클릭 핸들러
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion.title);
+    setShowSuggestions(false);
+    handleSearch(suggestion.title);
   };
 
   // 검색 기록 클릭 핸들러
@@ -135,11 +223,32 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
     }
   }, []);
 
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
 
   if (!isOpen) return null;
 
   return (
     <div className="netflix-search-overlay">
+      {/* 사용자 인증 섹션 */}
+      <UserAuthSection 
+        user={user}
+        isAuthenticated={isAuthenticated}
+        authError={authError}
+        onLoginSuccess={handleLoginSuccess}
+        onKakaoCodeLogin={handleKakaoCodeLogin}
+        onLoginError={handleLoginError}
+        onLogout={handleLogout}
+        onClearError={clearError}
+      />
+      
       {/* 넷플릭스 스타일 검색 헤더 */}
       <div className="netflix-search-header">
         <div className="netflix-search-container">
@@ -162,6 +271,9 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
                 onClick={() => {
                   setSearchQuery('');
                   setSearchResults([]);
+                  setSearchSuggestions([]);
+                  setShowSuggestions(false);
+                  setIsTyping(false);
                   if (onSearchResults) {
                     onSearchResults([]);
                   }
@@ -176,20 +288,48 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
                 <div className="netflix-search-spinner"></div>
               </div>
             )}
+            
+            {/* 검색 제안 드롭다운 */}
+            {showSuggestions && searchSuggestions.length > 0 && (
+              <div className="netflix-search-suggestions">
+                {searchSuggestions.map((suggestion, index) => (
+                  <div 
+                    key={suggestion.id || index}
+                    className="netflix-search-suggestion-item"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    <FaSearch className="netflix-search-suggestion-icon" />
+                    <span className="netflix-search-suggestion-text">{suggestion.title}</span>
+                    {suggestion.releaseDate && (
+                      <span className="netflix-search-suggestion-year">
+                        ({new Date(suggestion.releaseDate).getFullYear()})
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* 검색 결과 영역 */}
       <div className="netflix-search-content">
-        {searchQuery && searchResults.length > 0 && (
+        {searchQuery && searchResults.length > 0 && !isLoadingSuggestions && !isTyping && (
           <div className="netflix-search-results">
             <h2 className="netflix-search-results-title">
               "{searchQuery}"에 대한 검색 결과
             </h2>
             <div className="netflix-movie-grid">
               {searchResults.map((movie) => (
-                <div key={movie.id} className="netflix-movie-card">
+                <div 
+                  key={movie.id} 
+                  className="netflix-movie-card"
+                  onClick={() => {
+                    // 영화 상세 페이지로 이동
+                    window.location.href = `/movie/${movie.id}`;
+                  }}
+                >
                   <div className="netflix-movie-poster">
                     {movie.posterUrl ? (
                       <img 
@@ -209,7 +349,10 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
                   <h3 className="netflix-movie-title">{movie.title}</h3>
                   <p className="netflix-movie-genre">{movie.genre}</p>
                   {movie.releaseDate && (
-                    <p className="netflix-movie-year">{movie.releaseDate}</p>
+                    <p className="netflix-movie-year">{new Date(movie.releaseDate).getFullYear()}</p>
+                  )}
+                  {movie.voteAverage && (
+                    <p className="netflix-movie-rating">⭐ {movie.voteAverage.toFixed(1)}</p>
                   )}
                 </div>
               ))}
@@ -217,7 +360,7 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
           </div>
         )}
 
-        {searchQuery && searchResults.length === 0 && !isSearching && (
+        {searchQuery && searchResults.length === 0 && !isSearching && !showSuggestions && !isLoadingSuggestions && !isTyping && (
           <div className="netflix-no-results">
             <FaSearch className="netflix-no-results-icon" />
             <h2 className="netflix-no-results-title">
@@ -230,7 +373,7 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
         )}
 
         {/* 검색 기록 영역 */}
-        {!searchQuery && searchHistory.length > 0 && (
+        {!searchQuery && searchHistory.length > 0 && !isLoadingSuggestions && !isTyping && (
           <div className="netflix-search-history">
             <div className="netflix-search-history-header">
               <h3 className="netflix-search-history-title">
@@ -267,7 +410,7 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
         )}
 
         {/* 검색어가 없고 검색 기록도 없을 때 */}
-        {!searchQuery && searchHistory.length === 0 && (
+        {!searchQuery && searchHistory.length === 0 && !isLoadingSuggestions && !isTyping && (
           <div className="netflix-search-empty">
             <FaSearch className="netflix-search-empty-icon" />
             <h2 className="netflix-search-empty-title">영화를 검색해보세요</h2>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -13,8 +13,6 @@ import { useAuth } from './hooks/useAuth';
 // 메인 앱 레이아웃 컴포넌트
 function AppLayout() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [searchResults, setSearchResults] = useState(null);
 
   const handleMovieClick = (movie) => {
     navigate(`/movie/${movie.id}`);
@@ -25,7 +23,7 @@ function AppLayout() {
   };
 
   const handleSearchResults = (results) => {
-    setSearchResults(results);
+    console.log('검색 결과:', results);
   };
 
   const handleCloseSearch = () => {

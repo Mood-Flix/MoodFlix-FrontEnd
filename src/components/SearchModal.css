@@ -5,6 +5,31 @@
   --sidebar-width-small: 60px;
 }
 
+/* 스크롤바 스타일 통일 */
+.netflix-search-overlay ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.netflix-search-overlay ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.netflix-search-overlay ::-webkit-scrollbar-thumb {
+  background: #e50914;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.netflix-search-overlay ::-webkit-scrollbar-thumb:hover {
+  background: #ff0a16;
+}
+
+.netflix-search-overlay ::-webkit-scrollbar-corner {
+  background: #1a1a1a;
+}
+
 /* 넷플릭스 스타일 검색 오버레이 */
 .netflix-search-overlay {
   position: fixed;
@@ -54,6 +79,7 @@
   display: flex;
   align-items: center;
   max-width: 600px;
+  z-index: 1001; /* 검색 제안보다 위에 위치 */
 }
 
 .netflix-search-icon {
@@ -131,6 +157,82 @@
   100% { transform: rotate(360deg); }
 }
 
+/* 검색 제안 드롭다운 */
+.netflix-search-suggestions {
+  position: absolute;
+  top: calc(100% + 1px);
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 검색 제안 스크롤바 스타일 */
+.netflix-search-suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.netflix-search-suggestions::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+
+.netflix-search-suggestions::-webkit-scrollbar-thumb {
+  background: #e50914;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.netflix-search-suggestions::-webkit-scrollbar-thumb:hover {
+  background: #ff0a16;
+}
+
+.netflix-search-suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.netflix-search-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.netflix-search-suggestion-item:hover {
+  background: #2a2a2a;
+}
+
+.netflix-search-suggestion-icon {
+  color: #666666;
+  font-size: 0.9rem;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.netflix-search-suggestion-text {
+  color: #ffffff;
+  font-size: 0.95rem;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.netflix-search-suggestion-year {
+  color: #999999;
+  font-size: 0.85rem;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
 
 /* 넷플릭스 스타일 검색 콘텐츠 */
 .netflix-search-content {
@@ -167,11 +269,16 @@
   overflow: hidden;
   transition: all 0.3s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .netflix-movie-card:hover {
   transform: scale(1.05);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.netflix-movie-card:active {
+  transform: scale(0.98);
 }
 
 .netflix-movie-poster {
@@ -227,7 +334,14 @@
 .netflix-movie-year {
   font-size: 0.85rem;
   color: #666666;
+  margin: 0 15px 5px 15px;
+}
+
+.netflix-movie-rating {
+  font-size: 0.8rem;
+  color: #ffd700;
   margin: 0 15px 15px 15px;
+  font-weight: 500;
 }
 
 /* 검색 결과 없음 */
