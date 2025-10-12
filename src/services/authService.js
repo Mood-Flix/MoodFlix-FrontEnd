@@ -55,31 +55,35 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
     const tokenData = await tokenResponse.json();
     console.log('카카오 토큰 획득 성공');
 
-    // 사용자 정보 조회
-    const userResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
+    // 백엔드에 카카오 토큰 전송하여 JWT 받기
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/auth/kakao`, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${tokenData.access_token}`
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        kakaoAccessToken: tokenData.access_token
+      })
     });
 
-    if (!userResponse.ok) {
-      throw new Error('사용자 정보 조회 실패');
+    if (!response.ok) {
+      throw new Error('백엔드 인증 실패');
     }
 
-    const userData = await userResponse.json();
-    console.log('카카오 사용자 정보 조회 성공');
+    const authData = await response.json();
+    console.log('백엔드 JWT 토큰 획득 성공');
 
     // 성공적으로 교환된 코드만 처리 완료로 표시
     processedCodes.add(authorizationCode);
 
     return {
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      userInfo: {
-        id: userData.id,
-        name: userData.kakao_account?.profile?.nickname || '카카오 사용자',
-        email: userData.kakao_account?.email,
-        profileImage: userData.kakao_account?.profile?.profile_image_url
+      accessToken: authData.accessToken,
+      refreshToken: authData.refreshToken,
+      userInfo: authData.user || {
+        id: authData.userId,
+        name: authData.name || '사용자',
+        email: authData.email,
+        profileImage: authData.profileImage
       }
     };
 
@@ -98,34 +102,38 @@ export const kakaoLogin = async (kakaoAccessToken) => {
   try {
     console.log('카카오 로그인 처리 시작');
     
-    // 사용자 정보 조회
-    const userResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
+    // 백엔드에 카카오 토큰 전송하여 JWT 받기
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/auth/kakao`, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${kakaoAccessToken}`
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        kakaoAccessToken: kakaoAccessToken
+      })
     });
 
-    if (!userResponse.ok) {
-      throw new Error('사용자 정보 조회 실패');
+    if (!response.ok) {
+      throw new Error('백엔드 인증 실패');
     }
 
-    const userData = await userResponse.json();
-    console.log('카카오 사용자 정보 조회 성공');
+    const authData = await response.json();
+    console.log('백엔드 JWT 토큰 획득 성공');
 
-    // 사용자 정보 정규화
-    const userInfo = {
-      id: userData.id,
-      name: userData.kakao_account?.profile?.nickname || '카카오 사용자',
-      email: userData.kakao_account?.email,
-      profileImage: userData.kakao_account?.profile?.profile_image_url
+    // 백엔드에서 받은 JWT 토큰과 사용자 정보 저장
+    const userInfo = authData.user || {
+      id: authData.userId,
+      name: authData.name || '사용자',
+      email: authData.email,
+      profileImage: authData.profileImage
     };
 
-    // 로컬 스토리지에 저장
-    localStorage.setItem('accessToken', kakaoAccessToken);
+    // 백엔드 JWT 토큰을 로컬 스토리지에 저장
+    localStorage.setItem('accessToken', authData.accessToken);
     localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
     return {
-      accessToken: kakaoAccessToken,
+      accessToken: authData.accessToken,
       user: userInfo
     };
 

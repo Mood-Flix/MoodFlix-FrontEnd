@@ -17,9 +17,20 @@ const movieApi = axios.create({
 // 요청 인터셉터 - 인증 헤더 추가 및 성능 최적화
 movieApi.interceptors.request.use(
   (config) => {
-    const authHeaders = getAuthHeaders();
-    config.headers = { ...config.headers, ...authHeaders };
+    console.log('=== 요청 인터셉터 실행 ===');
+    console.log('요청 URL:', config.url);
     
+    const token = localStorage.getItem('accessToken');
+    console.log('localStorage 토큰:', token);
+    console.log('토큰 존재 여부:', !!token);
+    
+    const authHeaders = getAuthHeaders();
+    console.log('getAuthHeaders() 결과:', authHeaders);
+    console.log('인증 헤더가 비어있는가?', Object.keys(authHeaders).length === 0);
+    
+    config.headers = { ...config.headers, ...authHeaders };
+    console.log('최종 요청 헤더:', config.headers);
+    console.log('===============================');
     
     // 요청 시간 기록 (성능 측정용)
     config.metadata = { startTime: Date.now() };
@@ -347,11 +358,54 @@ export const searchMovies = async (query, page = 0, size = 20) => {
 // 영화 추천 (감정 기반)
 export const getMovieRecommendations = async (mood, customMood = '') => {
   try {
-    const response = await movieApi.post(API_ENDPOINTS.MOVIE_RECOMMENDATIONS, {
-      mood,
-      customMood: customMood.trim()
+    console.log('=== 영화 추천 API 호출 시작 ===');
+    
+    // 토큰 확인
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      throw new Error('로그인이 필요합니다. 토큰이 없습니다.');
+    }
+    
+    console.log('토큰 확인됨:', token.substring(0, 20) + '...');
+    
+    // 요청 데이터 준비 (백엔드 API 형식에 맞게 수정)
+    const requestData = {
+      text: customMood.trim() || mood || '',
+      topN: 20 // 기본 추천 개수
+    };
+    
+    console.log('요청 데이터:', requestData);
+    
+    // API 호출
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MOVIE_RECOMMENDATIONS}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestData)
     });
-    return handleApiResponse(response);
+    
+    console.log('응답 상태:', response.status);
+    console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('API 에러 응답:', errorData);
+      throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('API 응답 성공:', data);
+    console.log('응답 구조 확인:');
+    console.log('- version:', data.version);
+    console.log('- items:', data.items);
+    console.log('- logId:', data.logId);
+    console.log('- items 타입:', typeof data.items);
+    console.log('- items 배열 여부:', Array.isArray(data.items));
+    console.log('- items 길이:', data.items?.length);
+    
+    return data;
   } catch (error) {
     console.error('영화 추천 실패:', error);
     throw error;
