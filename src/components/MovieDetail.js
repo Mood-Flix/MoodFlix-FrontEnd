@@ -125,51 +125,6 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
     }
   }, [propActiveTab, activeTab]);
 
-  // 기본 영화 정보만 로딩 (개요 탭용)
-  const loadBasicMovieInfo = useCallback(async () => {
-    if (!movie?.id) {
-      setError('영화 정보가 없습니다.');
-      setLoading(false);
-      return;
-    }
-
-    // 캐시 확인
-    const cacheKey = `movie_basic_${movie.id}`;
-    const cached = movieDetailCache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      setMovieData(cached.data);
-      setLoading(false);
-      // 캐시된 데이터가 있으면 추가 데이터도 로딩 시작
-      loadAdditionalData();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // 기본 정보만 먼저 로딩
-      const basicData = await getMovieBasicInfo(movie.id);
-      
-      // 캐시에 저장
-      movieDetailCache.set(cacheKey, {
-        data: basicData,
-        timestamp: Date.now()
-      });
-      
-      setMovieData(basicData);
-      setLoading(false);
-      
-      // 기본 정보 로딩 완료 후 추가 데이터 로딩 시작
-      loadAdditionalData();
-    } catch (err) {
-      console.error('영화 기본 정보 로딩 실패:', err);
-      setError('영화 기본 정보를 불러오는데 실패했습니다.');
-      setLoading(false);
-    }
-  }, [movie?.id, loadAdditionalData]);
-
   // 추가 데이터 로딩 (상세정보, 비디오, 포토) - 캐시 우선
   const loadAdditionalData = useCallback(async () => {
     if (!movie?.id) return;
@@ -247,6 +202,51 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
         });
     }
   }, [movie?.id]);
+
+  // 기본 영화 정보만 로딩 (개요 탭용)
+  const loadBasicMovieInfo = useCallback(async () => {
+    if (!movie?.id) {
+      setError('영화 정보가 없습니다.');
+      setLoading(false);
+      return;
+    }
+
+    // 캐시 확인
+    const cacheKey = `movie_basic_${movie.id}`;
+    const cached = movieDetailCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      setMovieData(cached.data);
+      setLoading(false);
+      // 캐시된 데이터가 있으면 추가 데이터도 로딩 시작
+      loadAdditionalData();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // 기본 정보만 먼저 로딩
+      const basicData = await getMovieBasicInfo(movie.id);
+      
+      // 캐시에 저장
+      movieDetailCache.set(cacheKey, {
+        data: basicData,
+        timestamp: Date.now()
+      });
+      
+      setMovieData(basicData);
+      setLoading(false);
+      
+      // 기본 정보 로딩 완료 후 추가 데이터 로딩 시작
+      loadAdditionalData();
+    } catch (err) {
+      console.error('영화 기본 정보 로딩 실패:', err);
+      setError('영화 기본 정보를 불러오는데 실패했습니다.');
+      setLoading(false);
+    }
+  }, [movie?.id, loadAdditionalData]);
 
   // 전체 영화 상세 정보 로딩 (상세정보 탭용)
   const loadFullMovieDetails = useCallback(async () => {

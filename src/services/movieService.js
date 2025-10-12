@@ -323,16 +323,24 @@ export const getMovieTrailer = async (movieId) => {
   }
 };
 
-// 영화 검색
-export const searchMovies = async (query, page = 1, limit = 20) => {
+// 영화 검색 (백엔드 API 연동)
+export const searchMovies = async (query, page = 0, size = 20) => {
   try {
     const response = await movieApi.get(API_ENDPOINTS.MOVIE_SEARCH, {
-      params: { q: query, page, limit }
+      params: { q: query, page, size }
     });
     return handleApiResponse(response);
   } catch (error) {
     console.error('영화 검색 실패:', error);
-    return { movies: [], total: 0, page: 1 };
+    return { 
+      content: [], 
+      page: 0, 
+      size: 20, 
+      totalElements: 0, 
+      totalPages: 0, 
+      first: true, 
+      last: true 
+    };
   }
 };
 

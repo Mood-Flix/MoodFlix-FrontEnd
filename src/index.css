@@ -22,20 +22,27 @@ html {
   scroll-behavior: smooth;
 }
 
-/* 스크롤바 스타일링 */
+/* 스크롤바 스타일링 - 빨간색 테마 통일 */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #282a36;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #6272a4;
+  background: #1a1a1a;
   border-radius: 4px;
 }
 
+::-webkit-scrollbar-thumb {
+  background: #e50914;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #bd93f9;
+  background: #ff0a16;
+}
+
+::-webkit-scrollbar-corner {
+  background: #1a1a1a;
 }
