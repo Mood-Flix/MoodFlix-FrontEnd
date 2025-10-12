@@ -75,7 +75,6 @@ const MOVIE_CACHE_DURATION = 60 * 60 * 1000; // 1시간
 const MAX_DETAIL_ENTRIES = 500;
 
 // 프리로딩 큐
-const preloadQueue = new Set();
 const preloadInProgress = new Set();
 
 // 캐시 관리 헬퍼 함수들

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { getMovieRecommendations } from '../services/movieService';
 import { HappyIcon, SadIcon, ExcitedIcon, PeacefulIcon, RomanticIcon, AnxiousIcon } from './EmotionIcons';
+import { useAuth } from '../hooks/useAuth';
+import UserAuthSection from './UserAuthSection';
 import './MovieRecommendation.css';
 
 const MovieRecommendation = ({ onMovieClick }) => {
@@ -9,6 +11,39 @@ const MovieRecommendation = ({ onMovieClick }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
   const [error, setError] = useState('');
+
+  // 인증 관련 상태
+  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+
+  // 로그인 핸들러 (카카오 액세스 토큰)
+  const handleLoginSuccess = async (kakaoAccessToken) => {
+    try {
+      clearError();
+      await login(kakaoAccessToken);
+      console.log('MovieRecommendation: 로그인 성공');
+    } catch (err) {
+      console.error('MovieRecommendation: 로그인 실패', err);
+    }
+  };
+
+  // 카카오 인가 코드로 로그인 핸들러
+  const handleKakaoCodeLogin = async (authorizationCode) => {
+    try {
+      clearError();
+      await loginWithKakaoCode(authorizationCode);
+      console.log('MovieRecommendation: 카카오 코드 로그인 성공');
+    } catch (err) {
+      console.error('MovieRecommendation: 카카오 코드 로그인 실패', err);
+    }
+  };
+
+  const handleLoginError = (errorMessage) => {
+    console.error("Kakao SDK 에러:", errorMessage);
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const moodOptions = [
     { id: 'happy', label: '행복해요', icon: HappyIcon, color: '#FFD700' },
@@ -143,6 +178,18 @@ const MovieRecommendation = ({ onMovieClick }) => {
   if (recommendations) {
     return (
       <div className="movie-recommendation">
+        {/* 사용자 인증 섹션 */}
+        <UserAuthSection 
+          user={user}
+          isAuthenticated={isAuthenticated}
+          authError={authError}
+          onLoginSuccess={handleLoginSuccess}
+          onKakaoCodeLogin={handleKakaoCodeLogin}
+          onLoginError={handleLoginError}
+          onLogout={handleLogout}
+          onClearError={clearError}
+        />
+        
         <div className="recommendation-container">
           <div className="recommendation-content">
             <div className="title-section">
@@ -185,6 +232,18 @@ const MovieRecommendation = ({ onMovieClick }) => {
 
   return (
     <div className="movie-recommendation">
+      {/* 사용자 인증 섹션 */}
+      <UserAuthSection 
+        user={user}
+        isAuthenticated={isAuthenticated}
+        authError={authError}
+        onLoginSuccess={handleLoginSuccess}
+        onKakaoCodeLogin={handleKakaoCodeLogin}
+        onLoginError={handleLoginError}
+        onLogout={handleLogout}
+        onClearError={clearError}
+      />
+      
       <div className="recommendation-container">
         {/* 메인 콘텐츠 */}
         <div className="recommendation-content">

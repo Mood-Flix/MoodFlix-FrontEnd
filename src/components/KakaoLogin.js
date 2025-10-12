@@ -105,7 +105,7 @@ const KakaoLogin = ({ onLoginSuccess, onLoginError, onKakaoCodeLogin }) => {
         timerRef.current = null;
       }
     };
-  }, []);
+  }, [onKakaoCodeLogin, onLoginError]);
 
 
   // 카카오 로그인 버튼 클릭

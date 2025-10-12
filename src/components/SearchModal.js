@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaSearch, FaTimes, FaHistory } from 'react-icons/fa';
+import { useAuth } from '../hooks/useAuth';
+import UserAuthSection from './UserAuthSection';
 import './SearchModal.css';
 
 const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
@@ -8,6 +10,39 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const searchInputRef = useRef(null);
+
+  // 인증 관련 상태
+  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+
+  // 로그인 핸들러 (카카오 액세스 토큰)
+  const handleLoginSuccess = async (kakaoAccessToken) => {
+    try {
+      clearError();
+      await login(kakaoAccessToken);
+      console.log('SearchModal: 로그인 성공');
+    } catch (err) {
+      console.error('SearchModal: 로그인 실패', err);
+    }
+  };
+
+  // 카카오 인가 코드로 로그인 핸들러
+  const handleKakaoCodeLogin = async (authorizationCode) => {
+    try {
+      clearError();
+      await loginWithKakaoCode(authorizationCode);
+      console.log('SearchModal: 카카오 코드 로그인 성공');
+    } catch (err) {
+      console.error('SearchModal: 카카오 코드 로그인 실패', err);
+    }
+  };
+
+  const handleLoginError = (errorMessage) => {
+    console.error("Kakao SDK 에러:", errorMessage);
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   // 페이지 로드 시 검색창에 포커스
   useEffect(() => {
@@ -140,6 +175,18 @@ const SearchModal = ({ isOpen, onClose, onSearchResults }) => {
 
   return (
     <div className="netflix-search-overlay">
+      {/* 사용자 인증 섹션 */}
+      <UserAuthSection 
+        user={user}
+        isAuthenticated={isAuthenticated}
+        authError={authError}
+        onLoginSuccess={handleLoginSuccess}
+        onKakaoCodeLogin={handleKakaoCodeLogin}
+        onLoginError={handleLoginError}
+        onLogout={handleLogout}
+        onClearError={clearError}
+      />
+      
       {/* 넷플릭스 스타일 검색 헤더 */}
       <div className="netflix-search-header">
         <div className="netflix-search-container">

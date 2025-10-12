@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMovies } from '../hooks/useMovies';
 import { useAuth } from '../hooks/useAuth';
-import KakaoLogin from './KakaoLogin';
+import UserAuthSection from './UserAuthSection';
 import './MainContent.css';
 
 const MainContent = ({ onMovieClick }) => {
@@ -15,7 +15,7 @@ const MainContent = ({ onMovieClick }) => {
   } = useMovies();
 
   // 인증 관련 상태
-  const { user, isAuthenticated, isLoading: authLoading, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
 
   // 로그인 핸들러 (카카오 액세스 토큰)
   const handleLoginSuccess = async (kakaoAccessToken) => {
@@ -46,6 +46,7 @@ const MainContent = ({ onMovieClick }) => {
   const handleLogout = () => {
     logout();
   };
+
 
   // 캐러셀을 위한 상태
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -178,31 +179,17 @@ const MainContent = ({ onMovieClick }) => {
 
   return (
     <main className="main-content">
-      {/* Compact User Auth Section - 우측 상단 */}
-      <div className="compact-auth-section">
-        {isAuthenticated ? (
-          <div className="compact-user-info">
-            <span className="compact-welcome">안녕하세요, {user?.name || '사용자'}님!</span>
-            <button className="compact-logout-button" onClick={handleLogout}>
-              로그아웃
-            </button>
-          </div>
-        ) : (
-          <div className="compact-login-section">
-            <KakaoLogin 
-              onLoginSuccess={handleLoginSuccess} 
-              onLoginError={handleLoginError}
-              onKakaoCodeLogin={handleKakaoCodeLogin}
-            />
-            {authError && (
-              <div className="compact-auth-error">
-                <span>{authError}</span>
-                <button onClick={clearError}>×</button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {/* 사용자 인증 섹션 */}
+      <UserAuthSection 
+        user={user}
+        isAuthenticated={isAuthenticated}
+        authError={authError}
+        onLoginSuccess={handleLoginSuccess}
+        onKakaoCodeLogin={handleKakaoCodeLogin}
+        onLoginError={handleLoginError}
+        onLogout={handleLogout}
+        onClearError={clearError}
+      />
 
       {/* Carousel Section */}
       <section 

@@ -7,8 +7,7 @@ import {
   getMovieVideos, 
   getMoviePhotos,
   getCachedMovieVideos,
-  getCachedMoviePhotos,
-  preloadMovieData
+  getCachedMoviePhotos
 } from '../services/movieService';
 import './MovieDetail.css';
 
@@ -169,7 +168,7 @@ const MovieDetail = ({ movie, activeTab: propActiveTab }) => {
       setError('영화 기본 정보를 불러오는데 실패했습니다.');
       setLoading(false);
     }
-  }, [movie?.id]);
+  }, [movie?.id, loadAdditionalData]);
 
   // 추가 데이터 로딩 (상세정보, 비디오, 포토) - 캐시 우선
   const loadAdditionalData = useCallback(async () => {
