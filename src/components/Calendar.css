@@ -297,6 +297,25 @@
   line-height: 1.4;
 }
 
+.movie-description h5 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.calendar-movie-recommendation {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.calendar-movie-recommendation:last-child {
+  margin-bottom: 0;
+}
+
 /* 중앙 패널 */
 .calendar-center-panel {
   padding: 20px;
@@ -539,4 +558,113 @@
     padding: 20px;
     margin: 20px;
   }
+}
+
+/* 선택된 영화 스타일 */
+.selected-movie {
+  border: 2px solid #4ecdc4 !important;
+  background: rgba(78, 205, 196, 0.1) !important;
+}
+
+.movie-poster-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.movie-poster {
+  width: 120px;
+  height: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.movie-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.save-movie-btn {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+}
+
+.save-movie-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+  background: linear-gradient(45deg, #45b7aa, #3d8b7a);
+}
+
+.remove-movie-btn {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.remove-movie-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  background: linear-gradient(45deg, #ff5252, #ff1744);
+}
+
+/* 저장된 영화 스타일 */
+.saved-movie {
+  border: 2px solid #28a745 !important;
+  background: rgba(40, 167, 69, 0.1) !important;
+}
+
+.movie-status {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.saved-badge {
+  background: linear-gradient(45deg, #28a745, #20c997);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* 로그인 필요 메시지 스타일 */
+.auth-required-container {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.auth-required-container h3 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.auth-required-container p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
 }

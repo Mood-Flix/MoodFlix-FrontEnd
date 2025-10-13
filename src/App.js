@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
@@ -6,9 +6,11 @@ import MainContent from './components/MainContent';
 import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
 import Calendar from './components/Calendar';
+import MyCalendar from './components/MyCalendar';
 import Profile from './components/Profile';
 import SearchModal from './components/SearchModal';
 import { useAuth } from './hooks/useAuth';
+import { CalendarProvider } from './contexts/CalendarContext';
 
 // 메인 앱 레이아웃 컴포넌트
 function AppLayout() {
@@ -43,7 +45,8 @@ function AppLayout() {
         <Route path="/" element={<MainContent onMovieClick={handleMovieClick} />} />
         <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
-        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/calendar" element={<MyCalendar />} />
+        <Route path="/calendar/edit" element={<Calendar />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/movie/:id" element={<MovieDetailRedirect />} />
         <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />
@@ -84,10 +87,12 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        {/* 모든 사용자는 바로 메인 앱으로 이동 */}
-        <Route path="*" element={<AppLayout />} />
-      </Routes>
+      <CalendarProvider>
+        <Routes>
+          {/* 모든 사용자는 바로 메인 앱으로 이동 */}
+          <Route path="*" element={<AppLayout />} />
+        </Routes>
+      </CalendarProvider>
     </Router>
   );
 }
