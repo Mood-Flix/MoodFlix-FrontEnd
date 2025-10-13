@@ -1,12 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
-  getMonthlyCalendarData, 
-  saveMonthlyCalendarData,
+  getMonthlyCalendarData,
   saveCalendarEntry,
   deleteCalendarEntry
 } from '../services/calendarService';
 
-export const useCalendar = () => {
+const CalendarContext = createContext();
+
+export const useCalendarContext = () => {
+  const context = useContext(CalendarContext);
+  if (!context) {
+    throw new Error('useCalendarContext must be used within a CalendarProvider');
+  }
+  return context;
+};
+
+export const CalendarProvider = ({ children }) => {
   const [calendarData, setCalendarData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -20,6 +29,7 @@ export const useCalendar = () => {
     
     try {
       const data = await getMonthlyCalendarData(year, month);
+      console.log('CalendarContext: 로드된 데이터:', { year, month, data });
       setCalendarData(prev => ({
         ...prev,
         [`${year}-${month}`]: data
@@ -48,7 +58,7 @@ export const useCalendar = () => {
   }, [calendarData]);
 
   // 캘린더 데이터 저장
-  const saveEntry = useCallback(async (date, mood, notes) => {
+  const saveEntry = useCallback(async (date, mood, notes, movieInfo = null) => {
     setLoading(true);
     setError(null);
     
@@ -56,9 +66,12 @@ export const useCalendar = () => {
       const year = date.getFullYear();
       const month = date.getMonth();
       const day = date.getDate();
+      const dateString = date.toISOString().split('T')[0];
       
       // 백엔드에 저장
-      await saveCalendarEntry(date.toISOString().split('T')[0], mood, notes);
+      console.log('CalendarContext: 저장할 데이터:', { dateString, mood, notes, movieInfo });
+      const savedEntry = await saveCalendarEntry(dateString, mood, notes, movieInfo);
+      console.log('CalendarContext: 저장된 응답:', savedEntry);
       
       // 로컬 상태 업데이트
       const monthKey = `${year}-${month}`;
@@ -67,9 +80,12 @@ export const useCalendar = () => {
       const existingIndex = monthData.findIndex(entry => entry.day === day);
       const newEntry = {
         day,
-        mood,
-        notes,
-        date: date.toISOString().split('T')[0]
+        mood: savedEntry.mood,
+        notes: savedEntry.notes,
+        date: savedEntry.date,
+        id: savedEntry.id,
+        recommendations: savedEntry.recommendations,
+        movieInfo: savedEntry.movieInfo || movieInfo
       };
       
       let updatedMonthData;
@@ -81,9 +97,6 @@ export const useCalendar = () => {
         // 새 항목 추가
         updatedMonthData = [...monthData, newEntry];
       }
-      
-      // 로컬 스토리지에 저장
-      await saveMonthlyCalendarData(year, month, updatedMonthData);
       
       // 상태 업데이트
       setCalendarData(prev => ({
@@ -110,18 +123,16 @@ export const useCalendar = () => {
       const year = date.getFullYear();
       const month = date.getMonth();
       const day = date.getDate();
+      const dateString = date.toISOString().split('T')[0];
       
       // 백엔드에서 삭제
-      await deleteCalendarEntry(date.toISOString().split('T')[0]);
+      await deleteCalendarEntry(dateString);
       
       // 로컬 상태 업데이트
       const monthKey = `${year}-${month}`;
       const monthData = calendarData[monthKey] || [];
       
       const updatedMonthData = monthData.filter(entry => entry.day !== day);
-      
-      // 로컬 스토리지에 저장
-      await saveMonthlyCalendarData(year, month, updatedMonthData);
       
       // 상태 업데이트
       setCalendarData(prev => ({
@@ -141,6 +152,7 @@ export const useCalendar = () => {
 
   // 월 변경
   const changeMonth = useCallback((year, month) => {
+    console.log('CalendarContext: 월 변경:', { year, month });
     setCurrentYear(year);
     setCurrentMonth(month);
     loadCalendarData(year, month);
@@ -169,7 +181,7 @@ export const useCalendar = () => {
     loadCurrentMonthData();
   }, [loadCurrentMonthData]);
 
-  return {
+  const value = {
     calendarData,
     loading,
     error,
@@ -184,4 +196,10 @@ export const useCalendar = () => {
     goToPreviousMonth,
     goToNextMonth
   };
+
+  return (
+    <CalendarContext.Provider value={value}>
+      {children}
+    </CalendarContext.Provider>
+  );
 };

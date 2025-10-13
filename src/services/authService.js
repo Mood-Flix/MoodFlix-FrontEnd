@@ -63,7 +63,7 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        kakaoAccessToken: tokenData.access_token
+        accessToken: tokenData.access_token
       })
     });
 

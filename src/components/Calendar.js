@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCalendar } from '../hooks/useCalendar';
+import { useCalendarContext } from '../contexts/CalendarContext';
 import { useAuth } from '../hooks/useAuth';
 import UserAuthSection from './UserAuthSection';
 import './Calendar.css';
@@ -12,6 +12,7 @@ const Calendar = () => {
   const [selectedMood, setSelectedMood] = useState('');
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
   
   const {
     calendarData,
@@ -25,7 +26,7 @@ const Calendar = () => {
     goToPreviousMonth,
     goToNextMonth,
     goToCurrentMonth
-  } = useCalendar();
+  } = useCalendarContext();
 
   // 인증 관련 상태
   const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
@@ -60,6 +61,23 @@ const Calendar = () => {
     logout();
   };
 
+  // localStorage에서 선택된 영화 정보를 가져오는 useEffect
+  useEffect(() => {
+    const savedMovie = localStorage.getItem('selectedMovieForCalendar');
+    if (savedMovie) {
+      try {
+        const movieData = JSON.parse(savedMovie);
+        setSelectedMovie(movieData);
+        // 영화 정보를 가져온 후 localStorage에서 제거
+        localStorage.removeItem('selectedMovieForCalendar');
+        // 영화가 선택된 경우 바로 편집 모드로 전환
+        setIsEditMode(true);
+      } catch (error) {
+        console.error('영화 정보 파싱 오류:', error);
+      }
+    }
+  }, []);
+
   const moods = [
     { emoji: '😐', text: '그냥저냥' },
     { emoji: '😠', text: '화나요' },
@@ -70,6 +88,17 @@ const Calendar = () => {
 
   const displayMonth = calendarMonth;
   const displayYear = calendarYear;
+  
+  // 디버깅: Calendar 컴포넌트의 현재 월/년도 확인
+  console.log('Calendar: 현재 월/년도:', {
+    displayMonth,
+    displayYear,
+    '현재 날짜': new Date(),
+    '현재 월 (0-based)': new Date().getMonth(),
+    '현재 년도': new Date().getFullYear(),
+    '월 표시 (displayMonth + 1)': displayMonth + 1,
+    '년도 표시': displayYear
+  });
 
   // 현재 월의 첫 번째 날과 마지막 날
   const firstDay = new Date(displayYear, displayMonth, 1);
@@ -93,6 +122,8 @@ const Calendar = () => {
   // 현재 월의 저장된 데이터 가져오기
   const monthData = calendarData[`${displayYear}-${displayMonth}`] || [];
   const daysWithEntries = monthData.map(entry => entry.day);
+  // 저장된 영화가 있는 날짜들 (기분 데이터가 있는 날짜들)
+  const daysWithMood = monthData.filter(entry => entry.mood).map(entry => entry.day);
 
   const handleDateClick = (day) => {
     if (day) {
@@ -102,7 +133,9 @@ const Calendar = () => {
       // 기존 데이터가 있는지 확인
       const existingEntry = getEntryForDate(clickedDate);
       if (existingEntry) {
-        setSelectedMood(existingEntry.mood);
+        // 이모지를 텍스트로 변환하여 선택 상태 설정
+        const moodText = moods.find(mood => mood.emoji === existingEntry.mood)?.text || '';
+        setSelectedMood(moodText);
         setNotes(existingEntry.notes || '');
       } else {
         setSelectedMood('');
@@ -121,9 +154,24 @@ const Calendar = () => {
 
     setIsLoading(true);
     try {
-      await saveEntry(selectedDate, selectedMood, notes);
+      // 선택된 기분의 이모지를 찾아서 전송
+      const selectedMoodData = moods.find(mood => mood.text === selectedMood);
+      const moodEmoji = selectedMoodData ? selectedMoodData.emoji : selectedMood;
+      
+      // 영화 정보가 있으면 함께 저장
+      const movieInfo = selectedMovie ? {
+        id: selectedMovie.id,
+        title: selectedMovie.title,
+        posterUrl: selectedMovie.posterUrl,
+        genre: selectedMovie.genre,
+        releaseDate: selectedMovie.releaseDate,
+        voteAverage: selectedMovie.voteAverage
+      } : null;
+      
+      await saveEntry(selectedDate, moodEmoji, notes, movieInfo);
       alert('저장되었습니다!');
       setIsEditMode(false);
+      setSelectedMovie(null); // 영화 정보 초기화
     } catch (error) {
       alert('저장에 실패했습니다: ' + error.message);
     } finally {
@@ -132,7 +180,13 @@ const Calendar = () => {
   };
 
   const handleEditComplete = () => {
-    setIsEditMode(false);
+    handleSave();
+  };
+
+  const handleBackToRecommendations = () => {
+    // 선택된 영화 정보를 초기화하고 추천 페이지로 이동
+    setSelectedMovie(null);
+    navigate('/recommendation');
   };
 
   const handleDelete = async () => {
@@ -159,11 +213,40 @@ const Calendar = () => {
   };
 
   const handleClose = () => {
-    navigate(-1);
+    // 추천 페이지에서 온 경우 홈으로, 다른 곳에서 온 경우 뒤로
+    if (window.location.pathname.includes('/calendar/edit')) {
+      navigate('/calendar');
+    } else {
+      navigate(-1);
+    }
   };
 
   // 로딩 상태 플래그 (데이터 조회 시에만 전역 오버레이)
   const showGlobalLoading = loading && !isEditMode;
+  
+  // 로그인하지 않은 사용자에게 표시할 메시지
+  if (!isAuthenticated) {
+    return (
+      <div className="calendar-container">
+        <UserAuthSection 
+          user={user}
+          isAuthenticated={isAuthenticated}
+          authError={authError}
+          onLoginSuccess={handleLoginSuccess}
+          onKakaoCodeLogin={handleKakaoCodeLogin}
+          onLoginError={handleLoginError}
+          onLogout={handleLogout}
+          onClearError={clearError}
+        />
+        <div className="calendar-popup">
+          <div className="auth-required-container">
+            <h3>캘린더를 사용하려면 로그인이 필요합니다</h3>
+            <p>로그인 후 나만의 기분 캘린더를 확인할 수 있습니다.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="calendar-container">
@@ -223,20 +306,21 @@ const Calendar = () => {
                 <div className="calendar-days">
                   {calendarDays.map((day, index) => {
                     const hasEntry = daysWithEntries.includes(day);
+                    const hasMood = daysWithMood.includes(day);
                     const entry = hasEntry ? monthData.find(e => e.day === day) : null;
                     
                     return (
                       <div
                         key={index}
-                        className={`calendar-day ${day ? 'has-content' : 'empty'} ${hasEntry ? 'has-mood' : ''}`}
+                        className={`calendar-day ${day ? 'has-content' : 'empty'} ${hasMood ? 'has-mood' : ''}`}
                         onClick={() => handleDateClick(day)}
                       >
                         {day && (
                           <>
                             <span className="day-number">{day}</span>
-                            {hasEntry && (
+                            {hasMood && entry && (
                               <span className="mood-indicator">
-                                {moods.find(m => m.text === entry.mood)?.emoji || '😊'}
+                                {entry.mood || '😊'}
                               </span>
                             )}
                           </>
@@ -246,9 +330,6 @@ const Calendar = () => {
                   })}
                 </div>
               </div>
-              <button className="edit-calendar-btn" onClick={() => setIsEditMode(true)}>
-                캘린더 수정
-              </button>
             </div>
           ) : (
             // 편집 모드 캘린더 뷰
@@ -274,24 +355,95 @@ const Calendar = () => {
                 </div>
               )}
               <div className="calendar-edit-header">
-                <button className="back-btn" onClick={() => setIsEditMode(false)}>← 뒤로가기</button>
+                <button className="back-btn" onClick={handleBackToRecommendations}>← 추천 페이지로</button>
               </div>
               <div className="calendar-edit-content">
                 {/* 왼쪽 패널 - 나만의 캘린더 */}
                 <div className="calendar-left-panel">
                   <h3>나만의 캘린더</h3>
-                  <div className="profile-section">
-                    <div className="profile-placeholder">프로필</div>
-                  </div>
                   <div className="recommended-movies">
                     <h4>추천 영화</h4>
-                    <div className="movie-poster-placeholder">
-                      <span>영화 포스터</span>
-                    </div>
-                    <div className="movie-description">
-                      <p>영화 줄거리가 여기에 표시됩니다.</p>
-                      <p>백엔드 연동 후 실제 영화 정보가 표시될 예정입니다.</p>
-                    </div>
+                    {(() => {
+                      // 선택된 영화가 있으면 우선 표시
+                      if (selectedMovie) {
+                        return (
+                          <div className="calendar-movie-recommendation selected-movie">
+                            <div className="movie-poster-container">
+                              <img 
+                                src={selectedMovie.posterUrl} 
+                                alt={selectedMovie.title}
+                                className="movie-poster"
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/150x225/666/fff?text=포스터+없음';
+                                }}
+                              />
+                            </div>
+                            <div className="movie-description">
+                              <h5>{selectedMovie.title}</h5>
+                              <p>{selectedMovie.genre} • {selectedMovie.releaseDate ? new Date(selectedMovie.releaseDate).getFullYear() : 'N/A'}</p>
+                              <p>평점: {selectedMovie.voteAverage ? selectedMovie.voteAverage.toFixed(1) : 'N/A'}</p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const existingEntry = getEntryForDate(selectedDate);
+                      const recommendations = existingEntry?.recommendations || [];
+                      const savedMovie = existingEntry?.movieInfo;
+                      
+                      // 저장된 영화가 있으면 우선 표시
+                      if (savedMovie) {
+                        return (
+                          <div className="calendar-movie-recommendation saved-movie">
+                            <div className="movie-poster-container">
+                              <img 
+                                src={savedMovie.posterUrl} 
+                                alt={savedMovie.title}
+                                className="movie-poster"
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/150x225/666/fff?text=포스터+없음';
+                                }}
+                              />
+                            </div>
+                            <div className="movie-description">
+                              <h5>{savedMovie.title}</h5>
+                              <p>{savedMovie.genre} • {savedMovie.releaseDate ? new Date(savedMovie.releaseDate).getFullYear() : 'N/A'}</p>
+                              <p>평점: {savedMovie.voteAverage ? savedMovie.voteAverage.toFixed(1) : 'N/A'}</p>
+                              <div className="movie-status">
+                                <span className="saved-badge">✅ 저장됨</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      if (recommendations.length > 0) {
+                        return recommendations.map((rec, index) => (
+                          <div key={index} className="calendar-movie-recommendation">
+                            <div className="movie-poster-placeholder">
+                              <span>영화 포스터</span>
+                            </div>
+                            <div className="movie-description">
+                              <h5>{rec.movieTitle}</h5>
+                              <p>유사도: {(rec.similarityScore * 100).toFixed(1)}%</p>
+                              <p>입력: {rec.userInputText}</p>
+                            </div>
+                          </div>
+                        ));
+                      } else {
+                        return (
+                          <>
+                            <div className="movie-poster-placeholder">
+                              <span>영화 포스터</span>
+                            </div>
+                            <div className="movie-description">
+                              <p>기분을 선택하고 저장하면</p>
+                              <p>추천 영화가 표시됩니다.</p>
+                            </div>
+                          </>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
 
@@ -316,6 +468,8 @@ const Calendar = () => {
                     <div className="calendar-days">
                       {calendarDays.map((day, index) => {
                         const hasEntry = daysWithEntries.includes(day);
+                        const hasMood = daysWithMood.includes(day);
+                        const entry = hasEntry ? monthData.find(e => e.day === day) : null;
                         const isSelected = !!day
                           && selectedDate.getFullYear() === displayYear
                           && selectedDate.getMonth() === displayMonth
@@ -324,10 +478,19 @@ const Calendar = () => {
                         return (
                           <div
                             key={index}
-                            className={`calendar-day ${day ? 'has-content' : 'empty'} ${isSelected ? 'selected' : ''} ${hasEntry ? 'has-entry' : ''}`}
+                            className={`calendar-day ${day ? 'has-content' : 'empty'} ${isSelected ? 'selected' : ''} ${hasMood ? 'has-mood' : ''}`}
                             onClick={() => handleDateClick(day)}
                           >
-                            {day && <span className="day-number">{day}</span>}
+                            {day && (
+                              <>
+                                <span className="day-number">{day}</span>
+                                {hasMood && entry && (
+                                  <span className="mood-indicator">
+                                    {entry.mood || '😊'}
+                                  </span>
+                                )}
+                              </>
+                            )}
                           </div>
                         );
                       })}
@@ -366,21 +529,18 @@ const Calendar = () => {
                     />
                   </div>
 
-                  <div className="button-group">
-                    <button className="save-btn" onClick={handleSave} disabled={isLoading}>
-                      {isLoading ? '저장 중...' : '저장'}
-                    </button>
-                    {getEntryForDate(selectedDate) && (
+                  {getEntryForDate(selectedDate) && (
+                    <div className="button-group">
                       <button className="delete-btn" onClick={handleDelete} disabled={isLoading}>
                         {isLoading ? '삭제 중...' : '삭제'}
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
               <button className="edit-complete-btn" onClick={handleEditComplete}>
-                수정 완료
+                저장
               </button>
             </div>
           )}

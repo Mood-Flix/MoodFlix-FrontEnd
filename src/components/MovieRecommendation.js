@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getMovieRecommendations } from '../services/movieService';
 import { useAuth } from '../hooks/useAuth';
 import UserAuthSection from './UserAuthSection';
 import './MovieRecommendation.css';
 
 const MovieRecommendation = ({ onMovieClick }) => {
+  const navigate = useNavigate();
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
@@ -133,6 +135,12 @@ const MovieRecommendation = ({ onMovieClick }) => {
     setError('');
   };
 
+  const handleAddToCalendar = (movie) => {
+    // 영화 정보를 localStorage에 저장하고 캘린더 편집 페이지로 이동
+    localStorage.setItem('selectedMovieForCalendar', JSON.stringify(movie));
+    navigate('/calendar/edit');
+  };
+
   // 추천 결과가 있을 때의 렌더링
   if (recommendations) {
     return (
@@ -161,8 +169,8 @@ const MovieRecommendation = ({ onMovieClick }) => {
                 recommendations.map((item) => {
                   const movie = item.movie; // 백엔드 응답 구조: { movie: {...}, similarity: 0.93 }
                   return (
-                    <div key={movie.id} className="recommend-movie-card" onClick={() => onMovieClick(movie)}>
-                      <div className="recommend-movie-poster-container">
+                    <div key={movie.id} className="recommend-movie-card">
+                      <div className="recommend-movie-poster-container" onClick={() => onMovieClick(movie)}>
                         <img 
                           src={movie.posterUrl} 
                           alt={movie.title} 
@@ -173,7 +181,7 @@ const MovieRecommendation = ({ onMovieClick }) => {
                         />
                       </div>
                       <div className="movie-info">
-                        <h3 className="recommend-movie-title">{movie.title}</h3>
+                        <h3 className="recommend-movie-title" onClick={() => onMovieClick(movie)}>{movie.title}</h3>
                         <p className="movie-genre">
                           {movie.genre} • {movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'}
                         </p>
@@ -185,6 +193,17 @@ const MovieRecommendation = ({ onMovieClick }) => {
                             </span>
                           )}
                         </p>
+                        <div className="movie-actions">
+                          <button 
+                            className="calendar-add-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCalendar(movie);
+                            }}
+                          >
+                            📅 캘린더에 추가
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
