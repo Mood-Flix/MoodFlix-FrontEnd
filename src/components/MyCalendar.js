@@ -31,7 +31,6 @@ const MyCalendar = () => {
     try {
       clearError();
       await login(kakaoAccessToken);
-      console.log('MyCalendar: 로그인 성공');
     } catch (err) {
       console.error('MyCalendar: 로그인 실패', err);
     }
@@ -42,7 +41,6 @@ const MyCalendar = () => {
     try {
       clearError();
       await loginWithKakaoCode(authorizationCode);
-      console.log('MyCalendar: 카카오 코드 로그인 성공');
     } catch (err) {
       console.error('MyCalendar: 카카오 코드 로그인 실패', err);
     }
@@ -59,16 +57,6 @@ const MyCalendar = () => {
   const displayMonth = calendarMonth;
   const displayYear = calendarYear;
   
-  // 디버깅: 현재 월과 년도 확인
-  console.log('MyCalendar: 현재 월/년도:', {
-    displayMonth,
-    displayYear,
-    '현재 날짜': new Date(),
-    '현재 월 (0-based)': new Date().getMonth(),
-    '현재 년도': new Date().getFullYear(),
-    '월 표시 (displayMonth + 1)': displayMonth + 1,
-    '년도 표시': displayYear
-  });
 
   // 현재 월의 첫 번째 날과 마지막 날
   const firstDay = new Date(displayYear, displayMonth, 1);
@@ -97,29 +85,6 @@ const MyCalendar = () => {
   // 영화 정보가 있는 날짜들
   const daysWithMovies = monthData.filter(entry => entry.movieInfo).map(entry => entry.day);
   
-  // 디버깅을 위한 콘솔 로그
-  console.log('MyCalendar Debug:', {
-    monthData,
-    daysWithMood,
-    daysWithMovies,
-    calendarData,
-    'monthData 길이': monthData.length,
-    'daysWithMood 길이': daysWithMood.length,
-    'daysWithMovies 길이': daysWithMovies.length
-  });
-  
-  // 각 항목의 상세 정보 출력
-  if (monthData.length > 0) {
-    console.log('monthData 상세:', monthData);
-    monthData.forEach((entry, index) => {
-      console.log(`항목 ${index}:`, {
-        day: entry.day,
-        mood: entry.mood,
-        movieInfo: entry.movieInfo,
-        notes: entry.notes
-      });
-    });
-  }
 
   const handleDateClick = (day) => {
     if (day) {
@@ -255,18 +220,6 @@ const MyCalendar = () => {
                           <span className="mood-indicator">
                             {entry.mood || '😊'}
                           </span>
-                        )}
-                        {/* 디버깅용 - 기분 데이터가 있는 날짜 표시 */}
-                        {hasMood && (
-                          <div style={{fontSize: '8px', color: 'red', position: 'absolute', top: '2px', left: '2px'}}>
-                            M
-                          </div>
-                        )}
-                        {/* 강제로 기분 표시 테스트 */}
-                        {entry && entry.mood && (
-                          <div style={{fontSize: '8px', color: 'blue', position: 'absolute', top: '2px', right: '2px'}}>
-                            {entry.mood}
-                          </div>
                         )}
                         {hasMovie && entry && (
                           <span className="movie-indicator">🎬</span>
