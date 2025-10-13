@@ -56,7 +56,8 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
     console.log('카카오 토큰 획득 성공');
 
     // 백엔드에 카카오 토큰 전송하여 JWT 받기
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/kakao`, {
+    const backendUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/kakao`;
+    const response = await fetch(backendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -67,6 +68,17 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
     });
 
     if (!response.ok) {
+      let errorText = '';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        // ignore
+      }
+      console.error('백엔드 인증 실패 상세:', {
+        status: response.status,
+        url: backendUrl,
+        body: errorText
+      });
       throw new Error('백엔드 인증 실패');
     }
 
@@ -103,7 +115,8 @@ export const kakaoLogin = async (kakaoAccessToken) => {
     console.log('카카오 로그인 처리 시작');
     
     // 백엔드에 카카오 토큰 전송하여 JWT 받기
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/kakao`, {
+    const backendUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/kakao`;
+    const response = await fetch(backendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,6 +127,17 @@ export const kakaoLogin = async (kakaoAccessToken) => {
     });
 
     if (!response.ok) {
+      let errorText = '';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        // ignore
+      }
+      console.error('백엔드 인증 실패 상세:', {
+        status: response.status,
+        url: backendUrl,
+        body: errorText
+      });
       throw new Error('백엔드 인증 실패');
     }
 
