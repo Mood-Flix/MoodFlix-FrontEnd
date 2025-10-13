@@ -7,6 +7,13 @@
 let isProcessing = false;
 const processedCodes = new Set();
 
+// API 기본 URL 결정 (환경변수 우선, 없으면 상대 경로 사용)
+const getApiBaseUrl = () => {
+  const fromBase = process.env.REACT_APP_API_BASE_URL;
+  const fromUrl = process.env.REACT_APP_API_URL;
+  return fromBase || fromUrl || '';
+};
+
 /**
  * 카카오 인가 코드를 액세스 토큰으로 변환
  */
@@ -56,7 +63,7 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
     console.log('카카오 토큰 획득 성공');
 
     // 백엔드에 카카오 토큰 전송하여 JWT 받기
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/auth/kakao`, {
+    const response = await fetch(`${getApiBaseUrl()}/api/auth/kakao` || `/api/auth/kakao`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -103,7 +110,7 @@ export const kakaoLogin = async (kakaoAccessToken) => {
     console.log('카카오 로그인 처리 시작');
     
     // 백엔드에 카카오 토큰 전송하여 JWT 받기
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/auth/kakao`, {
+    const response = await fetch(`${getApiBaseUrl()}/api/auth/kakao` || `/api/auth/kakao`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
