@@ -66,7 +66,11 @@ export const CalendarProvider = ({ children }) => {
       const year = date.getFullYear();
       const month = date.getMonth();
       const day = date.getDate();
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = [
+        year,
+        String(month + 1).padStart(2, '0'),
+        String(day).padStart(2, '0')
+      ].join('-');
       
       // 백엔드에 저장
       console.log('CalendarContext: 저장할 데이터:', { dateString, mood, notes, movieInfo });
@@ -123,7 +127,11 @@ export const CalendarProvider = ({ children }) => {
       const year = date.getFullYear();
       const month = date.getMonth();
       const day = date.getDate();
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = [
+        year,
+        String(month + 1).padStart(2, '0'),
+        String(day).padStart(2, '0')
+      ].join('-');
       
       // 백엔드에서 삭제
       await deleteCalendarEntry(dateString);

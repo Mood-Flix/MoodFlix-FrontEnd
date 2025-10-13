@@ -143,22 +143,6 @@ ${entry.movieInfo ? `🎬 ${entry.movieInfo.title}` : ''}
             </div>
           )}
 
-          {/* 추천 영화 정보 */}
-          {entry.recommendations && entry.recommendations.length > 0 && (
-            <div className="preview-section">
-              <h4>추천 영화</h4>
-              <div className="recommendations-display">
-                {entry.recommendations.slice(0, 3).map((rec, index) => (
-                  <div key={index} className="recommendation-item">
-                    <div className="recommendation-info">
-                      <h6>{rec.movieTitle}</h6>
-                      <p>유사도: {(rec.similarityScore * 100).toFixed(1)}%</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="calendar-preview-actions">
