@@ -122,7 +122,7 @@ export const kakaoLogin = async (kakaoAccessToken) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        kakaoAccessToken: kakaoAccessToken
+        accessToken: kakaoAccessToken
       })
     });
 
