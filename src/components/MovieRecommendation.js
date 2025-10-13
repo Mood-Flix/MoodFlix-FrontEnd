@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { getMovieRecommendations } from '../services/movieService';
-import { HappyIcon, SadIcon, ExcitedIcon, PeacefulIcon, RomanticIcon, AnxiousIcon } from './EmotionIcons';
 import { useAuth } from '../hooks/useAuth';
 import UserAuthSection from './UserAuthSection';
 import './MovieRecommendation.css';
 
 const MovieRecommendation = ({ onMovieClick }) => {
-  const [selectedMood, setSelectedMood] = useState('');
-  const [customMood, setCustomMood] = useState('');
+  const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
   const [error, setError] = useState('');
@@ -45,25 +43,11 @@ const MovieRecommendation = ({ onMovieClick }) => {
     logout();
   };
 
-  const moodOptions = [
-    { id: 'happy', label: '행복해요', icon: HappyIcon, color: '#FFD700' },
-    { id: 'sad', label: '슬퍼요', icon: SadIcon, color: '#87CEEB' },
-    { id: 'excited', label: '신나요', icon: ExcitedIcon, color: '#FF6B6B' },
-    { id: 'peaceful', label: '평온해요', icon: PeacefulIcon, color: '#98FB98' },
-    { id: 'romantic', label: '로맨틱해요', icon: RomanticIcon, color: '#FF69B4' },
-    { id: 'anxious', label: '불안해요', icon: AnxiousIcon, color: '#DDA0DD' }
-  ];
-
-  const handleMoodSelect = (moodId) => {
-    setSelectedMood(selectedMood === moodId ? '' : moodId);
-    setRecommendations(null);
-    setError('');
-  };
 
 
   const handleRecommendMovies = async () => {
-    if (!selectedMood && !customMood.trim()) {
-      setError('기분을 선택하거나 설명을 입력해주세요.');
+    if (!userInput.trim()) {
+      setError('오늘의 기분을 자유롭게 입력해주세요.');
       return;
     }
 
@@ -72,104 +56,79 @@ const MovieRecommendation = ({ onMovieClick }) => {
     setRecommendations(null);
 
     try {
-      // 실제 API 호출 시도
-      try {
-        const apiResponse = await getMovieRecommendations(selectedMood, customMood);
-        setRecommendations(apiResponse);
-        return;
-      } catch (apiError) {
-        console.warn('API 호출 실패, 모의 데이터 사용:', apiError);
-        // API 실패 시 모의 데이터로 fallback
+      // 사용자 입력을 백엔드로 직접 전송
+      console.log('=== 영화 추천 요청 시작 ===');
+      console.log('사용자 입력:', userInput.trim());
+      console.log('요청 시간:', new Date().toISOString());
+      
+      const apiResponse = await getMovieRecommendations('', userInput.trim());
+      
+      console.log('=== 영화 추천 API 응답 ===');
+      console.log('전체 응답:', apiResponse);
+      console.log('응답 타입:', typeof apiResponse);
+      console.log('응답이 배열인가?', Array.isArray(apiResponse));
+      console.log('items 속성이 있는가?', 'items' in (apiResponse || {}));
+      console.log('items 값:', apiResponse?.items);
+      console.log('items 타입:', typeof apiResponse?.items);
+      console.log('items가 배열인가?', Array.isArray(apiResponse?.items));
+      console.log('items 길이:', apiResponse?.items?.length);
+      
+      // 백엔드 응답 구조에 맞게 items 배열 추출
+      const recommendations = apiResponse?.items || [];
+      console.log('추출된 추천 목록:', recommendations);
+      console.log('추천 목록 길이:', recommendations.length);
+      console.log('응답 버전:', apiResponse?.version);
+      console.log('로그 ID:', apiResponse?.logId);
+      console.log('===============================');
+      
+      setRecommendations(recommendations);
+    } catch (err) {
+      console.error('=== 영화 추천 API 호출 실패 ===');
+      console.error('에러 객체:', err);
+      console.error('에러 메시지:', err.message);
+      console.error('에러 스택:', err.stack);
+      console.error('응답 상태:', err.response?.status);
+      console.error('응답 데이터:', err.response?.data);
+      console.error('요청 URL:', err.config?.url);
+      console.error('요청 데이터:', err.config?.data);
+      console.error('요청 헤더:', err.config?.headers);
+      console.error('네트워크 에러인가?', err.code === 'NETWORK_ERROR');
+      console.error('타임아웃 에러인가?', err.code === 'ECONNABORTED');
+      console.error('================================');
+      
+      // 에러 메시지를 더 구체적으로 표시
+      let errorMessage = '영화 추천을 가져오는 중 오류가 발생했습니다.';
+      
+      if (err.response?.status === 401) {
+        errorMessage = '로그인이 필요합니다. 로그인 후 다시 시도해주세요.';
+        console.error('인증 실패: 토큰이 유효하지 않거나 만료되었습니다.');
+      } else if (err.response?.status === 500) {
+        errorMessage = '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        console.error('서버 내부 오류:', err.response.data);
+      } else if (err.response?.status === 400) {
+        errorMessage = '잘못된 요청입니다. 입력을 확인해주세요.';
+        console.error('잘못된 요청:', err.response.data);
+      } else if (err.response?.status === 403) {
+        errorMessage = '접근 권한이 없습니다.';
+        console.error('권한 없음:', err.response.data);
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+        console.error('서버 에러 메시지:', err.response.data.message);
+      } else if (err.message) {
+        errorMessage = err.message;
+        console.error('클라이언트 에러 메시지:', err.message);
+      } else {
+        console.error('알 수 없는 에러 발생');
       }
       
-      // 모의 데이터 (API 실패 시 사용)
-      const mockRecommendations = [
-        {
-          id: 1,
-          title: '인터스텔라',
-          genre: 'SF/드라마',
-          year: 2014,
-          description: '우주를 배경으로 한 감동적인 드라마로, 시간과 사랑에 대한 깊이 있는 메시지를 담고 있습니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-          status: '상영종료',
-          country: '미국',
-          duration: '169분',
-          releaseDate: '2014.11.06.',
-          originalWork: '오리지널',
-          synopsis: '지구의 마지막 희망을 찾아 우주로 떠나는 탐사대의 이야기. 시간과 공간을 넘나드는 거대한 모험을 통해 인간의 본질과 사랑의 의미를 탐구한다.',
-          rank: '1위',
-          audienceCount: '1034만명',
-          audienceRating: '9.12',
-          netizenRating: '8.95'
-        },
-        {
-          id: 2,
-          title: '라라랜드',
-          genre: '뮤지컬/로맨스',
-          year: 2016,
-          description: '음악과 사랑이 만나는 아름다운 이야기로, 꿈과 현실 사이의 균형을 다룹니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg',
-          status: '상영종료',
-          country: '미국',
-          duration: '128분',
-          releaseDate: '2016.12.07.',
-          originalWork: '오리지널',
-          synopsis: '배우가 되고 싶은 미아와 재즈 피아니스트가 되고 싶은 세바스찬의 로맨틱한 이야기. LA의 아름다운 배경에서 펼쳐지는 음악과 춤, 사랑의 향연.',
-          rank: '2위',
-          audienceCount: '356만명',
-          audienceRating: '8.87',
-          netizenRating: '8.76'
-        },
-        {
-          id: 3,
-          title: '토이스토리4',
-          genre: '애니메이션/가족',
-          year: 2019,
-          description: '장난감들의 새로운 모험을 그린 따뜻하고 재미있는 애니메이션입니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/w9kR8qbmQ01HwnvK4alvnQ2ca0L.jpg',
-          status: '상영종료',
-          country: '미국',
-          duration: '100분',
-          releaseDate: '2019.06.20.',
-          originalWork: '오리지널',
-          synopsis: '우디와 친구들이 새로운 모험을 떠나는 이야기. 장난감들의 우정과 성장을 그린 따뜻한 가족 애니메이션.',
-          rank: '3위',
-          audienceCount: '289만명',
-          audienceRating: '8.45',
-          netizenRating: '8.32'
-        },
-        {
-          id: 4,
-          title: '스파이더맨: 노 웨이 홈',
-          genre: '액션/어드벤처',
-          year: 2021,
-          description: '멀티버스가 열리며 페터 파커의 운명이 바뀌는 스릴 넘치는 액션 영화입니다.',
-          poster: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg',
-          status: '상영종료',
-          country: '미국',
-          duration: '148분',
-          releaseDate: '2021.12.15.',
-          originalWork: '만화',
-          synopsis: '멀티버스가 열리며 세 명의 스파이더맨이 만나는 이야기. 페터 파커의 운명을 바꾸는 거대한 모험이 시작된다.',
-          rank: '4위',
-          audienceCount: '802만명',
-          audienceRating: '9.01',
-          netizenRating: '8.89'
-        }
-      ];
-
-      setRecommendations(mockRecommendations);
-    } catch (err) {
-      setError('영화 추천을 가져오는 중 오류가 발생했습니다. 다시 시도해주세요.');
-      console.error('추천 오류:', err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleReset = () => {
-    setSelectedMood('');
-    setCustomMood('');
+    setUserInput('');
     setRecommendations(null);
     setError('');
   };
@@ -198,25 +157,43 @@ const MovieRecommendation = ({ onMovieClick }) => {
             </div>
 
             <div className="recommendations-list">
-              {recommendations.map((movie) => (
-                <div key={movie.id} className="recommend-movie-card" onClick={() => onMovieClick(movie)}>
-                  <div className="recommend-movie-poster-container">
-                    <img 
-                      src={movie.poster} 
-                      alt={movie.title} 
-                      className="recommend-movie-poster"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/150x225/666/fff?text=포스터+없음';
-                      }}
-                    />
-                  </div>
-                  <div className="movie-info">
-                    <h3 className="recommend-movie-title">{movie.title}</h3>
-                    <p className="movie-genre">{movie.genre} • {movie.year}</p>
-                    <p className="movie-description">{movie.description}</p>
-                  </div>
+              {recommendations && recommendations.length > 0 ? (
+                recommendations.map((item) => {
+                  const movie = item.movie; // 백엔드 응답 구조: { movie: {...}, similarity: 0.93 }
+                  return (
+                    <div key={movie.id} className="recommend-movie-card" onClick={() => onMovieClick(movie)}>
+                      <div className="recommend-movie-poster-container">
+                        <img 
+                          src={movie.posterUrl} 
+                          alt={movie.title} 
+                          className="recommend-movie-poster"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/150x225/666/fff?text=포스터+없음';
+                          }}
+                        />
+                      </div>
+                      <div className="movie-info">
+                        <h3 className="recommend-movie-title">{movie.title}</h3>
+                        <p className="movie-genre">
+                          {movie.genre} • {movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'}
+                        </p>
+                        <p className="movie-description">
+                          평점: {movie.voteAverage ? movie.voteAverage.toFixed(1) : 'N/A'}
+                          {item.similarity && (
+                            <span className="similarity-score">
+                              • 유사도: {(item.similarity * 100).toFixed(1)}%
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="no-recommendations">
+                  <p>추천할 영화를 찾지 못했습니다. 다른 기분으로 다시 시도해보세요.</p>
                 </div>
-              ))}
+              )}
             </div>
 
             <div className="recommend-button-section">
@@ -250,63 +227,17 @@ const MovieRecommendation = ({ onMovieClick }) => {
           {/* 제목 섹션 */}
           <div className="title-section">
             <h1 className="main-title">당신의 감정을 영화로</h1>
-            <p className="subtitle">오늘의 기분에 맞는 완벽한 영화를 찾아보세요</p>
+            <p className="subtitle">오늘의 기분을 자유롭게 표현해주세요</p>
           </div>
 
-          {/* 기분 선택 섹션 */}
-          <div className="mood-selection-section">
-            <h2 className="mood-question">지금 기분이 어떠신가요?</h2>
-            
-            <div className="mood-buttons-container">
-              {/* 상단 3개 버튼 */}
-              <div className="mood-buttons-row">
-                {moodOptions.slice(0, 3).map((mood) => {
-                  const IconComponent = mood.icon;
-                  return (
-                    <button
-                      key={mood.id}
-                      className={`mood-button ${selectedMood === mood.id ? 'selected' : ''}`}
-                      onClick={() => handleMoodSelect(mood.id)}
-                      style={{
-                        borderColor: selectedMood === mood.id ? mood.color : 'transparent'
-                      }}
-                    >
-                      <IconComponent className="mood-icon" />
-                      <span className="mood-label">{mood.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              
-              {/* 하단 3개 버튼 */}
-              <div className="mood-buttons-row">
-                {moodOptions.slice(3, 6).map((mood) => {
-                  const IconComponent = mood.icon;
-                  return (
-                    <button
-                      key={mood.id}
-                      className={`mood-button ${selectedMood === mood.id ? 'selected' : ''}`}
-                      onClick={() => handleMoodSelect(mood.id)}
-                      style={{
-                        borderColor: selectedMood === mood.id ? mood.color : 'transparent'
-                      }}
-                    >
-                      <IconComponent className="mood-icon" />
-                      <span className="mood-label">{mood.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* 추가 기분 입력 섹션 */}
-          <div className="custom-mood-section">
+          {/* 기분 입력 섹션 */}
+          <div className="mood-input-section">
+            <h2 className="mood-question">지금 어떤 기분이신가요?</h2>
             <textarea
-              className="custom-mood-input"
-              placeholder="더 자세히 오늘의 기분을 알려주세요...&#10;예: 오늘 너무 기분이 좋아 행복해"
-              value={customMood}
-              onChange={(e) => setCustomMood(e.target.value)}
+              className="mood-input"
+              placeholder="오늘의 기분을 자유롭게 입력해주세요!"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
             />
           </div>
 

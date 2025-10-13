@@ -17,7 +17,7 @@ export const API_ENDPOINTS = {
   MOVIE_SEARCH: '/api/movies/search', // 영화 검색
   
   // 기존 엔드포인트 (호환성을 위해 유지)
-  MOVIE_RECOMMENDATIONS: '/api/movies/recommendations',
+  MOVIE_RECOMMENDATIONS: '/api/recommend/by-text',
   FEATURED_MOVIES: '/api/movies/featured',
   NEW_RELEASES: '/api/movies/new-releases',
   MOVIE_TRAILER: '/api/movies/trailer',
