@@ -246,23 +246,46 @@
 /* 로그인 필요 메시지 스타일 */
 .auth-required-container {
   text-align: center;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+  padding: 50px 30px;
+  background: #000000;
+  border-radius: 16px;
   color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(220, 20, 60, 0.3);
+  border: 1px solid rgba(220, 20, 60, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-required-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(220, 20, 60, 0.1);
+  z-index: 1;
 }
 
 .auth-required-container h3 {
-  font-size: 1.5rem;
-  margin-bottom: 16px;
-  font-weight: 600;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: #ff6b6b;
+  position: relative;
+  z-index: 2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .auth-required-container p {
-  font-size: 1rem;
+  font-size: 1.1rem;
   opacity: 0.9;
   margin: 0;
+  position: relative;
+  z-index: 2;
+  color: #ffb3b3;
+  line-height: 1.6;
 }
 
 /* 반응형 디자인 */
@@ -290,5 +313,35 @@
   .my-calendar-legend {
     flex-direction: column;
     gap: 15px;
+  }
+  
+  .auth-required-container {
+    padding: 40px 20px;
+    margin: 20px;
+  }
+  
+  .auth-required-container h3 {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+  }
+  
+  .auth-required-container p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-required-container {
+    padding: 30px 15px;
+    margin: 15px;
+  }
+  
+  .auth-required-container h3 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+  
+  .auth-required-container p {
+    font-size: 0.9rem;
   }
 }
