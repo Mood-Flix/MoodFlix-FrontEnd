@@ -28,7 +28,17 @@ movieApi.interceptors.request.use(
     console.log('getAuthHeaders() 결과:', authHeaders);
     console.log('인증 헤더가 비어있는가?', Object.keys(authHeaders).length === 0);
     
-    config.headers = { ...config.headers, ...authHeaders };
+    // 토큰이 있는 경우에만 인증 헤더 추가
+    if (token) {
+      config.headers = { 
+        ...config.headers, 
+        'Authorization': `Bearer ${token}` 
+      };
+      console.log('인증 헤더 추가됨');
+    } else {
+      console.log('토큰이 없어 인증 헤더 추가 안함');
+    }
+    
     console.log('최종 요청 헤더:', config.headers);
     console.log('===============================');
     

@@ -187,7 +187,15 @@ export const logout = () => {
  */
 export const isTokenValid = () => {
   const token = localStorage.getItem('accessToken');
-  return !!token;
+  const userInfo = localStorage.getItem('userInfo');
+  
+  console.log('토큰 유효성 검사:', {
+    hasToken: !!token,
+    hasUserInfo: !!userInfo,
+    tokenLength: token ? token.length : 0
+  });
+  
+  return !!(token && userInfo);
 };
 
 /**

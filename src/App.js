@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import MovieRecommendation from './components/MovieRecommendation';
 import MovieDetail from './components/MovieDetail';
-import Calendar from './components/Calendar';
+import CalendarEdit from './components/CalendarEdit';
 import MyCalendar from './components/MyCalendar';
 import Profile from './components/Profile';
 import SearchModal from './components/SearchModal';
@@ -46,7 +46,7 @@ function AppLayout() {
         <Route path="/search" element={<SearchModal isOpen={true} onClose={handleCloseSearch} onSearchResults={handleSearchResults} />} />
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
         <Route path="/calendar" element={<MyCalendar />} />
-        <Route path="/calendar/edit" element={<Calendar />} />
+        <Route path="/calendar/edit" element={<CalendarEdit />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/movie/:id" element={<MovieDetailRedirect />} />
         <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />

@@ -137,7 +137,9 @@ const MovieRecommendation = ({ onMovieClick }) => {
 
   const handleAddToCalendar = (movie) => {
     // 영화 정보를 localStorage에 저장하고 캘린더 편집 페이지로 이동
+    console.log('MovieRecommendation: 캘린더에 추가할 영화 데이터:', movie);
     localStorage.setItem('selectedMovieForCalendar', JSON.stringify(movie));
+    console.log('MovieRecommendation: localStorage에 저장 완료');
     navigate('/calendar/edit');
   };
 

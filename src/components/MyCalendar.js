@@ -24,7 +24,7 @@ const MyCalendar = () => {
   } = useCalendarContext();
 
   // 인증 관련 상태
-  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
 
   // 로그인 핸들러 (카카오 액세스 토큰)
   const handleLoginSuccess = async (kakaoAccessToken) => {
@@ -83,7 +83,14 @@ const MyCalendar = () => {
   // 저장된 기분 데이터가 있는 날짜들
   const daysWithMood = monthData.filter(entry => entry.mood).map(entry => entry.day);
   // 영화 정보가 있는 날짜들
-  const daysWithMovies = monthData.filter(entry => entry.movieInfo).map(entry => entry.day);
+  const daysWithMovies = monthData.filter(entry => entry.selectedMovie && entry.selectedMovie.title).map(entry => entry.day);
+  
+  // 디버깅을 위한 로그 추가
+  console.log('MyCalendar: 월 데이터 확인', {
+    monthData,
+    daysWithMovies,
+    moviesData: monthData.filter(entry => entry.selectedMovie && entry.selectedMovie.title)
+  });
   
 
   const handleDateClick = (day) => {
@@ -109,18 +116,55 @@ const MyCalendar = () => {
   };
 
   const handlePreviewEdit = () => {
+    // 편집 모드로 바로 이동하면서 기존 데이터도 함께 전달
+    navigate('/calendar/edit', { 
+      state: { 
+        selectedDate: previewDate, 
+        editMode: true,
+        existingEntry: previewEntry
+      } 
+    });
     setPreviewEntry(null);
     setPreviewDate(null);
-    navigate('/calendar/edit', { state: { selectedDate: previewDate, editMode: true } });
   };
+
 
   const handleBackToHome = () => {
     navigate('/');
   };
 
 
-  // 로그인하지 않은 사용자에게 표시할 메시지
-  if (!isAuthenticated) {
+  // 인증 상태 로딩 중
+  if (authLoading) {
+    return (
+      <div className="my-calendar-container">
+        <UserAuthSection 
+          user={user}
+          isAuthenticated={isAuthenticated}
+          authError={authError}
+          onLoginSuccess={handleLoginSuccess}
+          onKakaoCodeLogin={handleKakaoCodeLogin}
+          onLoginError={handleLoginError}
+          onLogout={handleLogout}
+          onClearError={clearError}
+        />
+        <div className="my-calendar-popup">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>인증 상태를 확인하는 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 로그인하지 않은 사용자에게만 표시할 메시지 (로딩 완료 후, 인증되지 않은 경우에만)
+  if (!authLoading && !isAuthenticated) {
+    console.log('인증되지 않은 사용자, 로그인 요구 메시지 표시', {
+      isAuthenticated,
+      authLoading,
+      user
+    });
     return (
       <div className="my-calendar-container">
         <UserAuthSection 
