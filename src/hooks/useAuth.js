@@ -2,29 +2,108 @@ import { useState, useEffect, useCallback } from 'react';
 import { kakaoLogin, logout as authLogout, getUserProfile, isTokenValid } from '../services/authService';
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // 초기 상태를 로컬 스토리지에서 확인
+  const getInitialAuthState = () => {
+    const token = localStorage.getItem('accessToken');
+    const userInfo = localStorage.getItem('userInfo');
+    const hasValidAuth = !!(token && userInfo);
+    
+    if (hasValidAuth) {
+      try {
+        return {
+          user: JSON.parse(userInfo),
+          isAuthenticated: true
+        };
+      } catch (error) {
+        console.error('사용자 정보 파싱 오류:', error);
+        return { user: null, isAuthenticated: false };
+      }
+    }
+    
+    return { user: null, isAuthenticated: false };
+  };
+
+  const initialState = getInitialAuthState();
+  const [user, setUser] = useState(initialState.user);
+  const [isAuthenticated, setIsAuthenticated] = useState(initialState.isAuthenticated);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // 초기 인증 상태 확인
   useEffect(() => {
     const checkAuthStatus = () => {
-      setIsLoading(true);
+      console.log('인증 상태 확인 시작');
       
-      if (isTokenValid()) {
-        const userInfo = getUserProfile();
-        if (userInfo) {
-          setUser(userInfo);
-          setIsAuthenticated(true);
+      try {
+        const token = localStorage.getItem('accessToken');
+        const userInfo = localStorage.getItem('userInfo');
+        
+        console.log('로컬 스토리지 상태:', {
+          hasToken: !!token,
+          hasUserInfo: !!userInfo,
+          tokenLength: token ? token.length : 0
+        });
+        
+        if (token && userInfo) {
+          try {
+            const parsedUserInfo = JSON.parse(userInfo);
+            setUser(parsedUserInfo);
+            setIsAuthenticated(true);
+            console.log('인증 상태 설정 완료: true', parsedUserInfo);
+          } catch (parseError) {
+            console.error('사용자 정보 파싱 오류:', parseError);
+            setUser(null);
+            setIsAuthenticated(false);
+          }
+        } else {
+          console.log('토큰 또는 사용자 정보가 없음');
+          setUser(null);
+          setIsAuthenticated(false);
         }
+      } catch (error) {
+        console.error('인증 상태 확인 중 오류:', error);
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+        console.log('인증 상태 확인 완료');
       }
-      
-      setIsLoading(false);
     };
 
+    // 즉시 실행
     checkAuthStatus();
   }, []);
+
+  // 인증 상태를 다시 확인하는 함수
+  const refreshAuthStatus = useCallback(() => {
+    const token = localStorage.getItem('accessToken');
+    const userInfo = localStorage.getItem('userInfo');
+    const hasValidAuth = !!(token && userInfo);
+    
+    console.log('useAuth refreshAuthStatus: 인증 상태 새로고침', {
+      isAuthenticated,
+      hasValidAuth,
+      hasToken: !!token,
+      hasUserInfo: !!userInfo
+    });
+    
+    if (hasValidAuth && !isAuthenticated) {
+      try {
+        const parsedUserInfo = JSON.parse(userInfo);
+        setUser(parsedUserInfo);
+        setIsAuthenticated(true);
+        console.log('인증 상태 새로고침 완료: true', parsedUserInfo);
+      } catch (parseError) {
+        console.error('사용자 정보 파싱 오류:', parseError);
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } else if (!hasValidAuth && isAuthenticated) {
+      setUser(null);
+      setIsAuthenticated(false);
+      console.log('인증 상태 새로고침 완료: false');
+    }
+  }, [isAuthenticated]);
 
   // 카카오 인가 코드로 로그인
   const loginWithKakaoCode = useCallback(async (authorizationCode) => {
@@ -134,5 +213,6 @@ export const useAuth = () => {
     loginWithKakaoCode,
     logout,
     clearError,
+    refreshAuthStatus,
   };
 };

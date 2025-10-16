@@ -4,6 +4,13 @@ import './CalendarPreview.css';
 const CalendarPreview = ({ entry, date, onClose, onEdit }) => {
   if (!entry) return null;
 
+  // 디버깅을 위한 로그 추가
+  console.log('CalendarPreview: 받은 데이터 확인', {
+    entry,
+    selectedMovie: entry.selectedMovie,
+    hasMovie: !!entry.selectedMovie
+  });
+
   const handleShare = async () => {
     const formatDate = (date) => {
       const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
@@ -25,7 +32,7 @@ const CalendarPreview = ({ entry, date, onClose, onEdit }) => {
     const shareText = `📅 ${formatDate(date)}
 ${entry.mood} ${getMoodText(entry.mood)}
 ${entry.notes ? `💭 ${entry.notes}` : ''}
-${entry.movieInfo ? `🎬 ${entry.movieInfo.title}` : ''}
+${entry.selectedMovie ? `🎬 ${entry.selectedMovie.title}` : ''}
 
 #MoodFlix #기분캘린더`;
 
@@ -115,14 +122,14 @@ ${entry.movieInfo ? `🎬 ${entry.movieInfo.title}` : ''}
           )}
 
           {/* 영화 정보 */}
-          {entry.movieInfo && (
+          {entry.selectedMovie && entry.selectedMovie.title && (
             <div className="preview-section">
               <h4>저장된 영화</h4>
               <div className="movie-display">
                 <div className="movie-poster-container">
                   <img 
-                    src={entry.movieInfo.posterUrl} 
-                    alt={entry.movieInfo.title}
+                    src={entry.selectedMovie.posterUrl} 
+                    alt={entry.selectedMovie.title}
                     className="movie-poster"
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/150x225/666/fff?text=포스터+없음';
@@ -130,13 +137,13 @@ ${entry.movieInfo ? `🎬 ${entry.movieInfo.title}` : ''}
                   />
                 </div>
                 <div className="movie-info">
-                  <h5>{entry.movieInfo.title}</h5>
-                  <p className="movie-genre">{entry.movieInfo.genre}</p>
-                  {entry.movieInfo.releaseDate && (
-                    <p className="movie-year">{new Date(entry.movieInfo.releaseDate).getFullYear()}</p>
+                  <h5>{entry.selectedMovie.title}</h5>
+                  <p className="movie-genre">{entry.selectedMovie.genre}</p>
+                  {entry.selectedMovie.releaseDate && (
+                    <p className="movie-year">{new Date(entry.selectedMovie.releaseDate).getFullYear()}</p>
                   )}
-                  {entry.movieInfo.voteAverage && (
-                    <p className="movie-rating">평점: {entry.movieInfo.voteAverage.toFixed(1)}</p>
+                  {entry.selectedMovie.voteAverage && (
+                    <p className="movie-rating">평점: {entry.selectedMovie.voteAverage.toFixed(1)}</p>
                   )}
                 </div>
               </div>

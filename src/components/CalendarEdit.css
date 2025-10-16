@@ -108,20 +108,22 @@
   align-items: center;
 }
 
-.back-btn {
-  background-color: #6c757d;
-  color: white;
+.recommendation-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.back-btn:hover {
-  background-color: #5a6268;
+.recommendation-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .calendar-grid {
