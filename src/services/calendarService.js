@@ -1,10 +1,13 @@
-import { API_BASE_URL, getAuthHeaders } from '../constants/api';
+import { API_BASE_URL } from '../constants/api';
 
 // 월별 캘린더 데이터 가져오기
 export const getMonthlyCalendarData = async (year, month) => {
   try {
     const token = localStorage.getItem('accessToken');
-    console.log('calendarService: 토큰 확인:', !!token);
+    // 토큰 확인 로그는 개발 환경에서만 간단히
+    if (process.env.NODE_ENV === 'development') {
+      console.log('calendarService: 토큰 확인:', !!token);
+    }
     
     const headers = {
       'Content-Type': 'application/json'
@@ -12,37 +15,47 @@ export const getMonthlyCalendarData = async (year, month) => {
     
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('calendarService: 인증 헤더 추가됨');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('calendarService: 인증 헤더 추가됨');
+      }
     } else {
-      console.log('calendarService: 토큰이 없어 인증 헤더 추가 안함');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('calendarService: 토큰이 없어 인증 헤더 추가 안함');
+      }
     }
     
     // 백엔드 API는 1-based month를 기대하므로 +1
     const backendMonth = month + 1;
     
-    console.log('calendarService: API 호출 시작', {
-      url: `${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`,
-      headers,
-      hasToken: !!token,
-      frontendMonth: month,
-      backendMonth: backendMonth
-    });
+    // 개발 환경에서만 안전한 로그 출력
+    if (process.env.NODE_ENV === 'development') {
+      const safeHeaders = { ...headers };
+      if (safeHeaders.Authorization) {
+        safeHeaders.Authorization = 'Bearer ***REDACTED***';
+      }
+      console.log('calendarService: API 호출 시작', {
+        url: `${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`,
+        headers: safeHeaders,
+        hasToken: !!token,
+        frontendMonth: month,
+        backendMonth: backendMonth
+      });
+    }
     
     const response = await fetch(`${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`, {
       method: 'GET',
       headers
     });
 
-    console.log('calendarService: API 응답 상태', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries())
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('calendarService: API 응답 상태', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+    }
 
-    // 응답 본문을 텍스트로 먼저 확인
-    const responseText = await response.clone().text();
-    console.log('calendarService: 응답 본문 (텍스트):', responseText);
+    // 응답 본문 로깅 제거 (민감정보 보호)
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -57,40 +70,12 @@ export const getMonthlyCalendarData = async (year, month) => {
     }
 
     const data = await response.json();
-    console.log('calendarService: 백엔드 응답 데이터 전체:', JSON.stringify(data, null, 2));
-    console.log('calendarService: 응답 데이터 타입:', typeof data);
-    console.log('calendarService: 응답 데이터 길이:', data?.length || 0);
-    console.log('calendarService: 응답이 배열인가?', Array.isArray(data));
-    console.log('calendarService: 요청 URL:', `${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`);
-    console.log('calendarService: 요청 헤더:', headers);
+    // 민감한 데이터 로깅 제거
     
-    // 백엔드 응답 구조 상세 분석
-    if (Array.isArray(data) && data.length > 0) {
-      console.log('calendarService: 첫 번째 항목 상세 분석:', data[0]);
-      console.log('calendarService: 첫 번째 항목 전체 구조:', JSON.stringify(data[0], null, 2));
-      console.log('calendarService: selectedMovie 필드 확인:', data[0].selectedMovie);
-      console.log('calendarService: selectedMovie 타입:', typeof data[0].selectedMovie);
-      console.log('calendarService: selectedMovie 내용:', JSON.stringify(data[0].selectedMovie, null, 2));
-      
-      // 모든 항목의 selectedMovie 확인
-      data.forEach((entry, index) => {
-        console.log(`calendarService: 항목 ${index} selectedMovie:`, {
-          hasSelectedMovie: !!entry.selectedMovie,
-          selectedMovie: entry.selectedMovie,
-          movieTitle: entry.selectedMovie?.title,
-          movieId: entry.selectedMovie?.id
-        });
-      });
-    } else if (Array.isArray(data)) {
-      console.log('calendarService: 빈 배열 응답 - 데이터가 없음');
-    } else {
-      console.log('calendarService: 예상과 다른 응답 형식:', data);
-    }
+    // 상세 데이터 분석 로깅 제거 (민감정보 보호)
     
     // 백엔드 응답을 프론트엔드 형식으로 변환
     const transformedData = data.map((entry, index) => {
-      console.log(`calendarService: 항목 ${index} 변환 전:`, entry);
-      console.log(`calendarService: 항목 ${index} selectedMovie:`, entry.selectedMovie);
       
       // 날짜 파싱 - 백엔드에서 "2025-01-18" 형식으로 오는 경우
       const entryDate = new Date(entry.date);
@@ -120,20 +105,11 @@ export const getMonthlyCalendarData = async (year, month) => {
         selectedMovie: selectedMovie
       };
       
-      console.log(`calendarService: 항목 ${index} 변환 후:`, transformed);
-      console.log(`calendarService: 항목 ${index} 영화 데이터 확인:`, {
-        hasSelectedMovie: !!transformed.selectedMovie,
-        selectedMovieTitle: transformed.selectedMovie?.title,
-        selectedMovieId: transformed.selectedMovie?.id,
-        originalSelectedMovie: entry.selectedMovie
-      });
+      // 변환 과정 로깅 제거 (민감정보 보호)
       return transformed;
     });
     
-    console.log('calendarService: 변환된 데이터:', transformedData);
-    console.log('calendarService: 영화 데이터가 있는 항목들:', 
-      transformedData.filter(entry => entry.selectedMovie && entry.selectedMovie.title)
-    );
+    // 변환된 데이터 로깅 제거 (민감정보 보호)
     return transformedData;
   } catch (error) {
     console.error('캘린더 데이터 로딩 오류:', error);
@@ -223,14 +199,7 @@ export const saveCalendarEntry = async (date, moodEmoji, note, movieData = null)
       movieId: movieData ? movieData.id : null
     };
     
-    console.log('calendarService: 백엔드로 전송할 데이터 (수정됨):', {
-      date,
-      moodEmoji,
-      note,
-      movieId: movieData ? movieData.id : null,
-      movieData: movieData,
-      hasMovieData: !!movieData
-    });
+    // 전송 데이터 로깅 제거 (민감정보 보호)
     
     
     const response = await fetch(`${API_BASE_URL}/api/calendar/entry`, {
@@ -247,10 +216,7 @@ export const saveCalendarEntry = async (date, moodEmoji, note, movieData = null)
     }
 
     const data = await response.json();
-    console.log('calendarService: 저장 응답 데이터:', data);
-    console.log('calendarService: 저장된 selectedMovie:', data.selectedMovie);
-    console.log('calendarService: selectedMovie 타입:', typeof data.selectedMovie);
-    console.log('calendarService: selectedMovie 내용:', JSON.stringify(data.selectedMovie, null, 2));
+    // 저장 응답 데이터 로깅 제거 (민감정보 보호)
     
     // 백엔드 응답을 프론트엔드 형식으로 변환
     const entryDate = new Date(data.date);

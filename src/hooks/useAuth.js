@@ -29,10 +29,25 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 초기 인증 상태 확인
+  // 초기 인증 상태 확인 - 전역 플래그로 중복 실행 방지
   useEffect(() => {
+    // 전역 플래그로 중복 실행 방지
+    if (window.authCheckCompleted) {
+      console.log('인증 상태 확인이 이미 완료되었습니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (window.authCheckInProgress) {
+      console.log('인증 상태 확인이 이미 진행 중입니다.');
+      return;
+    }
+
     const checkAuthStatus = () => {
       console.log('인증 상태 확인 시작');
+      
+      // 전역 진행 중 플래그 설정
+      window.authCheckInProgress = true;
       
       try {
         const token = localStorage.getItem('accessToken');
@@ -67,6 +82,9 @@ export const useAuth = () => {
       } finally {
         setIsLoading(false);
         console.log('인증 상태 확인 완료');
+        // 전역 플래그 설정
+        window.authCheckInProgress = false;
+        window.authCheckCompleted = true;
       }
     };
 
