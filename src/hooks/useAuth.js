@@ -92,6 +92,23 @@ export const useAuth = () => {
     checkAuthStatus();
   }, []);
 
+  // 로그인 후 인증 상태 즉시 업데이트를 위한 추가 useEffect
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (token && userInfo && !isAuthenticated) {
+      try {
+        const parsedUserInfo = JSON.parse(userInfo);
+        setUser(parsedUserInfo);
+        setIsAuthenticated(true);
+        console.log('useAuth: 로그인 후 인증 상태 즉시 업데이트', parsedUserInfo);
+      } catch (parseError) {
+        console.error('사용자 정보 파싱 오류:', parseError);
+      }
+    }
+  }, []); // 빈 의존성 배열로 컴포넌트 마운트 시 한 번만 실행
+
   // 인증 상태를 다시 확인하는 함수
   const refreshAuthStatus = useCallback(() => {
     const token = localStorage.getItem('accessToken');
@@ -159,6 +176,9 @@ export const useAuth = () => {
         sessionStorage.removeItem('calendarReloadAttempted');
         
         console.log('카카오 로그인 성공:', tokenData.userInfo);
+        
+        // 로그인 성공 후 즉시 인증 상태를 완료로 설정
+        setIsLoading(false);
       } else {
         throw new Error('카카오 사용자 정보를 가져올 수 없습니다.');
       }
@@ -170,7 +190,10 @@ export const useAuth = () => {
       setUser(null);
       throw error;
     } finally {
-      setIsLoading(false);
+      // 성공한 경우는 위에서 이미 setIsLoading(false) 호출
+      if (isLoading) {
+        setIsLoading(false);
+      }
     }
   }, [isLoading]);
 
@@ -194,6 +217,9 @@ export const useAuth = () => {
         
         // 로그인 성공 후 sessionStorage 플래그 초기화
         sessionStorage.removeItem('calendarReloadAttempted');
+        
+        // 로그인 성공 후 즉시 인증 상태를 완료로 설정
+        setIsLoading(false);
       }
 
     } catch (error) {
@@ -203,7 +229,10 @@ export const useAuth = () => {
       setUser(null);
       throw error;
     } finally {
-      setIsLoading(false);
+      // 성공한 경우는 위에서 이미 setIsLoading(false) 호출
+      if (isLoading) {
+        setIsLoading(false);
+      }
     }
   }, [isLoading]);
 

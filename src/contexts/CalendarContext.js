@@ -44,6 +44,14 @@ export const CalendarProvider = ({ children }) => {
   
   // 특정 월의 캘린더 데이터 로드
   const loadCalendarData = useCallback(async (year, month, forceReload = false) => {
+    console.log('CalendarContext: loadCalendarData 호출됨', {
+      year,
+      month,
+      forceReload,
+      isAuthenticated,
+      authLoading
+    });
+    
     // 인증 상태 확인
     const token = localStorage.getItem('accessToken');
     const userInfo = localStorage.getItem('userInfo');
@@ -51,14 +59,23 @@ export const CalendarProvider = ({ children }) => {
     // 토큰이 있으면 인증된 것으로 간주 (새로고침 시 인증 상태 확인 지연 대응)
     const hasValidAuth = !!(token && userInfo);
     
+    console.log('CalendarContext: 인증 상태 확인', {
+      isAuthenticated,
+      hasValidAuth,
+      authLoading,
+      token: token ? 'exists' : 'null',
+      userInfo: userInfo ? 'exists' : 'null'
+    });
+    
     // 인증되지 않은 상태에서는 데이터를 로드하지 않음
     if (!isAuthenticated && !hasValidAuth) {
       console.log('CalendarContext: 인증되지 않은 상태 - 캘린더 데이터 로드 건너뜀');
       return;
     }
 
-    // 인증 상태가 아직 로딩 중이면 잠시 대기
-    if (authLoading) {
+    // 로그인 후 즉시 데이터 로딩을 위해 authLoading 체크를 완화
+    // 토큰과 사용자 정보가 있으면 인증된 것으로 간주하고 데이터 로드 진행
+    if (authLoading && !hasValidAuth) {
       console.log('CalendarContext: 인증 상태 로딩 중 - 데이터 로드 대기');
       return;
     }
@@ -288,8 +305,8 @@ export const CalendarProvider = ({ children }) => {
     console.log('CalendarContext: 월 변경:', { year, month });
     setCurrentYear(year);
     setCurrentMonth(month);
-    loadCalendarData(year, month);
-  }, [loadCalendarData]);
+    // 월 변경 시에는 즉시 데이터 로드하지 않고, useEffect에서 처리
+  }, []);
 
   // 현재 월로 이동
   const goToCurrentMonth = useCallback(() => {
@@ -309,62 +326,25 @@ export const CalendarProvider = ({ children }) => {
     changeMonth(newDate.getFullYear(), newDate.getMonth());
   }, [currentYear, currentMonth, changeMonth]);
 
-  // 컴포넌트 마운트 시 현재 월 데이터 로드 (인증 상태 확인 후)
+  // 인증 상태와 월 변경에 따른 데이터 로드 통합 관리
   useEffect(() => {
-    // 인증 로딩이 완료되고 인증된 상태일 때만 데이터 로드
-    if (!authLoading && isAuthenticated) {
-      console.log('CalendarContext: 인증 완료 - 서버에서 데이터 로드 시작');
-      loadCalendarData(currentYear, currentMonth);
-    }
-  }, [authLoading, isAuthenticated, currentYear, currentMonth, loadCalendarData]);
-
-  // 새로고침 시에도 데이터 로드 보장 - 인증 상태 확인 후 로드
-  useEffect(() => {
-    // 페이지 로드 시 localStorage에 토큰이 있으면 인증 상태를 확인하고 데이터 로드
+    // 토큰이 있으면 인증된 것으로 간주하여 데이터 로드
     const token = localStorage.getItem('accessToken');
     const userInfo = localStorage.getItem('userInfo');
+    const hasValidAuth = !!(token && userInfo);
     
-    if (token && userInfo) {
-      console.log('CalendarContext: 새로고침 감지 - 토큰 존재, 인증 상태 확인 후 데이터 로드');
-      
-      // 인증 상태가 완전히 로드된 후에만 데이터 로드
-      let cancelled = false;
-      let timer = null;
-      let retryCount = 0;
-      const maxRetries = 20; // 최대 2초 (20 * 100ms)
-      
-      const attemptLoad = () => {
-        // 취소되었거나 최대 재시도 횟수 초과 시 중단
-        if (cancelled || retryCount >= maxRetries) {
-          if (retryCount >= maxRetries) {
-            console.warn('CalendarContext: 인증 상태 확인 최대 재시도 횟수 초과 - 토큰이 있으므로 강제 로드');
-            // 토큰이 있으면 강제로 데이터 로드
-            loadCalendarData(currentYear, currentMonth);
-          }
-          return;
-        }
-        
-        // 인증 상태가 완전히 로드되었는지 확인
-        if (!authLoading && isAuthenticated) {
-          console.log('CalendarContext: 인증 상태 확인 완료 - 데이터 로드 시작');
-          loadCalendarData(currentYear, currentMonth);
-        } else {
-          // 인증 상태가 아직 로드 중이면 잠시 후 다시 시도
-          retryCount++;
-          timer = setTimeout(attemptLoad, 100);
-        }
-      };
-      
-      // 인증 상태 확인 후 데이터 로드
-      attemptLoad();
-      
-      // 클린업 함수 반환
-      return () => {
-        cancelled = true;
-        if (timer) clearTimeout(timer);
-      };
+    // 인증 로딩이 완료되고 (인증된 상태이거나 토큰이 있는 경우) 데이터 로드
+    if (!authLoading && (isAuthenticated || hasValidAuth)) {
+      console.log('CalendarContext: 인증 완료 - 서버에서 데이터 로드 시작', {
+        currentYear,
+        currentMonth,
+        authLoading,
+        isAuthenticated,
+        hasValidAuth
+      });
+      loadCalendarData(currentYear, currentMonth);
     }
-  }, [authLoading, isAuthenticated, currentYear, currentMonth, loadCalendarData]); // 의존성 배열에 인증 상태 추가
+  }, [authLoading, isAuthenticated, currentYear, currentMonth]); // loadCalendarData 의존성 제거
 
   // localStorage 저장 로직 제거 - 항상 서버에서 최신 데이터 사용
 
@@ -381,11 +361,14 @@ export const CalendarProvider = ({ children }) => {
   // 강제 데이터 리로드 함수
   const forceReloadData = useCallback(() => {
     console.log('CalendarContext: 강제 데이터 리로드 요청');
-    // 현재 로딩 중이 아닐 때만 실행
-    if (!loading) {
+    // 현재 로딩 중이 아니고, 해당 월이 로딩 중이 아닐 때만 실행
+    const monthKey = `${currentYear}-${currentMonth}`;
+    if (!loading && !loadingKeys.has(monthKey)) {
       loadCalendarData(currentYear, currentMonth, true);
+    } else {
+      console.log('CalendarContext: 이미 로딩 중이거나 해당 월이 로딩 중 - 강제 리로드 건너뜀');
     }
-  }, [loadCalendarData, currentYear, currentMonth, loading]);
+  }, [currentYear, currentMonth, loading, loadingKeys]);
 
   const value = {
     calendarData,
