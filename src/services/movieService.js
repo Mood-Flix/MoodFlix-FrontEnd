@@ -395,7 +395,7 @@ export const getMovieRecommendations = async (mood, customMood = '') => {
     }
     
     if (process.env.NODE_ENV === 'development') {
-      console.log('토큰 확인됨:', token.substring(0, 20) + '...');
+      console.log('토큰 확인됨');
     }
     
     // 요청 데이터 준비 (백엔드 API 형식에 맞게 수정)
