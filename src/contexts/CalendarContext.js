@@ -139,7 +139,7 @@ export const CalendarProvider = ({ children }) => {
         year,
         month,
         monthKey,
-        token: token ? `${token.substring(0, 20)}...` : 'null',
+        token: token ? 'exists' : 'null',
         userInfo: userInfo ? 'exists' : 'null'
       });
       
