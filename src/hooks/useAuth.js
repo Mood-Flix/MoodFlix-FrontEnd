@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { kakaoLogin, logout as authLogout, getUserProfile, isTokenValid } from '../services/authService';
+import { kakaoLogin, logout as authLogout } from '../services/authService';
 
 export const useAuth = () => {
   // 초기 상태를 로컬 스토리지에서 확인
@@ -70,7 +70,7 @@ export const useAuth = () => {
       }
     };
 
-    // 즉시 실행
+    // 즉시 실행 - 동기적으로 처리하여 지연 최소화
     checkAuthStatus();
   }, []);
 
@@ -137,6 +137,9 @@ export const useAuth = () => {
         }
         localStorage.setItem('userInfo', JSON.stringify(tokenData.userInfo));
         
+        // 로그인 성공 후 sessionStorage 플래그 초기화
+        sessionStorage.removeItem('calendarReloadAttempted');
+        
         console.log('카카오 로그인 성공:', tokenData.userInfo);
       } else {
         throw new Error('카카오 사용자 정보를 가져올 수 없습니다.');
@@ -170,6 +173,9 @@ export const useAuth = () => {
         setUser(loginResult.user);
         setIsAuthenticated(true);
         console.log('카카오 로그인 성공:', loginResult.user);
+        
+        // 로그인 성공 후 sessionStorage 플래그 초기화
+        sessionStorage.removeItem('calendarReloadAttempted');
       }
 
     } catch (error) {

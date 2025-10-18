@@ -17,29 +17,74 @@ export const getMonthlyCalendarData = async (year, month) => {
       console.log('calendarService: 토큰이 없어 인증 헤더 추가 안함');
     }
     
-    const response = await fetch(`${API_BASE_URL}/api/calendar?year=${year}&month=${month}`, {
+    // 백엔드 API는 1-based month를 기대하므로 +1
+    const backendMonth = month + 1;
+    
+    console.log('calendarService: API 호출 시작', {
+      url: `${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`,
+      headers,
+      hasToken: !!token,
+      frontendMonth: month,
+      backendMonth: backendMonth
+    });
+    
+    const response = await fetch(`${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`, {
       method: 'GET',
       headers
     });
 
+    console.log('calendarService: API 응답 상태', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
+    // 응답 본문을 텍스트로 먼저 확인
+    const responseText = await response.clone().text();
+    console.log('calendarService: 응답 본문 (텍스트):', responseText);
+
     if (!response.ok) {
       if (response.status === 401) {
+        console.error('calendarService: 인증 실패 - 401');
         throw new Error('로그인이 필요합니다.');
       }
+      console.error('calendarService: API 호출 실패', {
+        status: response.status,
+        statusText: response.statusText
+      });
       throw new Error('캘린더 데이터를 불러오는데 실패했습니다.');
     }
 
     const data = await response.json();
-    console.log('calendarService: 백엔드 응답 데이터:', data);
+    console.log('calendarService: 백엔드 응답 데이터 전체:', JSON.stringify(data, null, 2));
     console.log('calendarService: 응답 데이터 타입:', typeof data);
-    console.log('calendarService: 응답 데이터 길이:', data.length);
+    console.log('calendarService: 응답 데이터 길이:', data?.length || 0);
+    console.log('calendarService: 응답이 배열인가?', Array.isArray(data));
+    console.log('calendarService: 요청 URL:', `${API_BASE_URL}/api/calendar?year=${year}&month=${backendMonth}`);
+    console.log('calendarService: 요청 헤더:', headers);
     
     // 백엔드 응답 구조 상세 분석
     if (Array.isArray(data) && data.length > 0) {
       console.log('calendarService: 첫 번째 항목 상세 분석:', data[0]);
+      console.log('calendarService: 첫 번째 항목 전체 구조:', JSON.stringify(data[0], null, 2));
       console.log('calendarService: selectedMovie 필드 확인:', data[0].selectedMovie);
       console.log('calendarService: selectedMovie 타입:', typeof data[0].selectedMovie);
       console.log('calendarService: selectedMovie 내용:', JSON.stringify(data[0].selectedMovie, null, 2));
+      
+      // 모든 항목의 selectedMovie 확인
+      data.forEach((entry, index) => {
+        console.log(`calendarService: 항목 ${index} selectedMovie:`, {
+          hasSelectedMovie: !!entry.selectedMovie,
+          selectedMovie: entry.selectedMovie,
+          movieTitle: entry.selectedMovie?.title,
+          movieId: entry.selectedMovie?.id
+        });
+      });
+    } else if (Array.isArray(data)) {
+      console.log('calendarService: 빈 배열 응답 - 데이터가 없음');
+    } else {
+      console.log('calendarService: 예상과 다른 응답 형식:', data);
     }
     
     // 백엔드 응답을 프론트엔드 형식으로 변환
@@ -47,17 +92,41 @@ export const getMonthlyCalendarData = async (year, month) => {
       console.log(`calendarService: 항목 ${index} 변환 전:`, entry);
       console.log(`calendarService: 항목 ${index} selectedMovie:`, entry.selectedMovie);
       
+      // 날짜 파싱 - 백엔드에서 "2025-01-18" 형식으로 오는 경우
+      const entryDate = new Date(entry.date);
+      const day = entryDate.getDate();
+      
+      // 영화 데이터 변환 - 백엔드 MovieSummaryResponse 구조에 맞게
+      let selectedMovie = null;
+      if (entry.selectedMovie) {
+        selectedMovie = {
+          id: entry.selectedMovie.id,
+          tmdbId: entry.selectedMovie.tmdbId,
+          title: entry.selectedMovie.title,
+          posterUrl: entry.selectedMovie.posterUrl,
+          genre: entry.selectedMovie.genre,
+          releaseDate: entry.selectedMovie.releaseDate,
+          voteAverage: entry.selectedMovie.voteAverage
+        };
+      }
+      
       const transformed = {
-        day: new Date(entry.date).getDate(),
+        day: day,
         mood: entry.moodEmoji,
         notes: entry.note,
         date: entry.date,
         id: entry.id,
         recommendations: entry.recommendations || [],
-        selectedMovie: entry.selectedMovie || null
+        selectedMovie: selectedMovie
       };
       
       console.log(`calendarService: 항목 ${index} 변환 후:`, transformed);
+      console.log(`calendarService: 항목 ${index} 영화 데이터 확인:`, {
+        hasSelectedMovie: !!transformed.selectedMovie,
+        selectedMovieTitle: transformed.selectedMovie?.title,
+        selectedMovieId: transformed.selectedMovie?.id,
+        originalSelectedMovie: entry.selectedMovie
+      });
       return transformed;
     });
     
@@ -102,14 +171,30 @@ export const getCalendarEntry = async (date) => {
 
     const data = await response.json();
     // 백엔드 응답을 프론트엔드 형식으로 변환
+    const entryDate = new Date(data.date);
+    
+    // 영화 데이터 변환 - 백엔드 MovieSummaryResponse 구조에 맞게
+    let selectedMovie = null;
+    if (data.selectedMovie) {
+      selectedMovie = {
+        id: data.selectedMovie.id,
+        tmdbId: data.selectedMovie.tmdbId,
+        title: data.selectedMovie.title,
+        posterUrl: data.selectedMovie.posterUrl,
+        genre: data.selectedMovie.genre,
+        releaseDate: data.selectedMovie.releaseDate,
+        voteAverage: data.selectedMovie.voteAverage
+      };
+    }
+    
     return {
-      day: new Date(data.date).getDate(),
+      day: entryDate.getDate(),
       mood: data.moodEmoji,
       notes: data.note,
       date: data.date,
       id: data.id,
       recommendations: data.recommendations || [],
-      selectedMovie: data.selectedMovie || null
+      selectedMovie: selectedMovie
     };
   } catch (error) {
     console.error('캘린더 항목 로딩 오류:', error);
@@ -130,7 +215,7 @@ export const saveCalendarEntry = async (date, moodEmoji, note, movieData = null)
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    // API 스펙에 맞게 movieId를 전송하되, 백엔드에서 영화 정보를 조회할 수 없는 경우를 대비해 추가 정보도 포함
+    // 백엔드 API 스펙에 맞게 요청 데이터 구성
     const requestBody = {
       date,
       moodEmoji,
@@ -138,33 +223,15 @@ export const saveCalendarEntry = async (date, moodEmoji, note, movieData = null)
       movieId: movieData ? movieData.id : null
     };
     
-    // 백엔드에서 영화 정보를 조회할 수 없는 경우를 대비해 추가 영화 정보도 포함
-    // 만약 백엔드가 selectedMovie 객체를 직접 받는다면 이 부분을 사용
-    if (movieData) {
-      requestBody.movieInfo = {
-        tmdbId: movieData.tmdbId,
-        title: movieData.title,
-        posterUrl: movieData.posterUrl,
-        genre: movieData.genre,
-        releaseDate: movieData.releaseDate,
-        voteAverage: movieData.voteAverage
-      };
-      
-      // 백엔드가 selectedMovie 객체를 직접 받는 경우를 위한 대안
-      // requestBody.selectedMovie = movieData;
-    }
-    
-    console.log('calendarService: 백엔드로 전송할 데이터:', {
+    console.log('calendarService: 백엔드로 전송할 데이터 (수정됨):', {
       date,
       moodEmoji,
       note,
-      movieData,
       movieId: movieData ? movieData.id : null,
-      movieInfo: movieData ? requestBody.movieInfo : null,
-      movieDataString: JSON.stringify(movieData, null, 2),
-      movieDataType: typeof movieData,
+      movieData: movieData,
       hasMovieData: !!movieData
     });
+    
     
     const response = await fetch(`${API_BASE_URL}/api/calendar/entry`, {
       method: 'POST',
@@ -186,14 +253,30 @@ export const saveCalendarEntry = async (date, moodEmoji, note, movieData = null)
     console.log('calendarService: selectedMovie 내용:', JSON.stringify(data.selectedMovie, null, 2));
     
     // 백엔드 응답을 프론트엔드 형식으로 변환
+    const entryDate = new Date(data.date);
+    
+    // 영화 데이터 변환 - 백엔드 MovieSummaryResponse 구조에 맞게
+    let selectedMovie = null;
+    if (data.selectedMovie) {
+      selectedMovie = {
+        id: data.selectedMovie.id,
+        tmdbId: data.selectedMovie.tmdbId,
+        title: data.selectedMovie.title,
+        posterUrl: data.selectedMovie.posterUrl,
+        genre: data.selectedMovie.genre,
+        releaseDate: data.selectedMovie.releaseDate,
+        voteAverage: data.selectedMovie.voteAverage
+      };
+    }
+    
     return {
-      day: new Date(data.date).getDate(),
+      day: entryDate.getDate(),
       mood: data.moodEmoji,
       notes: data.note,
       date: data.date,
       id: data.id,
       recommendations: data.recommendations || [],
-      selectedMovie: data.selectedMovie || null
+      selectedMovie: selectedMovie
     };
   } catch (error) {
     console.error('캘린더 데이터 저장 오류:', error);

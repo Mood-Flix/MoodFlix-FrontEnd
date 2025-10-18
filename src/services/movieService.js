@@ -381,7 +381,7 @@ export const getMovieRecommendations = async (mood, customMood = '') => {
     // 요청 데이터 준비 (백엔드 API 형식에 맞게 수정)
     const requestData = {
       text: customMood.trim() || mood || '',
-      topN: 20 // 기본 추천 개수
+      topN: 5 // 기본 추천 개수
     };
     
     console.log('요청 데이터:', requestData);
