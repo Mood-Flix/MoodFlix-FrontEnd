@@ -13,20 +13,26 @@ const processedCodes = new Set();
 export const exchangeKakaoCodeForToken = async (authorizationCode) => {
   // 이미 처리된 코드인지 확인
   if (processedCodes.has(authorizationCode)) {
-    console.log('이미 처리된 인가 코드입니다.');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('이미 처리된 인가 코드입니다.');
+    }
     return null;
   }
 
   // 현재 처리 중인지 확인
   if (isProcessing) {
-    console.log('다른 요청이 처리 중입니다. 잠시 후 다시 시도해주세요.');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('다른 요청이 처리 중입니다. 잠시 후 다시 시도해주세요.');
+    }
     return null;
   }
 
   isProcessing = true;
 
   try {
-    console.log('카카오 토큰 교환 시작');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('카카오 토큰 교환 시작');
+    }
     
     const kakaoAppKey = process.env.REACT_APP_KAKAO_APP_KEY || process.env.REACT_APP_KAKAO_JAVASCRIPT_KEY;
     if (!kakaoAppKey) {
@@ -53,7 +59,9 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
     }
 
     const tokenData = await tokenResponse.json();
-    console.log('카카오 토큰 획득 성공');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('카카오 토큰 획득 성공');
+    }
 
     // 백엔드에 카카오 토큰 전송하여 JWT 받기
     const backendUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/kakao`;
@@ -74,16 +82,20 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
       } catch (e) {
         // ignore
       }
-      console.error('백엔드 인증 실패 상세:', {
-        status: response.status,
-        url: backendUrl,
-        body: errorText
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.error('백엔드 인증 실패 상세:', {
+          status: response.status,
+          url: backendUrl,
+          body: errorText
+        });
+      }
       throw new Error('백엔드 인증 실패');
     }
 
     const authData = await response.json();
-    console.log('백엔드 JWT 토큰 획득 성공');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('백엔드 JWT 토큰 획득 성공');
+    }
 
     // 성공적으로 교환된 코드만 처리 완료로 표시
     processedCodes.add(authorizationCode);
@@ -112,7 +124,9 @@ export const exchangeKakaoCodeForToken = async (authorizationCode) => {
  */
 export const kakaoLogin = async (kakaoAccessToken) => {
   try {
-    console.log('카카오 로그인 처리 시작');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('카카오 로그인 처리 시작');
+    }
     
     // 백엔드에 카카오 토큰 전송하여 JWT 받기
     const backendUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/kakao`;
@@ -133,16 +147,20 @@ export const kakaoLogin = async (kakaoAccessToken) => {
       } catch (e) {
         // ignore
       }
-      console.error('백엔드 인증 실패 상세:', {
-        status: response.status,
-        url: backendUrl,
-        body: errorText
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.error('백엔드 인증 실패 상세:', {
+          status: response.status,
+          url: backendUrl,
+          body: errorText
+        });
+      }
       throw new Error('백엔드 인증 실패');
     }
 
     const authData = await response.json();
-    console.log('백엔드 JWT 토큰 획득 성공');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('백엔드 JWT 토큰 획득 성공');
+    }
 
     // 백엔드에서 받은 JWT 토큰과 사용자 정보 저장
     const userInfo = authData.user || {
@@ -171,7 +189,9 @@ export const kakaoLogin = async (kakaoAccessToken) => {
  * 로그아웃
  */
 export const logout = () => {
-  console.log('로그아웃 처리');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('로그아웃 처리');
+  }
   
   // 로컬 스토리지 정리
   localStorage.removeItem('accessToken');
@@ -189,11 +209,13 @@ export const isTokenValid = () => {
   const token = localStorage.getItem('accessToken');
   const userInfo = localStorage.getItem('userInfo');
   
-  console.log('토큰 유효성 검사:', {
-    hasToken: !!token,
-    hasUserInfo: !!userInfo,
-    tokenLength: token ? token.length : 0
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log('토큰 유효성 검사:', {
+      hasToken: !!token,
+      hasUserInfo: !!userInfo,
+      tokenLength: token ? token.length : 0
+    });
+  }
   
   return !!(token && userInfo);
 };
@@ -252,22 +274,32 @@ export const clearKakaoSession = () => {
     if (token) {
       // 토큰이 있으면 서버에 로그아웃 요청 (에러 무시)
       window.Kakao.Auth.logout((response) => {
-        console.log('카카오 서버 로그아웃 요청 완료');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('카카오 서버 로그아웃 요청 완료');
+        }
       });
     }
     
     // 로컬 토큰 정리 (서버 요청과 관계없이 항상 수행)
     window.Kakao.Auth.setAccessToken(null);
-    console.log('카카오 로컬 세션 정리 완료');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('카카오 로컬 세션 정리 완료');
+    }
     
   } catch (error) {
     // 에러가 발생해도 로컬 토큰은 반드시 정리
-    console.log('카카오 세션 정리 중 에러 발생, 로컬 정리만 수행');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('카카오 세션 정리 중 에러 발생, 로컬 정리만 수행');
+    }
     try {
       window.Kakao.Auth.setAccessToken(null);
-      console.log('카카오 로컬 세션 정리 완료');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('카카오 로컬 세션 정리 완료');
+      }
     } catch (localError) {
-      console.error('로컬 토큰 정리 실패:', localError);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('로컬 토큰 정리 실패:', localError);
+      }
     }
   }
 };
