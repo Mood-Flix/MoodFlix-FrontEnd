@@ -20,7 +20,8 @@ const MyCalendar = () => {
     getEntryForDate,
     goToPreviousMonth,
     goToNextMonth,
-    goToCurrentMonth
+    goToCurrentMonth,
+    loadCalendarData
   } = useCalendarContext();
 
   // 인증 관련 상태
@@ -121,8 +122,33 @@ const MyCalendar = () => {
     });
   }
 
-  // 로그인 후 데이터 로딩 상태 확인 - 무한루프 방지를 위해 제거
-  // CalendarContext에서 자동으로 데이터를 로드하므로 별도의 강제 로딩 불필요
+  // 로그인 후 데이터 로딩 상태 확인
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const userInfo = localStorage.getItem('userInfo');
+    const hasValidAuth = !!(token && userInfo);
+    
+    console.log('MyCalendar: 로그인 상태 체크', {
+      isAuthenticated,
+      hasValidAuth,
+      authLoading,
+      token: token ? 'exists' : 'null',
+      userInfo: userInfo ? 'exists' : 'null'
+    });
+    
+    // 로그인 후 즉시 데이터 로드
+    if (!authLoading && (isAuthenticated || hasValidAuth)) {
+      console.log('MyCalendar: 로그인 감지 - 캘린더 데이터 로드 요청');
+      // CalendarContext의 loadCalendarData를 직접 호출
+      if (loadCalendarData) {
+        console.log('MyCalendar: loadCalendarData 직접 호출', {
+          calendarYear,
+          calendarMonth
+        });
+        loadCalendarData(calendarYear, calendarMonth);
+      }
+    }
+  }, [isAuthenticated, authLoading]);
   
 
   const handleDateClick = (day) => {

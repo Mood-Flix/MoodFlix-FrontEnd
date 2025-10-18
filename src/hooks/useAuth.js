@@ -220,6 +220,14 @@ export const useAuth = () => {
         
         // 로그인 성공 후 즉시 인증 상태를 완료로 설정
         setIsLoading(false);
+        
+        // 로그인 성공 후 약간의 지연을 두고 인증 상태를 다시 확인
+        // 이는 CalendarContext가 상태 변경을 감지할 수 있도록 함
+        setTimeout(() => {
+          console.log('useAuth: 로그인 성공 후 인증 상태 재확인');
+          // 강제로 상태 변경을 트리거하기 위해 다시 설정
+          setIsAuthenticated(true);
+        }, 100);
       }
 
     } catch (error) {

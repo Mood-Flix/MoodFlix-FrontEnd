@@ -333,6 +333,14 @@ export const CalendarProvider = ({ children }) => {
     const userInfo = localStorage.getItem('userInfo');
     const hasValidAuth = !!(token && userInfo);
     
+    console.log('CalendarContext: 인증 상태 체크', {
+      authLoading,
+      isAuthenticated,
+      hasValidAuth,
+      token: token ? 'exists' : 'null',
+      userInfo: userInfo ? 'exists' : 'null'
+    });
+    
     // 인증 로딩이 완료되고 (인증된 상태이거나 토큰이 있는 경우) 데이터 로드
     if (!authLoading && (isAuthenticated || hasValidAuth)) {
       console.log('CalendarContext: 인증 완료 - 서버에서 데이터 로드 시작', {
@@ -344,7 +352,94 @@ export const CalendarProvider = ({ children }) => {
       });
       loadCalendarData(currentYear, currentMonth);
     }
-  }, [authLoading, isAuthenticated, currentYear, currentMonth]); // loadCalendarData 의존성 제거
+  }, [authLoading, isAuthenticated, currentYear, currentMonth, loadCalendarData]);
+
+  // 로그인 상태 변경 시 즉시 데이터 로드 (추가 보장)
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const userInfo = localStorage.getItem('userInfo');
+    const hasValidAuth = !!(token && userInfo);
+    
+    console.log('CalendarContext: 로그인 상태 변경 감지 useEffect 실행', {
+      isAuthenticated,
+      hasValidAuth,
+      token: token ? 'exists' : 'null',
+      userInfo: userInfo ? 'exists' : 'null',
+      currentYear,
+      currentMonth
+    });
+    
+    // 로그인 상태가 변경되었을 때 즉시 데이터 로드
+    if (isAuthenticated || hasValidAuth) {
+      console.log('CalendarContext: 로그인 상태 변경 감지 - 즉시 데이터 로드', {
+        isAuthenticated,
+        hasValidAuth,
+        currentYear,
+        currentMonth
+      });
+      loadCalendarData(currentYear, currentMonth);
+    }
+  }, [isAuthenticated, currentYear, currentMonth, loadCalendarData]);
+
+  // 로그인 후 강제 데이터 로드를 위한 추가 useEffect
+  useEffect(() => {
+    const checkAndLoadData = () => {
+      const token = localStorage.getItem('accessToken');
+      const userInfo = localStorage.getItem('userInfo');
+      const hasValidAuth = !!(token && userInfo);
+      
+      console.log('CalendarContext: 강제 데이터 로드 체크', {
+        isAuthenticated,
+        hasValidAuth,
+        authLoading,
+        token: token ? 'exists' : 'null',
+        userInfo: userInfo ? 'exists' : 'null'
+      });
+      
+      if (!authLoading && (isAuthenticated || hasValidAuth)) {
+        console.log('CalendarContext: 강제 데이터 로드 실행');
+        loadCalendarData(currentYear, currentMonth);
+      }
+    };
+    
+    // 로그인 후 약간의 지연을 두고 데이터 로드 시도
+    const timeoutId = setTimeout(checkAndLoadData, 200);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isAuthenticated, authLoading, currentYear, currentMonth, loadCalendarData]);
+
+  // localStorage 변경 감지를 위한 추가 useEffect
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('accessToken');
+      const userInfo = localStorage.getItem('userInfo');
+      const hasValidAuth = !!(token && userInfo);
+      
+      console.log('CalendarContext: localStorage 변경 감지', {
+        isAuthenticated,
+        hasValidAuth,
+        authLoading,
+        token: token ? 'exists' : 'null',
+        userInfo: userInfo ? 'exists' : 'null'
+      });
+      
+      if (!authLoading && (isAuthenticated || hasValidAuth)) {
+        console.log('CalendarContext: localStorage 변경으로 인한 데이터 로드');
+        loadCalendarData(currentYear, currentMonth);
+      }
+    };
+    
+    // localStorage 변경 이벤트 리스너 등록
+    window.addEventListener('storage', handleStorageChange);
+    
+    // 컴포넌트 마운트 시에도 체크
+    const timeoutId = setTimeout(handleStorageChange, 100);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated, authLoading, currentYear, currentMonth, loadCalendarData]);
 
   // localStorage 저장 로직 제거 - 항상 서버에서 최신 데이터 사용
 
