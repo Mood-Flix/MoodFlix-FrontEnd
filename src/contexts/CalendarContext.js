@@ -320,19 +320,41 @@ export const CalendarProvider = ({ children }) => {
       console.log('CalendarContext: 새로고침 감지 - 토큰 존재, 인증 상태 확인 후 데이터 로드');
       
       // 인증 상태가 완전히 로드된 후에만 데이터 로드
+      let cancelled = false;
+      let timer = null;
+      let retryCount = 0;
+      const maxRetries = 20; // 최대 2초 (20 * 100ms)
+      
       const attemptLoad = () => {
+        // 취소되었거나 최대 재시도 횟수 초과 시 중단
+        if (cancelled || retryCount >= maxRetries) {
+          if (retryCount >= maxRetries) {
+            console.warn('CalendarContext: 인증 상태 확인 최대 재시도 횟수 초과 - 토큰이 있으므로 강제 로드');
+            // 토큰이 있으면 강제로 데이터 로드
+            loadCalendarData(currentYear, currentMonth);
+          }
+          return;
+        }
+        
         // 인증 상태가 완전히 로드되었는지 확인
         if (!authLoading && isAuthenticated) {
           console.log('CalendarContext: 인증 상태 확인 완료 - 데이터 로드 시작');
           loadCalendarData(currentYear, currentMonth);
         } else {
           // 인증 상태가 아직 로드 중이면 잠시 후 다시 시도
-          setTimeout(attemptLoad, 100);
+          retryCount++;
+          timer = setTimeout(attemptLoad, 100);
         }
       };
       
       // 인증 상태 확인 후 데이터 로드
       attemptLoad();
+      
+      // 클린업 함수 반환
+      return () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
     }
   }, [authLoading, isAuthenticated, currentYear, currentMonth, loadCalendarData]); // 의존성 배열에 인증 상태 추가
 
