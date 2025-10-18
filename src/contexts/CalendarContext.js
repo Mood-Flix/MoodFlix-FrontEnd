@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   getMonthlyCalendarData,
   saveCalendarEntry,
@@ -33,7 +33,15 @@ export const CalendarProvider = ({ children }) => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [loadingKeys, setLoadingKeys] = useState(new Set());
-
+  
+  // 최신 상태를 참조하기 위한 ref
+  const calendarDataRef = useRef(calendarData);
+  const loadingKeysRef = useRef(loadingKeys);
+  
+  // ref 업데이트
+  calendarDataRef.current = calendarData;
+  loadingKeysRef.current = loadingKeys;
+  
   // 특정 월의 캘린더 데이터 로드
   const loadCalendarData = useCallback(async (year, month, forceReload = false) => {
     // 인증 상태 확인
@@ -58,13 +66,13 @@ export const CalendarProvider = ({ children }) => {
     const monthKey = `${year}-${month}`;
     
     // 이미 로딩 중인 월이면 중복 요청 방지
-    if (loadingKeys.has(monthKey)) {
+    if (loadingKeysRef.current.has(monthKey)) {
       console.log('CalendarContext: 이미 로딩 중인 월 - 중복 요청 방지', monthKey);
       return;
     }
 
     // 강제 리로드가 아닌 경우에만 중복 로드 방지
-    if (!forceReload && calendarData[monthKey]) {
+    if (!forceReload && calendarDataRef.current[monthKey]) {
       console.log('CalendarContext: 이미 데이터가 있는 월 - 중복 로드 방지', monthKey);
       return;
     }
@@ -131,7 +139,7 @@ export const CalendarProvider = ({ children }) => {
         return newSet;
       });
     }
-  }, [isAuthenticated, calendarData, authLoading, loadingKeys]);
+  }, [isAuthenticated, authLoading]);
 
 
   // 특정 날짜의 데이터 가져오기

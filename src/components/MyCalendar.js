@@ -20,8 +20,7 @@ const MyCalendar = () => {
     getEntryForDate,
     goToPreviousMonth,
     goToNextMonth,
-    goToCurrentMonth,
-    forceReloadData
+    goToCurrentMonth
   } = useCalendarContext();
 
   // 인증 관련 상태
@@ -122,21 +121,8 @@ const MyCalendar = () => {
     });
   }
 
-  // 로그인 후 데이터 로딩 상태 확인 (한 번만 실행)
-  useEffect(() => {
-    if (isAuthenticated && !loading && !error && monthData.length === 0) {
-      console.log('MyCalendar: 로그인 후 데이터가 없음 - 데이터 로딩 재시도');
-      // 로그인 후에는 새로고침 플래그를 초기화하고 데이터 로딩을 시도
-      sessionStorage.removeItem('calendarReloadAttempted');
-      
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        console.log('MyCalendar: 토큰 존재, 강제 데이터 로딩 시도');
-        // CalendarContext의 강제 리로드 함수 사용 - 즉시 실행
-        forceReloadData();
-      }
-    }
-  }, [isAuthenticated, loading, error, monthData.length, forceReloadData]); // 의존성 배열 개선
+  // 로그인 후 데이터 로딩 상태 확인 - 무한루프 방지를 위해 제거
+  // CalendarContext에서 자동으로 데이터를 로드하므로 별도의 강제 로딩 불필요
   
 
   const handleDateClick = (day) => {
