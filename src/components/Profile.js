@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import UserAuthSection from './UserAuthSection';
 
 const Profile = () => {
-  const { user, isAuthenticated, loadUserProfile, isLoading, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
+  const { user, isAuthenticated, error: authError, login, loginWithKakaoCode, logout, clearError } = useAuth();
   const [imgError, setImgError] = useState(false);
 
   const displayUser = user || {};
@@ -86,11 +86,6 @@ const Profile = () => {
                 <span className="profile-label">이메일</span>
                 <span className="profile-value">{displayUser?.email || '-'}</span>
               </div>
-            </div>
-            <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
-              <button type="button" className="profile-back" onClick={() => loadUserProfile()} disabled={isLoading}>
-                {isLoading ? '불러오는 중...' : '프로필 새로고침'}
-              </button>
             </div>
           </>
         )}

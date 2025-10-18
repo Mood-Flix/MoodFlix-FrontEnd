@@ -17,16 +17,22 @@ const movieApi = axios.create({
 // 요청 인터셉터 - 인증 헤더 추가 및 성능 최적화
 movieApi.interceptors.request.use(
   (config) => {
-    console.log('=== 요청 인터셉터 실행 ===');
-    console.log('요청 URL:', config.url);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('=== 요청 인터셉터 실행 ===');
+      console.log('요청 URL:', config.url);
+    }
     
     const token = localStorage.getItem('accessToken');
-    console.log('localStorage 토큰:', token);
-    console.log('토큰 존재 여부:', !!token);
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('토큰 존재 여부:', !!token);
+    }
     
     const authHeaders = getAuthHeaders();
-    console.log('getAuthHeaders() 결과:', authHeaders);
-    console.log('인증 헤더가 비어있는가?', Object.keys(authHeaders).length === 0);
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('인증 헤더가 비어있는가?', Object.keys(authHeaders).length === 0);
+    }
     
     // 토큰이 있는 경우에만 인증 헤더 추가
     if (token) {
@@ -34,13 +40,23 @@ movieApi.interceptors.request.use(
         ...config.headers, 
         'Authorization': `Bearer ${token}` 
       };
-      console.log('인증 헤더 추가됨');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('인증 헤더 추가됨');
+      }
     } else {
-      console.log('토큰이 없어 인증 헤더 추가 안함');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('토큰이 없어 인증 헤더 추가 안함');
+      }
     }
     
-    console.log('최종 요청 헤더:', config.headers);
-    console.log('===============================');
+    if (process.env.NODE_ENV === 'development') {
+      const safeHeaders = { ...config.headers };
+      if (safeHeaders.Authorization) {
+        safeHeaders.Authorization = 'Bearer ***REDACTED***';
+      }
+      console.log('최종 요청 헤더:', safeHeaders);
+      console.log('===============================');
+    }
     
     // 요청 시간 기록 (성능 측정용)
     config.metadata = { startTime: Date.now() };
@@ -54,7 +70,7 @@ movieApi.interceptors.request.use(
 movieApi.interceptors.response.use(
   (response) => {
     // 응답 시간 측정
-    if (response.config.metadata?.startTime) {
+    if (response.config.metadata?.startTime && process.env.NODE_ENV === 'development') {
       const duration = Date.now() - response.config.metadata.startTime;
       console.log(`API 응답 시간: ${response.config.url} - ${duration}ms`);
     }
@@ -62,7 +78,7 @@ movieApi.interceptors.response.use(
   },
   (error) => {
     // 에러 응답 시간도 측정
-    if (error.config?.metadata?.startTime) {
+    if (error.config?.metadata?.startTime && process.env.NODE_ENV === 'development') {
       const duration = Date.now() - error.config.metadata.startTime;
       console.log(`API 에러 응답 시간: ${error.config.url} - ${duration}ms`);
     }
@@ -368,7 +384,9 @@ export const searchMovies = async (query, page = 0, size = 20) => {
 // 영화 추천 (감정 기반)
 export const getMovieRecommendations = async (mood, customMood = '') => {
   try {
-    console.log('=== 영화 추천 API 호출 시작 ===');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('=== 영화 추천 API 호출 시작 ===');
+    }
     
     // 토큰 확인
     const token = localStorage.getItem('accessToken');
@@ -376,15 +394,19 @@ export const getMovieRecommendations = async (mood, customMood = '') => {
       throw new Error('로그인이 필요합니다. 토큰이 없습니다.');
     }
     
-    console.log('토큰 확인됨:', token.substring(0, 20) + '...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('토큰 확인됨');
+    }
     
     // 요청 데이터 준비 (백엔드 API 형식에 맞게 수정)
     const requestData = {
       text: customMood.trim() || mood || '',
-      topN: 20 // 기본 추천 개수
+      topN: 5 // 기본 추천 개수
     };
     
-    console.log('요청 데이터:', requestData);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('요청 데이터:', requestData);
+    }
     
     // API 호출
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MOVIE_RECOMMENDATIONS}`, {
@@ -396,8 +418,9 @@ export const getMovieRecommendations = async (mood, customMood = '') => {
       body: JSON.stringify(requestData)
     });
     
-    console.log('응답 상태:', response.status);
-    console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
+    if (process.env.NODE_ENV === 'development') {
+      console.log('응답 상태:', response.status);
+    }
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -406,14 +429,7 @@ export const getMovieRecommendations = async (mood, customMood = '') => {
     }
     
     const data = await response.json();
-    console.log('API 응답 성공:', data);
-    console.log('응답 구조 확인:');
-    console.log('- version:', data.version);
-    console.log('- items:', data.items);
-    console.log('- logId:', data.logId);
-    console.log('- items 타입:', typeof data.items);
-    console.log('- items 배열 여부:', Array.isArray(data.items));
-    console.log('- items 길이:', data.items?.length);
+    // API 응답 데이터 로깅 제거 (민감정보 보호)
     
     return data;
   } catch (error) {

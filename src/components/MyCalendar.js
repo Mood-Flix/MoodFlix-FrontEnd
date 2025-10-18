@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCalendarContext } from '../contexts/CalendarContext';
 import { useAuth } from '../hooks/useAuth';
@@ -20,7 +20,8 @@ const MyCalendar = () => {
     getEntryForDate,
     goToPreviousMonth,
     goToNextMonth,
-    goToCurrentMonth
+    goToCurrentMonth,
+    loadCalendarData
   } = useCalendarContext();
 
   // 인증 관련 상태
@@ -82,15 +83,72 @@ const MyCalendar = () => {
   const daysWithEntries = monthData.map(entry => entry.day);
   // 저장된 기분 데이터가 있는 날짜들
   const daysWithMood = monthData.filter(entry => entry.mood).map(entry => entry.day);
-  // 영화 정보가 있는 날짜들
-  const daysWithMovies = monthData.filter(entry => entry.selectedMovie && entry.selectedMovie.title).map(entry => entry.day);
+  // 영화 정보가 있는 날짜들 - 더 엄격한 조건으로 확인
+  const daysWithMovies = monthData.filter(entry => {
+    const hasMovie = entry.selectedMovie && 
+                    entry.selectedMovie.title && 
+                    entry.selectedMovie.title.trim() !== '';
+    return hasMovie;
+  }).map(entry => entry.day);
   
-  // 디버깅을 위한 로그 추가
-  console.log('MyCalendar: 월 데이터 확인', {
-    monthData,
-    daysWithMovies,
-    moviesData: monthData.filter(entry => entry.selectedMovie && entry.selectedMovie.title)
-  });
+  // 디버깅을 위한 로그 (개발 모드에서만)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('MyCalendar: 월 데이터 확인', {
+      displayYear,
+      displayMonth,
+      monthDataLength: monthData.length,
+      daysWithMovies: daysWithMovies.length,
+      loading,
+      error,
+      isAuthenticated,
+      authLoading,
+      calendarData: calendarData,
+      monthKey: `${displayYear}-${displayMonth}`,
+      hasMonthData: !!calendarData[`${displayYear}-${displayMonth}`],
+      token: localStorage.getItem('accessToken') ? 'exists' : 'null',
+      userInfo: localStorage.getItem('userInfo') ? 'exists' : 'null',
+      // 월 계산 디버깅 정보 추가
+      frontendMonth: displayMonth,
+      backendMonth: displayMonth + 1,
+      monthName: new Date(displayYear, displayMonth).toLocaleString('ko-KR', { month: 'long' }),
+      // 실제 데이터 내용 확인
+      monthDataDetails: monthData.map(entry => ({
+        day: entry.day,
+        date: entry.date,
+        mood: entry.mood,
+        hasMovie: !!entry.selectedMovie,
+        movieTitle: entry.selectedMovie?.title
+      }))
+    });
+  }
+
+  // 로그인 후 데이터 로딩 상태 확인
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const userInfo = localStorage.getItem('userInfo');
+    const hasValidAuth = !!(token && userInfo);
+    
+    console.log('MyCalendar: 로그인 상태 체크', {
+      isAuthenticated,
+      hasValidAuth,
+      authLoading,
+      token: token ? 'exists' : 'null',
+      userInfo: userInfo ? 'exists' : 'null'
+    });
+    
+    // 로그인 후 즉시 데이터 로드
+    if (!authLoading && (isAuthenticated || hasValidAuth)) {
+      console.log('MyCalendar: 로그인 감지 - 캘린더 데이터 로드 요청');
+      // CalendarContext의 loadCalendarData를 직접 호출
+      if (loadCalendarData) {
+        console.log('MyCalendar: loadCalendarData 직접 호출', {
+          calendarYear,
+          calendarMonth
+        });
+        loadCalendarData(calendarYear, calendarMonth);
+      }
+    }
+  }, [isAuthenticated, authLoading]);
   
 
   const handleDateClick = (day) => {
@@ -134,8 +192,8 @@ const MyCalendar = () => {
   };
 
 
-  // 인증 상태 로딩 중
-  if (authLoading) {
+  // 인증 상태 로딩 중 또는 데이터 로딩 중
+  if (authLoading || (isAuthenticated && loading)) {
     return (
       <div className="my-calendar-container">
         <UserAuthSection 
@@ -151,7 +209,7 @@ const MyCalendar = () => {
         <div className="my-calendar-popup">
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>인증 상태를 확인하는 중...</p>
+            <p>{authLoading ? '인증 상태를 확인하는 중...' : '캘린더 데이터를 불러오는 중...'}</p>
           </div>
         </div>
       </div>
@@ -201,14 +259,6 @@ const MyCalendar = () => {
         onClearError={clearError}
       />
       
-      {loading && (
-        <div className="my-calendar-popup">
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>캘린더 데이터를 불러오는 중...</p>
-          </div>
-        </div>
-      )}
       {error && (
         <div className="my-calendar-popup">
           <div className="error-container">
@@ -265,8 +315,8 @@ const MyCalendar = () => {
                             {entry.mood || '😊'}
                           </span>
                         )}
-                        {hasMovie && entry && (
-                          <span className="movie-indicator">🎬</span>
+                        {hasMovie && entry && entry.selectedMovie && (
+                          <span className="movie-indicator" title={entry.selectedMovie.title}>🎬</span>
                         )}
                       </>
                     )}

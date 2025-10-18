@@ -124,7 +124,7 @@ ${entry.selectedMovie ? `🎬 ${entry.selectedMovie.title}` : ''}
           {/* 영화 정보 */}
           {entry.selectedMovie && entry.selectedMovie.title && (
             <div className="preview-section">
-              <h4>저장된 영화</h4>
+              <h4>오늘의 영화</h4>
               <div className="movie-display">
                 <div className="movie-poster-container">
                   <img 
