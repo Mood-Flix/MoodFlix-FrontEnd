@@ -54,15 +54,15 @@ const PhotoTicket = ({ entry, date, onClose }) => {
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error('클립보드 복사 실패:', err);
-      // fallback: 텍스트 선택 방식
-      const textArea = document.createElement('textarea');
-      textArea.value = shareUrl;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      // Clipboard API 미지원 브라우저: 수동 복사 안내
+      // URL 입력 필드를 선택하여 사용자가 수동으로 복사할 수 있도록 함
+      const urlInput = document.querySelector('.share-url-input');
+      if (urlInput) {
+        urlInput.focus();
+        urlInput.select();
+        // 사용자에게 수동 복사 안내 메시지 표시
+        alert('자동 복사가 지원되지 않습니다. URL이 선택되었으니 Ctrl+C (또는 Cmd+C)로 복사해주세요.');
+      }
     }
   };
 
