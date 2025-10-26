@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSharedCalendarEntry } from '../services/calendarService';
 import './PhotoTicket.css';
-import { formatDate, getMoodText } from '../utils/dateUtils';
+import { formatDate } from '../utils/dateUtils';
 
 const SharedPhotoTicket = () => {
   const { uuid } = useParams();
