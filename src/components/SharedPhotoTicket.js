@@ -10,6 +10,7 @@ const SharedPhotoTicket = () => {
   const [entry, setEntry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errorDetails, setErrorDetails] = useState(null);
 
   useEffect(() => {
     const loadSharedEntry = async () => {
@@ -28,7 +29,17 @@ const SharedPhotoTicket = () => {
           stack: err.stack,
           uuid: uuid
         });
+        
+        // 에러 상세 정보 저장
+        const errorInfo = {
+          message: err.message,
+          status: err.status || null,
+          statusText: err.statusText || null,
+          name: err.name || 'Error'
+        };
+        
         setError(err.message);
+        setErrorDetails(errorInfo);
       } finally {
         setLoading(false);
       }
@@ -39,6 +50,12 @@ const SharedPhotoTicket = () => {
     } else {
       console.error('UUID가 없습니다');
       setError('UUID가 제공되지 않았습니다.');
+      setErrorDetails({
+        message: 'UUID가 제공되지 않았습니다.',
+        status: null,
+        statusText: null,
+        name: 'ValidationError'
+      });
       setLoading(false);
     }
   }, [uuid]);
@@ -70,9 +87,22 @@ const SharedPhotoTicket = () => {
             <p>{error}</p>
             <div className="error-details">
               <p><strong>UUID:</strong> {uuid}</p>
-              <p><strong>API URL:</strong> {process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/calendar/share/{uuid}</p>
-              <p><strong>오류 유형:</strong> 500 내부 서버 오류</p>
-              <p><strong>해결 방법:</strong> 백엔드 개발자에게 서버 로그 확인 요청</p>
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <p><strong>API URL:</strong> {process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/calendar/share/{uuid}</p>
+                  <p><strong>오류 유형:</strong> {errorDetails ? 
+                    (errorDetails.status ? `${errorDetails.status} ${errorDetails.statusText || errorDetails.name}` : errorDetails.name) 
+                    : '알 수 없는 오류'}
+                  </p>
+                  <p><strong>해결 방법:</strong> 백엔드 개발자에게 서버 로그 확인 요청</p>
+                </>
+              )}
+              {process.env.NODE_ENV === 'production' && (
+                <p><strong>오류 유형:</strong> {errorDetails ? 
+                  (errorDetails.status ? `${errorDetails.status} ${errorDetails.statusText || errorDetails.name}` : errorDetails.name) 
+                  : '알 수 없는 오류'}
+                </p>
+              )}
             </div>
             <div className="error-actions">
               <button className="retry-btn" onClick={() => window.location.reload()}>
