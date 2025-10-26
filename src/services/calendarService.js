@@ -101,6 +101,7 @@ export const getMonthlyCalendarData = async (year, month) => {
         notes: entry.note,
         date: entry.date,
         id: entry.id,
+        shareUuid: entry.shareUuid,
         recommendations: entry.recommendations || [],
         selectedMovie: selectedMovie
       };
@@ -169,6 +170,7 @@ export const getCalendarEntry = async (date) => {
       notes: data.note,
       date: data.date,
       id: data.id,
+      shareUuid: data.shareUuid,
       recommendations: data.recommendations || [],
       selectedMovie: selectedMovie
     };
@@ -241,6 +243,7 @@ export const saveCalendarEntry = async (date, moodEmoji, note, movieData = null)
       notes: data.note,
       date: data.date,
       id: data.id,
+      shareUuid: data.shareUuid,
       recommendations: data.recommendations || [],
       selectedMovie: selectedMovie
     };
@@ -338,6 +341,7 @@ export const getSharedCalendarEntry = async (uuid) => {
       notes: data.note,
       date: data.date,
       id: data.id,
+      shareUuid: data.shareUuid,
       recommendations: data.recommendations || [],
       selectedMovie: selectedMovie
     };

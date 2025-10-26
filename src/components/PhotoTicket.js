@@ -18,8 +18,8 @@ const PhotoTicket = ({ entry, date, onClose }) => {
   const generateShareUrl = () => {
     const baseUrl = window.location.origin;
     
-    // 백엔드에서 받은 UUID 사용
-    const uuid = entry.id;
+    // 백엔드에서 받은 shareUuid 사용
+    const uuid = entry.shareUuid;
     console.log('공유 URL 생성:', { uuid, entry });
     
     if (!uuid) {
