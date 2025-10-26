@@ -339,8 +339,7 @@ export const getSharedCalendarEntry = async (uuid) => {
       date: data.date,
       id: data.id,
       recommendations: data.recommendations || [],
-      selectedMovie: selectedMovie,
-      posterUrl: data.posterUrl
+      selectedMovie: selectedMovie
     };
   } catch (error) {
     console.error('공유된 캘린더 데이터 로딩 오류:', error);
