@@ -1,0 +1,435 @@
+/* CGV 포토티켓 스타일 */
+.photo-ticket-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.photo-ticket-container {
+  position: relative;
+  max-width: 400px;
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  animation: photoTicketAppear 0.3s ease-out forwards;
+}
+
+@keyframes photoTicketAppear {
+  to {
+    transform: scale(1);
+  }
+}
+
+.photo-ticket-main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 포스터 섹션 */
+.poster-section {
+  position: relative;
+  height: 600px;
+  overflow: hidden;
+  background: #000;
+}
+
+.poster-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-ticket-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.photo-ticket-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* 티켓 정보 섹션 */
+.ticket-info-section {
+  background: white;
+  padding: 20px;
+  border-top: 3px solid #dc143c;
+}
+
+/* 메모 정보 */
+.memo-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.memo-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.4;
+  max-height: 2.8em; /* 2줄 제한 */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  text-align: left;
+}
+
+/* 티켓 푸터 */
+.ticket-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.date-info {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.mood-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mood-emoji {
+  font-size: 24px;
+}
+
+.moodflix-brand {
+  font-size: 16px;
+  font-weight: bold;
+  color: #dc143c;
+  letter-spacing: 1px;
+}
+
+
+/* 공유 버튼 */
+.photo-ticket-share {
+  position: absolute;
+  top: 15px;
+  right: 60px;
+  background: transparent;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.photo-ticket-share:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* 닫기 버튼 */
+.photo-ticket-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.photo-ticket-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+/* 공유 모달 */
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.share-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.share-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.share-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.share-modal-close:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.share-modal-content {
+  padding: 24px;
+}
+
+.share-modal-content p {
+  margin: 0 0 16px 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.share-url-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.share-url-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.share-url-input:focus {
+  border-color: #007bff;
+}
+
+.copy-btn {
+  padding: 12px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.copy-btn.copied {
+  background: #28a745;
+}
+
+.copy-btn.copied:hover {
+  background: #218838;
+}
+
+/* 공유된 페이지용 스타일 */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container h3 {
+  color: #dc3545;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.error-container p {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  padding: 12px 24px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.error-details {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  font-size: 12px;
+  text-align: left;
+}
+
+.error-details p {
+  margin: 4px 0;
+  color: #666;
+  word-break: break-all;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .photo-ticket-container {
+    max-width: 350px;
+    margin: 10px;
+  }
+  
+  .poster-section {
+    height: 450px;
+  }
+  
+  
+  
+  
+  .ticket-info-section {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-ticket-container {
+    max-width: 300px;
+    margin: 5px;
+  }
+  
+  .poster-section {
+    height: 400px;
+  }
+  
+  
+  
+  .mood-emoji {
+    font-size: 22px;
+  }
+  
+  .memo-text {
+    font-size: 13px;
+  }
+}

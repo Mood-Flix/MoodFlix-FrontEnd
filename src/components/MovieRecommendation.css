@@ -385,6 +385,7 @@
     flex-direction: column;
     justify-content: center;
     text-align: center;
+    align-items: center;
   }
   
   .recommend-movie-title {
@@ -400,15 +401,17 @@
   .movie-genre {
     color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
-    margin: 0 0 12px 0;
+    margin: 0 auto 12px auto;
     font-weight: 500;
     background: rgba(255, 255, 255, 0.1);
     padding: 4px 12px;
     border-radius: 20px;
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: fit-content;
     backdrop-filter: blur(10px);
-    margin: 0 auto 12px auto;
+    text-align: center;
   }
   
   .movie-description {

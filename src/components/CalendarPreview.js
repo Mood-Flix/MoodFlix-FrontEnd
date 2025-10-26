@@ -1,7 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CalendarPreview.css';
+import { formatDate, getMoodText } from '../utils/dateUtils';
 
 const CalendarPreview = ({ entry, date, onClose, onEdit }) => {
+  const navigate = useNavigate();
+  
   if (!entry) return null;
 
   // 디버깅을 위한 로그 추가
@@ -11,87 +15,18 @@ const CalendarPreview = ({ entry, date, onClose, onEdit }) => {
     hasMovie: !!entry.selectedMovie
   });
 
-  const handleShare = async () => {
-    const formatDate = (date) => {
-      const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-      const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-      return `${months[date.getMonth()]} ${date.getDate()}일 ${days[date.getDay()]}`;
-    };
-
-    const getMoodText = (mood) => {
-      const moodMap = {
-        '😐': '그냥저냥',
-        '😠': '화나요',
-        '😊': '좋아요',
-        '😢': '슬퍼요',
-        '🤩': '신나요'
-      };
-      return moodMap[mood] || mood;
-    };
-
-    const shareText = `📅 ${formatDate(date)}
-${entry.mood} ${getMoodText(entry.mood)}
-${entry.notes ? `💭 ${entry.notes}` : ''}
-${entry.selectedMovie ? `🎬 ${entry.selectedMovie.title}` : ''}
-
-#MoodFlix #기분캘린더`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${formatDate(date)} - MoodFlix`,
-          text: shareText,
-        });
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('공유 실패:', error);
-          fallbackShare(shareText);
-        }
+  const handleShare = () => {
+    console.log('공유하기 버튼 클릭됨', { entry, date });
+    // PhotoTicket 페이지로 이동하면서 데이터 전달
+    navigate('/calendar/photo-ticket', {
+      state: {
+        entry: entry,
+        date: date.toISOString()
       }
-    } else {
-      fallbackShare(shareText);
-    }
+    });
   };
 
-  const fallbackShare = (text) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert('클립보드에 복사되었습니다!');
-      }).catch(() => {
-        alert('복사에 실패했습니다.');
-      });
-    } else {
-      // 클립보드 API가 없는 경우 텍스트 영역을 생성하여 복사
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        alert('클립보드에 복사되었습니다!');
-      } catch (err) {
-        alert('복사에 실패했습니다.');
-      }
-      document.body.removeChild(textArea);
-    }
-  };
 
-  const formatDate = (date) => {
-    const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-    return `${months[date.getMonth()]} ${date.getDate()}일 ${days[date.getDay()]}`;
-  };
-
-  const getMoodText = (mood) => {
-    const moodMap = {
-      '😐': '그냥저냥',
-      '😠': '화나요',
-      '😊': '좋아요',
-      '😢': '슬퍼요',
-      '🤩': '신나요'
-    };
-    return moodMap[mood] || mood;
-  };
 
   return (
     <div className="calendar-preview-overlay" onClick={onClose}>
