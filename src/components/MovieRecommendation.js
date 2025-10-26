@@ -203,7 +203,7 @@ const MovieRecommendation = ({ onMovieClick }) => {
                               handleAddToCalendar(movie);
                             }}
                           >
-                            📅 캘린더에 추가
+                            캘린더에 추가
                           </button>
                         </div>
                       </div>

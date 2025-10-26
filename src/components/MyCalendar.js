@@ -329,19 +329,15 @@ const MyCalendar = () => {
           <div className="my-calendar-legend">
             <div className="legend-item">
               <span className="legend-emoji">😊</span>
-              <span>기분 기록</span>
+              <span>기분</span>
             </div>
             <div className="legend-item">
               <span className="legend-emoji">🎬</span>
-              <span>영화 저장</span>
+              <span>영화</span>
             </div>
             <div className="legend-item">
               <span className="legend-emoji">📝</span>
-              <span>메모만 있음</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-emoji">📅</span>
-              <span>오늘</span>
+              <span>메모</span>
             </div>
           </div>
         </div>
