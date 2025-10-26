@@ -213,6 +213,7 @@ export const CalendarProvider = ({ children }) => {
         notes: savedEntry.notes,
         date: savedEntry.date,
         id: savedEntry.id,
+        shareUuid: savedEntry.shareUuid,
         recommendations: savedEntry.recommendations,
         selectedMovie: savedEntry.selectedMovie || null
       };
