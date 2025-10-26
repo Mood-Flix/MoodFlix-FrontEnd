@@ -282,3 +282,85 @@ export const deleteCalendarEntry = async (date) => {
   }
 };
 
+// UUID로 공유된 캘린더 엔트리 가져오기
+export const getSharedCalendarEntry = async (uuid) => {
+  try {
+    const url = `${API_BASE_URL}/api/calendar/share/${uuid}`;
+    console.log('공유 API 호출:', { url, uuid, API_BASE_URL });
+    
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      // 네트워크 타임아웃 설정
+      signal: AbortSignal.timeout(10000) // 10초 타임아웃
+    });
+
+    console.log('공유 API 응답:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      url: response.url
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('공유된 페이지를 찾을 수 없습니다.');
+      }
+      throw new Error(`공유된 캘린더 데이터를 불러오는데 실패했습니다. (${response.status}: ${response.statusText})`);
+    }
+
+    const data = await response.json();
+    console.log('공유 API 데이터:', data);
+    
+    // 백엔드 응답을 프론트엔드 형식으로 변환
+    const entryDate = new Date(data.date);
+    
+    // 영화 데이터 변환 - 백엔드 MovieSummaryResponse 구조에 맞게
+    let selectedMovie = null;
+    if (data.selectedMovie) {
+      selectedMovie = {
+        id: data.selectedMovie.id,
+        tmdbId: data.selectedMovie.tmdbId,
+        title: data.selectedMovie.title,
+        posterUrl: data.selectedMovie.posterUrl,
+        genre: data.selectedMovie.genre,
+        releaseDate: data.selectedMovie.releaseDate,
+        voteAverage: data.selectedMovie.voteAverage
+      };
+    }
+    
+    return {
+      day: entryDate.getDate(),
+      mood: data.moodEmoji,
+      notes: data.note,
+      date: data.date,
+      id: data.id,
+      recommendations: data.recommendations || [],
+      selectedMovie: selectedMovie,
+      posterUrl: data.posterUrl
+    };
+  } catch (error) {
+    console.error('공유된 캘린더 데이터 로딩 오류:', error);
+    
+    // 네트워크 오류 처리
+    if (error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 네트워크 연결을 확인해주세요.');
+    }
+    
+    // CORS 오류 처리
+    if (error.message.includes('CORS') || error.message.includes('cross-origin')) {
+      throw new Error('CORS 오류가 발생했습니다. 백엔드 서버의 CORS 설정을 확인해주세요.');
+    }
+    
+    // 네트워크 연결 오류 처리
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('네트워크 연결에 실패했습니다. 백엔드 서버가 실행 중인지 확인해주세요.');
+    }
+    
+    throw error;
+  }
+};
+

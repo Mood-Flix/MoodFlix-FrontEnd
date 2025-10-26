@@ -10,6 +10,7 @@ import MyCalendar from './components/MyCalendar';
 import Profile from './components/Profile';
 import SearchModal from './components/SearchModal';
 import PhotoTicket from './components/PhotoTicket';
+import SharedPhotoTicket from './components/SharedPhotoTicket';
 import { useAuth } from './hooks/useAuth';
 import { CalendarProvider } from './contexts/CalendarContext';
 
@@ -52,6 +53,7 @@ function AppLayout() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/movie/:id" element={<MovieDetailRedirect />} />
         <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />
+        <Route path="/share/:uuid" element={<SharedPhotoTicket />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

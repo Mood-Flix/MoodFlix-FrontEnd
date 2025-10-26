@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './PhotoTicket.css';
 
 const PhotoTicket = ({ entry, date, onClose }) => {
+  const [shareUrl, setShareUrl] = useState('');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
   if (!entry) return null;
 
   const formatDate = (date) => {
@@ -34,6 +38,54 @@ const PhotoTicket = ({ entry, date, onClose }) => {
 
   // 실제 영화 데이터가 있으면 사용, 없으면 더미 데이터 사용
   const movieData = entry.selectedMovie && entry.selectedMovie.title ? entry.selectedMovie : dummyMovieData;
+
+  // 공유 URL 생성
+  const generateShareUrl = () => {
+    const baseUrl = window.location.origin;
+    
+    // 백엔드에서 받은 UUID 사용
+    const uuid = entry.id;
+    console.log('공유 URL 생성:', { uuid, entry });
+    
+    if (!uuid) {
+      alert('공유할 수 있는 ID가 없습니다.');
+      return;
+    }
+    
+    const url = `${baseUrl}/share/${uuid}`;
+    setShareUrl(url);
+    setIsShareModalOpen(true);
+    
+    // 백엔드 API 상태 확인을 위한 테스트
+    console.log('생성된 공유 URL:', url);
+    console.log('백엔드 API 테스트 필요: GET', `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/api/calendar/share/${uuid}`);
+  };
+
+  // URL 복사 기능
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('클립보드 복사 실패:', err);
+      // fallback: 텍스트 선택 방식
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  // 공유 모달 닫기
+  const closeShareModal = () => {
+    setIsShareModalOpen(false);
+    setIsCopied(false);
+  };
 
 
   return (
@@ -77,11 +129,45 @@ const PhotoTicket = ({ entry, date, onClose }) => {
         </div>
 
 
+        {/* 공유 버튼 */}
+        <button className="photo-ticket-share" onClick={generateShareUrl} aria-label="공유하기">
+          📤
+        </button>
+
         {/* 닫기 버튼 */}
         <button className="photo-ticket-close" onClick={onClose} aria-label="닫기">
           ×
         </button>
       </div>
+
+      {/* 공유 모달 */}
+      {isShareModalOpen && (
+        <div className="share-modal-overlay" onClick={closeShareModal}>
+          <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="share-modal-header">
+              <h3>공유하기</h3>
+              <button className="share-modal-close" onClick={closeShareModal}>×</button>
+            </div>
+            <div className="share-modal-content">
+              <p>이 포토티켓을 공유할 수 있는 링크입니다:</p>
+              <div className="share-url-container">
+                <input 
+                  type="text" 
+                  value={shareUrl} 
+                  readOnly 
+                  className="share-url-input"
+                />
+                <button 
+                  className={`copy-btn ${isCopied ? 'copied' : ''}`}
+                  onClick={copyToClipboard}
+                >
+                  {isCopied ? '복사됨!' : '복사'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
