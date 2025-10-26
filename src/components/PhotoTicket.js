@@ -10,19 +10,9 @@ const PhotoTicket = ({ entry, date, onClose }) => {
   if (!entry) return null;
 
 
-  // 더미 데이터 (백엔드 API 연동 전까지 사용)
-  const dummyMovieData = {
-    title: '끝까지 간다',
-    originalTitle: 'A Hard Day',
-    releaseDate: '2014.05.29',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/example-poster.jpg', // 실제 포스터 URL로 교체 예정
-    genre: '액션, 스릴러',
-    director: '김성훈',
-    rating: 7.2
-  };
-
-  // 실제 영화 데이터가 있으면 사용, 없으면 더미 데이터 사용
-  const movieData = entry.selectedMovie && entry.selectedMovie.title ? entry.selectedMovie : dummyMovieData;
+  // 영화 데이터가 있는지 확인
+  const hasMovie = entry.selectedMovie && entry.selectedMovie.title;
+  const movieData = hasMovie ? entry.selectedMovie : null;
 
   // 공유 URL 생성
   const generateShareUrl = () => {
@@ -81,14 +71,20 @@ const PhotoTicket = ({ entry, date, onClose }) => {
           {/* 영화 포스터 영역 */}
           <div className="poster-section">
             <div className="poster-container">
-              <img 
-                src={movieData.posterUrl} 
-                alt={movieData.title}
-                className="photo-ticket-poster"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/300x450/333/fff?text=포스터+없음';
-                }}
-              />
+              {hasMovie ? (
+                <img 
+                  src={movieData.posterUrl} 
+                  alt={movieData.title}
+                  className="photo-ticket-poster"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/300x450/333/fff?text=포스터+없음';
+                  }}
+                />
+              ) : (
+                <div className="photo-ticket-poster-placeholder">
+                  <span>영화 포스터</span>
+                </div>
+              )}
             </div>
           </div>
 
