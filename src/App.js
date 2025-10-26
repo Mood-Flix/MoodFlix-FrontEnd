@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -9,6 +9,7 @@ import CalendarEdit from './components/CalendarEdit';
 import MyCalendar from './components/MyCalendar';
 import Profile from './components/Profile';
 import SearchModal from './components/SearchModal';
+import PhotoTicket from './components/PhotoTicket';
 import { useAuth } from './hooks/useAuth';
 import { CalendarProvider } from './contexts/CalendarContext';
 
@@ -47,6 +48,7 @@ function AppLayout() {
         <Route path="/recommendation" element={<MovieRecommendation onMovieClick={handleMovieClick} />} />
         <Route path="/calendar" element={<MyCalendar />} />
         <Route path="/calendar/edit" element={<CalendarEdit />} />
+        <Route path="/calendar/photo-ticket" element={<PhotoTicketWrapper />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/movie/:id" element={<MovieDetailRedirect />} />
         <Route path="/movie/:id/:tab" element={<MovieDetailWrapper />} />
@@ -70,6 +72,33 @@ function MovieDetailWrapper() {
   const movie = { id: parseInt(id) };
 
   return <MovieDetail movie={movie} activeTab={tab || 'overview'} />;
+}
+
+// PhotoTicket 래퍼 컴포넌트
+function PhotoTicketWrapper() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  console.log('PhotoTicketWrapper 렌더링됨', { location, state: location.state });
+  
+  const handleClose = () => {
+    navigate('/calendar');
+  };
+
+  // state에서 데이터가 없으면 캘린더로 리다이렉트
+  if (!location.state || !location.state.entry || !location.state.date) {
+    console.log('데이터가 없어서 캘린더로 리다이렉트');
+    navigate('/calendar');
+    return null;
+  }
+
+  return (
+    <PhotoTicket 
+      entry={location.state.entry} 
+      date={new Date(location.state.date)} 
+      onClose={handleClose} 
+    />
+  );
 }
 
 function App() {
